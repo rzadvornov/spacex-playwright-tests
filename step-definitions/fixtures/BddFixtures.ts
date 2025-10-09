@@ -45,7 +45,6 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
     async ({ page }, use) => {
       const errors: string[] = [];
 
-      // Listener to capture console errors during the test run
       page.on("console", (msg) => {
         if (msg.type() === "error") {
           errors.push(msg.text());
@@ -54,7 +53,7 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
 
       await use(errors);
     },
-    { scope: "test", auto: true }, // 'auto: true' ensures this runs for every test/scenario
+    { scope: "test", auto: true }, 
   ],
 }) as TestType<PlaywrightTestArgs & BddFixtures & ConsoleErrorFixture, {}>;
 
