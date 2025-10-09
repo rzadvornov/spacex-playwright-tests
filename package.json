@@ -2,8 +2,9 @@
   "name": "spacex-playwright-tests",
   "version": "1.0.0",
   "description": "End-to-End (E2E) automated tests for the SpaceX website using Playwright. Includes UI, API, functionality, and visual regression testing.",
-  "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test": "npx playwright test"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rzadvornov/spacex-playwright-tests.git"
@@ -17,11 +18,15 @@
   },
   "homepage": "https://github.com/rzadvornov/spacex-playwright-tests#readme",
   "devDependencies": {
+    "@eslint/js": "^9.37.0",
     "@playwright/test": "^1.55.1",
     "@types/node": "^24.6.2",
-    "typescript": "^5.9.3"
-  },
-  "dependencies": {
-    "@cucumber/cucumber": "^12.2.0"
+    "eslint": "^9.37.0",
+    "i": "^0.3.7",
+    "npm": "^11.6.2",
+    "playwright-bdd": "^8.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.0"
   }
 }
