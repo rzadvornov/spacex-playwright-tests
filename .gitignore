@@ -148,3 +148,4 @@ vite.config.ts.timestamp-*
 /playwright/.cache/
 /playwright/.auth/
 /cucumber-report/
+/tests/
