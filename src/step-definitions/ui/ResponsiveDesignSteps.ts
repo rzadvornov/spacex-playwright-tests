@@ -19,70 +19,58 @@ export class ResponsiveDesignSteps {
     // Check viewport meta tag
     const viewportMeta =
       await this.humanSpaceflightPage.responsiveDesign.getViewportMetaContent();
-    expect(viewportMeta, {
-      message:
-        requirements.Viewport ||
-        "Viewport meta tag should be properly configured",
-    }).toBeTruthy();
+    expect(
+      viewportMeta,
+      requirements.Viewport || "Viewport meta tag should be properly configured"
+    ).toBeTruthy();
 
     // Check media queries
     const mediaQueriesActive =
       await this.humanSpaceflightPage.responsiveDesign.areMediaQueriesActive();
-    expect(mediaQueriesActive, {
-      message:
-        requirements["Media Queries"] || "Media queries should be active",
-    }).toBe(true);
+    expect(
+      mediaQueriesActive,
+      requirements["Media Queries"] || "Media queries should be active"
+    ).toBe(true);
 
     // Check base font units
     const usesRelativeUnits =
       await this.humanSpaceflightPage.responsiveDesign.checkRelativeFontUnits();
-    expect(usesRelativeUnits, {
-      message:
-        requirements["Base Font"] || "Font units should be relative (rem/em)",
-    }).toBe(true);
+    expect(
+      usesRelativeUnits,
+      requirements["Base Font"] || "Font units should be relative (rem/em)"
+    ).toBe(true);
 
     const containerFluid =
       await this.humanSpaceflightPage.responsiveDesign.isContainerFluid();
-    expect(containerFluid, {
-      message: "Container should be fluid with max-width limits",
-    }).toBe(true);
+    expect(
+      containerFluid,
+      "Container should be fluid with max-width limits"
+    ).toBe(true);
 
     const gridImplemented =
       await this.humanSpaceflightPage.responsiveDesign.isGridSystemImplemented();
-    expect(gridImplemented, {
-      message: "Grid system should be implemented",
-    }).toBe(true);
+    expect(gridImplemented, "Grid system should be implemented").toBe(true);
   }
 
   @Then("responsive images should be properly configured:")
-  async checkResponsiveImages(dataTable: DataTable) {
-    const requirements = dataTable.rowsHash();
+  async checkResponsiveImages(dataTable: any) {
     const imageConfigs =
       await this.humanSpaceflightPage.responsiveDesign.checkResponsiveImages();
 
-    expect(imageConfigs.hasSrcset, {
-      message:
-        requirements.srcset ||
-        "Images should have srcset attribute with multiple resolution options",
-    }).toBe(true);
-
-    expect(imageConfigs.hasSizes, {
-      message:
-        requirements.sizes ||
-        "Images should have sizes attribute for viewport-based selection",
-    }).toBe(true);
-
-    expect(imageConfigs.hasLazyLoading, {
-      message:
-        requirements["lazy loading"] ||
-        "Images should implement lazy loading for below-fold images",
-    }).toBe(true);
-
-    expect(imageConfigs.preservesAspectRatio, {
-      message:
-        requirements["aspect ratio"] ||
-        "Images should preserve aspect ratio during scaling",
-    }).toBe(true);
+    expect(imageConfigs.hasSrcset, "Images should have srcset attribute").toBe(
+      true
+    );
+    expect(imageConfigs.hasSizes, "Images should have sizes attribute").toBe(
+      true
+    );
+    expect(
+      imageConfigs.hasLazyLoading,
+      "Images should implement lazy loading"
+    ).toBe(true);
+    expect(
+      imageConfigs.preservesAspectRatio,
+      "Images should preserve aspect ratio"
+    ).toBe(true);
   }
 
   @When("I view the {string} on a mobile device with width {string}px")
@@ -94,19 +82,21 @@ export class ResponsiveDesignSteps {
   }
 
   @Then("the section should meet mobile requirements:")
-  async checkMobileRequirements(dataTable: DataTable) {
+  async checkMobileRequirements(dataTable: any) {
     const requirements = dataTable.rowsHash();
     const checks =
       await this.humanSpaceflightPage.responsiveDesign.checkMobileRequirements();
 
     expect(checks.layout).toBe(requirements.Layout);
     expect(checks.contentFlow).toBe(requirements["Content Flow"]);
-    expect(checks.touchTargets >= 44, {
-      message: "Touch targets should be at least 44px",
-    }).toBe(true);
-    expect(checks.textSize >= 16, {
-      message: "Base text size should be at least 16px",
-    }).toBe(true);
+    expect(
+      checks.touchTargets >= 44,
+      "Touch targets should be at least 44px"
+    ).toBe(true);
+    expect(
+      checks.textSize >= 16,
+      "Base text size should be at least 16px"
+    ).toBe(true);
   }
 
   @When("I interact with {string} on {string} with width {string}px")
@@ -120,19 +110,15 @@ export class ResponsiveDesignSteps {
   }
 
   @Then("the interaction should follow device patterns:")
-  async checkDevicePatterns(dataTable: DataTable) {
+  async checkDevicePatterns(dataTable: any) {
     const requirements = dataTable.rowsHash();
     const patterns =
       await this.humanSpaceflightPage.responsiveDesign.checkInteractionPatterns();
 
     expect(patterns.inputMethod).toBe(requirements["Input Method"]);
     expect(patterns.feedback).toBe(requirements["Feedback Type"]);
-    expect(patterns.responseTime, {
-      message: "Response time should be under 100ms",
-    }).toBeLessThan(100);
-    expect(patterns.visualCues, {
-      message: "Visual cues should be present",
-    }).toBeTruthy();
+    expect(patterns.responseTime).toBeLessThan(100);
+    expect(patterns.visualCues).toBeTruthy();
     expect(patterns.errorHandling).toBe(requirements["Error Feedback"]);
   }
 
@@ -148,7 +134,7 @@ export class ResponsiveDesignSteps {
   }
 
   @Then("the layout should adapt appropriately:")
-  async checkLayoutAdaptation(dataTable: DataTable) {
+  async checkLayoutAdaptation(dataTable: any) {
     const adaptations =
       await this.humanSpaceflightPage.responsiveDesign.checkLayoutTransitions();
     const requirements = dataTable.rowsHash();
@@ -161,27 +147,19 @@ export class ResponsiveDesignSteps {
   }
 
   @Then("responsive implementation should meet performance criteria:")
-  async checkPerformanceCriteria(dataTable: DataTable) {
+  async checkPerformanceCriteria(dataTable: any) {
     const performance =
       await this.humanSpaceflightPage.responsiveDesign.checkPerformanceMetrics();
     const criteria = dataTable.rowsHash();
 
-    expect(performance.cls, {
-      message: "CLS should be less than 0.1",
-    }).toBeLessThan(0.1);
-    expect(performance.resizeResponse, {
-      message: "Resize response should be under 100ms",
-    }).toBeLessThan(100);
-    expect(performance.imageLoading, {
-      message: "Image loading should be progressive and optimized",
-    }).toBe("Progressive, optimized");
-    expect(performance.animationFps, {
-      message: "Animation FPS should be at least 60",
-    }).toBeGreaterThanOrEqual(60);
+    expect(performance.cls).toBeLessThan(0.1);
+    expect(performance.resizeResponse).toBeLessThan(100);
+    expect(performance.imageLoading).toBe("Progressive, optimized");
+    expect(performance.animationFps).toBeGreaterThanOrEqual(60);
   }
 
   @Then("responsive assets should be optimized:")
-  async checkAssetOptimization(dataTable: DataTable) {
+  async checkAssetOptimization(dataTable: any) {
     const optimization =
       await this.humanSpaceflightPage.responsiveDesign.checkAssetOptimization();
     const requirements = dataTable.rowsHash();
@@ -192,246 +170,611 @@ export class ResponsiveDesignSteps {
   }
 
   @Then("the responsive design should maintain accessibility:")
-  async checkAccessibility(dataTable: DataTable) {
+  async checkAccessibility(dataTable: any) {
     const accessibility =
       await this.humanSpaceflightPage.responsiveDesign.checkAccessibilityCompliance();
     const requirements = dataTable.rowsHash();
 
-    expect(accessibility.textScaling, {
-      message: "Should support 200% zoom",
-    }).toBe("Supports 200% zoom");
-    expect(accessibility.touchTargets, {
-      message: "Touch targets should be at least 44px",
-    }).toBeGreaterThanOrEqual(44);
+    expect(accessibility.textScaling).toBe("Supports 200% zoom");
+    expect(accessibility.touchTargets).toBeGreaterThanOrEqual(44);
 
     for (const [feature, requirement] of Object.entries(requirements)) {
-      if (feature !== "WCAG Level") {
-        expect(accessibility[feature.toLowerCase().replace(/\s+/g, "")]).toBe(
-          requirement
-        );
-      }
+      expect(accessibility[feature.toLowerCase()]).toBe(requirement);
     }
   }
 
-  @Then("device-specific accessibility features:")
-  async checkDeviceSpecificAccessibility(dataTable: DataTable) {
-    const deviceFeatures = dataTable.hashes();
-
-    for (const feature of deviceFeatures) {
-      const { Device, Feature, Implementation } = feature;
-
-      // Verify the feature is implemented based on device type
-      const isImplemented = await this.page.evaluate((deviceType) => {
-        switch (deviceType) {
-          case "Mobile":
-            return document.querySelector("[data-touch-gestures]") !== null;
-          case "Tablet":
-            return document.body.classList.contains("orientation-support");
-          case "Desktop":
-            return document.querySelector("[tabindex]") !== null;
-          case "All":
-            return document.querySelector("[role]") !== null;
-          default:
-            return false;
-        }
-      }, Device);
-
-      expect(isImplemented, {
-        message: `${Feature} should be implemented for ${Device}`,
-      }).toBe(true);
-    }
+  @When("I view the page on a mobile device with {int}px width")
+  async setMobileViewport(width: number) {
+    await this.humanSpaceflightPage.responsiveDesign.setViewportSize(width);
   }
 
-  @Then("images should meet responsive requirements:")
-  async checkImageResponsiveRequirements(dataTable: DataTable) {
-    const requirements = dataTable.hashes();
-    const viewport = this.page.viewportSize();
-    const currentWidth = viewport?.width || 1024;
-
-    for (const requirement of requirements) {
-      const { Requirement, Mobile, Tablet, Desktop } = requirement;
-      let expectedValue: string;
-
-      if (currentWidth <= 375) {
-        expectedValue = Mobile;
-      } else if (currentWidth <= 768) {
-        expectedValue = Tablet;
-      } else {
-        expectedValue = Desktop;
-      }
-
-      switch (Requirement) {
-        case "Resolution":
-          const hasOptimizedImages = await this.page.evaluate(() => {
-            const images = document.querySelectorAll("img");
-            return Array.from(images).every((img) => {
-              const src = img.getAttribute("src") || "";
-              return src.includes("optimized") || src.includes("webp");
-            });
-          });
-          expect(hasOptimizedImages, {
-            message: `Images should be ${expectedValue}`,
-          }).toBe(true);
-          break;
-
-        case "Scaling":
-          const maintainsAspectRatio = await this.page.evaluate(() => {
-            const images = document.querySelectorAll("img");
-            return Array.from(images).every((img) => {
-              const naturalRatio = img.naturalWidth / img.naturalHeight;
-              const displayRatio = img.width / img.height;
-              return Math.abs(naturalRatio - displayRatio) < 0.1;
-            });
-          });
-          expect(maintainsAspectRatio, {
-            message: `Images should ${expectedValue}`,
-          }).toBe(true);
-          break;
-
-        case "Loading":
-          const loadingStrategy = await this.page.evaluate(() => {
-            const images = document.querySelectorAll("img");
-            const hasLazy = Array.from(images).some(
-              (img) => img.loading === "lazy"
-            );
-            return hasLazy ? "Progressive loading" : "Standard loading";
-          });
-          expect(loadingStrategy, {
-            message: `Loading should be ${expectedValue}`,
-          }).toBe(expectedValue);
-          break;
-      }
-    }
+  @Then("the page layout should adapt for mobile")
+  async checkMobileLayout() {
+    const checks =
+      await this.humanSpaceflightPage.responsiveDesign.checkMobileResponsiveness();
+    expect(
+      checks.isContentSingleColumn,
+      "Content should be in single column"
+    ).toBe(true);
+    expect(
+      checks.hasHorizontalScroll,
+      "Page should not have horizontal scroll"
+    ).toBe(false);
   }
 
-  @When("viewing content on {string} with width {string}px")
-  async setViewportForTypography(device: string, width: string) {
-    await this.humanSpaceflightPage.responsiveDesign.setViewportSize(
-      parseInt(width)
+  @Then("content should be single-column")
+  async checkSingleColumn() {
+    const checks =
+      await this.humanSpaceflightPage.responsiveDesign.checkMobileResponsiveness();
+    expect(
+      checks.isContentSingleColumn,
+      "Content should be in single column"
+    ).toBe(true);
+  }
+
+  @Then("no horizontal scrolling should be required")
+  async checkNoHorizontalScroll() {
+    const checks =
+      await this.humanSpaceflightPage.responsiveDesign.checkMobileResponsiveness();
+    expect(
+      checks.hasHorizontalScroll,
+      "Page should not have horizontal scroll"
+    ).toBe(false);
+  }
+
+  @Then("all text should be readable without zooming")
+  async checkTextReadability() {
+    const checks =
+      await this.humanSpaceflightPage.responsiveDesign.checkMobileResponsiveness();
+    expect(
+      checks.textZoomRequired,
+      "Text should be readable without zooming"
+    ).toBe(false);
+  }
+
+  @Then("the header navigation should collapse")
+  async checkNavigationCollapse() {
+    const isCollapsed =
+      await this.humanSpaceflightPage.responsiveDesign.isNavigationCollapsed();
+    expect(isCollapsed, "Navigation should be collapsed on mobile").toBe(true);
+  }
+
+  @Then("a hamburger menu button should be visible")
+  async checkHamburgerVisible() {
+    const isVisible =
+      await this.humanSpaceflightPage.responsiveDesign.isHamburgerMenuVisible();
+    expect(isVisible, "Hamburger menu button should be visible").toBe(true);
+  }
+
+  @Then("the navigation links should not be displayed in the header")
+  async checkNavigationLinksHidden() {
+    const linksVisible =
+      await this.humanSpaceflightPage.responsiveDesign.areNavigationLinksVisible();
+    expect(linksVisible, "Navigation links should be hidden in header").toBe(
+      false
     );
   }
 
-  @Then("typography should meet readability standards:")
-  async checkTypographyReadability(dataTable: DataTable) {
-    const requirements = dataTable.hashes();
-
-    for (const requirement of requirements) {
-      const { Element, Value } = requirement;
-
-      switch (Element) {
-        case "Base Size":
-          const baseSize = await this.page.evaluate(() => {
-            return parseInt(getComputedStyle(document.body).fontSize);
-          });
-          expect(baseSize, {
-            message: `Base font size should be ${Value}`,
-          }).toBeGreaterThanOrEqual(parseInt(Value));
-          break;
-
-        case "Line Height":
-          const lineHeight = await this.page.evaluate(() => {
-            const paragraphs = document.querySelectorAll("p");
-            if (paragraphs.length === 0) return 1.5;
-            return (
-              parseFloat(getComputedStyle(paragraphs[0]).lineHeight) /
-              parseFloat(getComputedStyle(paragraphs[0]).fontSize)
-            );
-          });
-          expect(lineHeight, {
-            message: `Line height should be ${Value}`,
-          }).toBeCloseTo(parseFloat(Value), 1);
-          break;
-
-        case "Line Length":
-          const maxChars = await this.page.evaluate(() => {
-            const paragraphs = document.querySelectorAll("p");
-            if (paragraphs.length === 0) return 0;
-            const longest = Array.from(paragraphs).reduce((longest, p) => {
-              const chars = p.textContent?.length || 0;
-              return chars > longest ? chars : longest;
-            }, 0);
-            return longest;
-          });
-          expect(maxChars, {
-            message: `Line length should not exceed ${Value} characters`,
-          }).toBeLessThanOrEqual(parseInt(Value));
-          break;
-      }
-    }
+  @Then("the hamburger menu should be clickable")
+  async checkHamburgerClickable() {
+    const button = this.humanSpaceflightPage.responsiveDesign.hamburgerButton;
+    expect(await button.isEnabled(), "Hamburger menu should be clickable").toBe(
+      true
+    );
   }
 
-  @When("device orientation changes to {string} on {string}")
-  async changeDeviceOrientation(orientation: string, device: string) {
-    const currentSize = this.page.viewportSize();
+  @When("I click the hamburger menu button")
+  async clickHamburgerMenu() {
+    await this.humanSpaceflightPage.responsiveDesign.clickHamburgerMenu();
+  }
+
+  @Then("the navigation menu should expand")
+  async checkMenuExpanded() {
+    const isExpanded =
+      await this.humanSpaceflightPage.responsiveDesign.isNavigationMenuExpanded();
+    expect(isExpanded, "Navigation menu should be expanded").toBe(true);
+  }
+
+  @Then("all navigation links should be visible")
+  async checkAllLinksVisible() {
+    const linksVisible =
+      await this.humanSpaceflightPage.responsiveDesign.areNavigationLinksVisible();
+    expect(linksVisible, "All navigation links should be visible").toBe(true);
+  }
+
+  @Then("the menu should overlay the page content")
+  async checkMenuOverlay() {
+    const menu = this.humanSpaceflightPage.responsiveDesign.navigationMenu;
+    const isOverlay = await menu.evaluate((el) => {
+      const style = window.getComputedStyle(el);
+      return style.position === "fixed" || style.position === "absolute";
+    });
+    expect(isOverlay, "Menu should overlay the page content").toBe(true);
+  }
+
+  @When("I click the close button or a navigation link")
+  async closeMenu() {
+    await this.humanSpaceflightPage.responsiveDesign.closeNavigationMenu();
+  }
+
+  @Then("the menu should collapse")
+  async checkMenuCollapsed() {
+    const isCollapsed =
+      await this.humanSpaceflightPage.responsiveDesign.isMenuCollapsed();
+    expect(isCollapsed, "Menu should be collapsed").toBe(true);
+  }
+
+  @Then("the carousel should display in single-slide view")
+  async checkCarouselSingleSlide() {
+    const carouselChecks =
+      await this.humanSpaceflightPage.responsiveDesign.checkCarouselResponsiveness();
+    expect(
+      carouselChecks.isSingleSlide,
+      "Carousel should display single slide"
+    ).toBe(true);
+  }
+
+  @Then("the media tiles should be full width")
+  async checkMediaTilesFullWidth() {
+    const carouselChecks =
+      await this.humanSpaceflightPage.responsiveDesign.checkCarouselResponsiveness();
+    expect(carouselChecks.isFullWidth, "Media tiles should be full width").toBe(
+      true
+    );
+  }
+
+  @Then("navigation arrows should be appropriately sized for touch")
+  async checkArrowsSizedForTouch() {
+    const carouselChecks =
+      await this.humanSpaceflightPage.responsiveDesign.checkCarouselResponsiveness();
+    expect(
+      carouselChecks.areTouchTargetsSized,
+      "Navigation arrows should be touch-sized"
+    ).toBe(true);
+  }
+
+  @Then("the pagination dots should be visible and tappable")
+  async checkPaginationDotsAccessible() {
+    const carouselChecks =
+      await this.humanSpaceflightPage.responsiveDesign.checkCarouselResponsiveness();
+    expect(
+      carouselChecks.arePaginationDotsAccessible,
+      "Pagination dots should be accessible"
+    ).toBe(true);
+  }
+
+  @Then("all destination images should display appropriately")
+  async checkDestinationImages() {
+    const destinationsCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkSectionAdaptsToMobile(
+        '[data-test="destinations-section"]'
+      );
+    expect(
+      destinationsCheck.isLayoutAdapted,
+      "Destinations should adapt layout"
+    ).toBe(true);
+  }
+
+  @Then("the destination layout should adapt for mobile screens")
+  async checkDestinationLayout() {
+    const destinationsCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkSectionAdaptsToMobile(
+        '[data-test="destinations-section"]'
+      );
+    expect(
+      destinationsCheck.isLayoutAdapted,
+      "Destination layout should adapt"
+    ).toBe(true);
+  }
+
+  @Then("each destination should remain clickable and functional")
+  async checkDestinationsFunctional() {
+    const destinationsCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkSectionAdaptsToMobile(
+        '[data-test="destinations-section"]'
+      );
+    expect(
+      destinationsCheck.areButtonsTappable,
+      "Destinations should be clickable"
+    ).toBe(true);
+  }
+
+  @Then("the mission tabs should display as a clickable list or dropdown")
+  async checkMissionTabsDisplay() {
+    const missionsCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkSectionAdaptsToMobile(
+        '[data-test="our-missions-section"]'
+      );
+    expect(
+      missionsCheck.isLayoutAdapted,
+      "Mission tabs should adapt layout"
+    ).toBe(true);
+    expect(
+      missionsCheck.areButtonsTappable,
+      "Mission tabs should be tappable"
+    ).toBe(true);
+  }
+
+  @Then("the metrics table should be reformatted for mobile view")
+  async checkMetricsTableFormat() {
+    const missionsCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkSectionAdaptsToMobile(
+        '[data-test="our-missions-section"]'
+      );
+    expect(
+      missionsCheck.isLayoutAdapted,
+      "Metrics table should adapt layout"
+    ).toBe(true);
+  }
+
+  @Then("all content should remain readable on small screens")
+  async checkContentReadable() {
+    const missionsCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkSectionAdaptsToMobile(
+        '[data-test="our-missions-section"]'
+      );
+    expect(missionsCheck.isContentReadable, "Content should be readable").toBe(
+      true
+    );
+  }
+
+  @Then("the footer layout should adapt for mobile")
+  async checkFooterLayout() {
+    const footerCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkFooterResponsiveness();
+    expect(
+      footerCheck.isVerticalLayout,
+      "Footer should have vertical layout"
+    ).toBe(true);
+  }
+
+  @Then("footer elements should stack vertically")
+  async checkFooterStacking() {
+    const footerCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkFooterResponsiveness();
+    expect(
+      footerCheck.isVerticalLayout,
+      "Footer elements should stack vertically"
+    ).toBe(true);
+  }
+
+  @Then("all links and buttons should be tappable")
+  async checkFooterTappableElements() {
+    const footerCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkFooterResponsiveness();
+    expect(
+      footerCheck.areLinksTappable,
+      "Footer links should be tappable"
+    ).toBe(true);
+  }
+
+  @When("I view the page on a tablet device with {int}px width")
+  async setTabletViewport(width: number) {
+    await this.humanSpaceflightPage.responsiveDesign.setViewportSize(width);
+  }
+
+  @Then("the page layout should adapt for tablet")
+  async checkTabletLayout() {
+    const tabletCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkTabletLayout();
+    expect(
+      tabletCheck.hasAppropriateColumns,
+      "Layout should adapt for tablet"
+    ).toBe(true);
+  }
+
+  @Then("content should display in appropriate columns")
+  async checkTabletColumns() {
+    const tabletCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkTabletLayout();
+    expect(
+      tabletCheck.hasAppropriateColumns,
+      "Content should display in columns"
+    ).toBe(true);
+  }
+
+  @Then("images should be properly sized")
+  async checkImageSizing() {
+    const tabletCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkTabletLayout();
+    expect(
+      tabletCheck.areImagesProperlySize,
+      "Images should be properly sized"
+    ).toBe(true);
+  }
+
+  @Then("all interactive elements should be easily accessible")
+  async checkElementAccessibility() {
+    const tabletCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkTabletLayout();
+    expect(
+      tabletCheck.areElementsAccessible,
+      "Interactive elements should be accessible"
+    ).toBe(true);
+  }
+
+  @When("I view the page on a desktop browser with {int}px width")
+  async setDesktopViewport(width: number) {
+    await this.humanSpaceflightPage.responsiveDesign.setViewportSize(width);
+  }
+
+  @Then("the page should display at full width")
+  async checkDesktopWidth() {
+    const fullWidth = await this.page.evaluate(() => {
+      const main = document.querySelector("main");
+      return main
+        ? main.getBoundingClientRect().width === window.innerWidth
+        : false;
+    });
+    expect(fullWidth, "Page should display at full width").toBe(true);
+  }
+
+  @Then("content should be properly distributed across the screen")
+  async checkContentDistribution() {
+    const layoutCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkTabletLayout();
+    expect(
+      layoutCheck.hasAppropriateColumns,
+      "Content should be properly distributed"
+    ).toBe(true);
+  }
+
+  @Then("all sections should have proper spacing and margins")
+  async checkSectionSpacing() {
+    const spacingCheck = await this.page.evaluate(() => {
+      const sections = document.querySelectorAll("section");
+      return Array.from(sections).every((section) => {
+        const style = window.getComputedStyle(section);
+        const margin = parseInt(style.marginBottom);
+        return margin >= 20; // Minimum spacing between sections
+      });
+    });
+    expect(spacingCheck, "Sections should have proper spacing").toBe(true);
+  }
+
+  @Then("no content should be cut off or overflow")
+  async checkNoOverflow() {
+    const overflowCheck = await this.page.evaluate(() => {
+      const body = document.body;
+      return window.innerWidth >= body.scrollWidth;
+    });
+    expect(overflowCheck, "Content should not overflow").toBe(true);
+  }
+
+  @When("I resize the browser window from mobile to desktop")
+  async resizeWindow() {
+    await this.humanSpaceflightPage.responsiveDesign.setViewportSize(375);
+    await this.page.waitForTimeout(500);
+    await this.humanSpaceflightPage.responsiveDesign.setViewportSize(1920);
+  }
+
+  @Then("all images should scale appropriately")
+  async checkImageScaling() {
+    const scalingCheck = await this.page.evaluate(() => {
+      const images = document.querySelectorAll("img");
+      return Array.from(images).every((img) => {
+        const rect = img.getBoundingClientRect();
+        return (
+          rect.width > 0 && rect.height > 0 && rect.width <= window.innerWidth
+        );
+      });
+    });
+    expect(scalingCheck, "Images should scale appropriately").toBe(true);
+  }
+
+  @Then("images should not distort or lose quality")
+  async checkImageQuality() {
+    const qualityCheck = await this.page.evaluate(() => {
+      const images = document.querySelectorAll("img");
+      return Array.from(images).every((img) => {
+        const naturalRatio = img.naturalWidth / img.naturalHeight;
+        const displayRatio = img.width / img.height;
+        return Math.abs(naturalRatio - displayRatio) < 0.1;
+      });
+    });
+    expect(qualityCheck, "Images should maintain aspect ratio").toBe(true);
+  }
+
+  @When("I view the page on mobile, tablet, and desktop")
+  async checkAllViewports() {
+    // Mobile
+    await this.humanSpaceflightPage.responsiveDesign.setViewportSize(375);
+    await this.page.waitForTimeout(500);
+
+    // Tablet
+    await this.humanSpaceflightPage.responsiveDesign.setViewportSize(768);
+    await this.page.waitForTimeout(500);
+
+    // Desktop
+    await this.humanSpaceflightPage.responsiveDesign.setViewportSize(1920);
+  }
+
+  @Then("font sizes should be appropriate for each screen size")
+  async checkFontSizes() {
+    const fontCheck = await this.page.evaluate(() => {
+      const textElements = document.querySelectorAll(
+        "p, h1, h2, h3, h4, h5, h6"
+      );
+      return Array.from(textElements).every((el) => {
+        const fontSize = parseInt(window.getComputedStyle(el).fontSize);
+        return fontSize >= 12;
+      });
+    });
+    expect(fontCheck, "Font sizes should be appropriate").toBe(true);
+  }
+
+  @Then("line-height should provide comfortable reading")
+  async checkLineHeight() {
+    const lineHeightCheck = await this.page.evaluate(() => {
+      const textElements = document.querySelectorAll("p");
+      return Array.from(textElements).every((el) => {
+        const lineHeight = parseFloat(window.getComputedStyle(el).lineHeight);
+        const fontSize = parseFloat(window.getComputedStyle(el).fontSize);
+        return lineHeight / fontSize >= 1.4;
+      });
+    });
+    expect(
+      lineHeightCheck,
+      "Line height should be comfortable for reading"
+    ).toBe(true);
+  }
+
+  @Then("line length should not exceed recommended maximums")
+  async checkLineLength() {
+    const lineLengthCheck = await this.page.evaluate(() => {
+      const paragraphs = document.querySelectorAll("p");
+      return Array.from(paragraphs).every((p) => {
+        const width = p.getBoundingClientRect().width;
+        return width <= 800; // Maximum recommended line length
+      });
+    });
+    expect(lineLengthCheck, "Line length should not be excessive").toBe(true);
+  }
+
+  @Then("text should not require horizontal scrolling")
+  async checkTextScroll() {
+    const noHorizontalScroll = await this.page.evaluate(() => {
+      const body = document.body;
+      return body.scrollWidth <= window.innerWidth;
+    });
+    expect(
+      noHorizontalScroll,
+      "Text should not cause horizontal scrolling"
+    ).toBe(true);
+  }
+
+  @Then("all clickable elements should have a minimum touch target size")
+  async checkTouchTargets() {
+    const touchTargetCheck = await this.page.evaluate(() => {
+      const elements = document.querySelectorAll("a, button, input, select");
+      return Array.from(elements).every((el) => {
+        const rect = el.getBoundingClientRect();
+        return rect.width >= 44 && rect.height >= 44;
+      });
+    });
+    expect(
+      touchTargetCheck,
+      "Touch targets should be appropriately sized"
+    ).toBe(true);
+  }
+
+  @Then("spacing between interactive elements should be adequate")
+  async checkElementSpacing() {
+    const spacingCheck = await this.page.evaluate(() => {
+      const elements = document.querySelectorAll("a, button");
+      return Array.from(elements).every((el) => {
+        const rect = el.getBoundingClientRect();
+        const style = window.getComputedStyle(el);
+        return (
+          parseInt(style.marginBottom) >= 8 || parseInt(style.marginRight) >= 8
+        );
+      });
+    });
+    expect(
+      spacingCheck,
+      "Interactive elements should have adequate spacing"
+    ).toBe(true);
+  }
+
+  @Then("the page should load quickly on all screen sizes")
+  async checkPageLoad() {
+    const loadCheck = await this.page.evaluate(() => {
+      // @ts-ignore
+      const perf = window.performance;
+      const loadTime = perf.timing.loadEventEnd - perf.timing.navigationStart;
+      return loadTime < 3000; // Less than 3 seconds is considered quick
+    });
+    expect(loadCheck, "Page should load quickly").toBe(true);
+  }
+
+  @Then("interactions should be responsive")
+  async checkInteractions() {
+    const interactionCheck = await this.page.evaluate(() => {
+      const buttons = document.querySelectorAll("button");
+      return Array.from(buttons).every((button) => {
+        const style = window.getComputedStyle(button);
+        return style.transition !== "none" && style.cursor === "pointer";
+      });
+    });
+    expect(interactionCheck, "Interactions should be responsive").toBe(true);
+  }
+
+  @Then("no layout shifts should occur during loading")
+  async checkLayoutShifts() {
+    const layoutShiftCheck = await this.page.evaluate(() => {
+      const entries = performance.getEntriesByType("layout-shift");
+      const totalShiftScore = entries.reduce(
+        (sum, entry) => sum + (entry as any).value,
+        0
+      );
+      return totalShiftScore < 0.1;
+    });
+    expect(layoutShiftCheck, "No significant layout shifts should occur").toBe(
+      true
+    );
+  }
+
+  @Then("the viewport meta tag should be present in the HTML head")
+  async checkViewportMetaTag() {
+    const hasViewportMeta = await this.page.evaluate(() => {
+      const viewportMeta = document.querySelector('meta[name="viewport"]');
+      return !!viewportMeta;
+    });
+    expect(hasViewportMeta, "Viewport meta tag should be present").toBe(true);
+  }
+
+  @Then("the viewport should be set to width=device-width")
+  async checkViewportWidth() {
+    const hasCorrectWidth = await this.page.evaluate(() => {
+      const viewportMeta = document.querySelector('meta[name="viewport"]');
+      return viewportMeta
+        ?.getAttribute("content")
+        ?.includes("width=device-width");
+    });
+    expect(
+      hasCorrectWidth,
+      "Viewport width should be set to device-width"
+    ).toBe(true);
+  }
+
+  @Then("the initial-scale should be set to 1.0")
+  async checkInitialScale() {
+    const hasCorrectScale = await this.page.evaluate(() => {
+      const viewportMeta = document.querySelector('meta[name="viewport"]');
+      return viewportMeta?.getAttribute("content")?.includes("initial-scale=1");
+    });
+    expect(hasCorrectScale, "Initial scale should be set to 1.0").toBe(true);
+  }
+
+  @When("I rotate the device from portrait to landscape")
+  async rotateDevice() {
+    const currentSize = await this.page.viewportSize();
     if (currentSize) {
-      if (orientation === "Landscape") {
-        await this.humanSpaceflightPage.responsiveDesign.setViewportSize(
-          Math.max(currentSize.width, currentSize.height),
-          Math.min(currentSize.width, currentSize.height)
-        );
-      } else {
-        await this.humanSpaceflightPage.responsiveDesign.setViewportSize(
-          Math.min(currentSize.width, currentSize.height),
-          Math.max(currentSize.width, currentSize.height)
-        );
-      }
+      await this.humanSpaceflightPage.responsiveDesign.setViewportSize(
+        currentSize.height,
+        currentSize.width
+      );
     }
   }
 
-  @Then("the layout should adapt with requirements:")
-  async checkOrientationAdaptation(dataTable: DataTable) {
-    const requirements = dataTable.hashes();
+  @Then("the page layout should adapt appropriately")
+  async checkRotationLayout() {
+    const layoutCheck =
+      await this.humanSpaceflightPage.responsiveDesign.checkTabletLayout();
+    expect(
+      layoutCheck.hasAppropriateColumns,
+      "Layout should adapt to rotation"
+    ).toBe(true);
+  }
 
-    for (const requirement of requirements) {
-      const { Element, Requirement, Validation } = requirement;
-
-      switch (Element) {
-        case "Content":
-          const noOverflow = await this.page.evaluate(() => {
-            return document.body.scrollWidth <= window.innerWidth;
-          });
-          expect(noOverflow, {
-            message: "Content should not have overflow",
-          }).toBe(true);
-          break;
-
-        case "Navigation":
-          const navAdapted = await this.page.evaluate((req) => {
-            const nav = document.querySelector("nav");
-            if (!nav) return false;
-
-            if (req.includes("Collapse")) {
-              return (
-                window.getComputedStyle(nav).display === "none" ||
-                document.querySelector(".hamburger-menu") !== null
-              );
-            } else if (req.includes("Expand")) {
-              return window.getComputedStyle(nav).display !== "none";
-            }
-            return true;
-          }, Requirement);
-          expect(navAdapted, {
-            message: `Navigation should ${Requirement}`,
-          }).toBe(true);
-          break;
-
-        case "Images":
-          const imagesHandled = await this.page.evaluate(() => {
-            const images = document.querySelectorAll("img");
-            return Array.from(images).every((img) => {
-              const rect = img.getBoundingClientRect();
-              return (
-                rect.width > 0 &&
-                rect.height > 0 &&
-                rect.width <= window.innerWidth
-              );
-            });
-          });
-          expect(imagesHandled, {
-            message: `Images should ${Requirement}`,
-          }).toBe(true);
-          break;
-      }
-    }
+  @Then("content should be properly displayed in landscape mode")
+  async checkLandscapeContent() {
+    const landscapeCheck = await this.page.evaluate(() => {
+      const main = document.querySelector("main");
+      return main
+        ? main.getBoundingClientRect().width <= window.innerWidth
+        : false;
+    });
+    expect(landscapeCheck, "Content should fit in landscape mode").toBe(true);
   }
 }

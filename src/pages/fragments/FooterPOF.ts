@@ -1,4 +1,5 @@
 import { Locator, Page } from "@playwright/test";
+import { BoundingBox } from "../types/BoundingBox"; 
 
 export class FooterPOF {
   readonly footer: Locator;
@@ -7,13 +8,11 @@ export class FooterPOF {
   readonly twitterButton: Locator;
   readonly twitterIcon: Locator;
   readonly copyrightText: Locator;
-  private hoveredFooterLink: Locator | null = null;
+  
+  private hoveredElement: Locator | null = null;
 
   constructor(page: Page) {
-    this.footer = page
-      .getByRole("contentinfo")
-      .or(page.locator("footer"))
-      .first();
+    this.footer = page.getByRole("contentinfo").or(page.locator("footer")).first();
     this.footerLinksSection = this.footer
       .getByRole("navigation")
       .or(this.footer.locator(".footer-links"))
@@ -30,25 +29,47 @@ export class FooterPOF {
       .first();
   }
 
+  private getPage(): Page {
+    return this.footer.page();
+  }
+
+  private async waitForHoverTransition(): Promise<void> {
+    await this.getPage().waitForTimeout(100);
+  }
+
+  private async getElementStyles(element: Locator): Promise<CSSStyleDeclaration> {
+    return await element.evaluate((el: Element) => window.getComputedStyle(el));
+  }
+
+  private async getBoundingBox(element: Locator): Promise<BoundingBox | null> {
+    return await element.boundingBox();
+  }
+
+  private parseStyleValue(value: string): number {
+    return parseFloat(value) || 0;
+  }
+
+  private getFooterLink(linkText: string): Locator {
+    return this.footer.getByRole("link", { name: linkText, exact: true }).first();
+  }
+
   async scrollToFooter(): Promise<void> {
     await this.footer.scrollIntoViewIfNeeded();
-    await this.footer.page().waitForTimeout(1000);
+    await this.footer.waitFor({ state: "visible" });
   }
 
   async checkFooterLinksExist(links: string[]): Promise<boolean> {
-    const allLinks: Locator[] = [];
-    for (const linkText of links) {
-      const link = this.footerLinksSection
-        .getByRole("link", { name: linkText, exact: true })
-        .first();
-      allLinks.push(link);
+    if (links.length === 0) {
+      return true;
     }
 
-    for (const link of allLinks) {
+    for (const linkText of links) {
+      const link = this.getFooterLink(linkText);
       if (!(await link.isVisible())) {
         return false;
       }
     }
+    
     return true;
   }
 
@@ -61,13 +82,12 @@ export class FooterPOF {
   }
 
   async getCopyrightText(): Promise<string> {
-    return (await this.copyrightText.textContent())?.trim() || "";
+    const text = await this.copyrightText.textContent();
+    return text?.trim() ?? "";
   }
 
   async clickFooterLink(linkText: string): Promise<void> {
-    const link = this.footer
-      .getByRole("link", { name: linkText, exact: true })
-      .first();
+    const link = this.getFooterLink(linkText);
     await link.click();
   }
 
@@ -76,19 +96,17 @@ export class FooterPOF {
   }
 
   async hoverOverFooterLink(linkText: string): Promise<void> {
-    this.hoveredFooterLink = this.footer
-      .getByRole("link", { name: linkText, exact: true })
-      .first();
-    await this.hoveredFooterLink.hover();
-    await this.footer.page().waitForTimeout(200);
+    this.hoveredElement = this.getFooterLink(linkText);
+    await this.hoveredElement.hover();
+    await this.waitForHoverTransition();
   }
 
   async unhoverFooterLink(): Promise<void> {
-    if (this.hoveredFooterLink) {
+    if (this.hoveredElement) {
       await this.footer.hover({ position: { x: 0, y: 0 } });
-      this.hoveredFooterLink = null;
+      this.hoveredElement = null;
     }
-    await this.footer.page().waitForTimeout(200);
+    await this.waitForHoverTransition();
   }
 
   async isTwitterButtonClickable(): Promise<boolean> {
@@ -96,10 +114,13 @@ export class FooterPOF {
   }
 
   async isTwitterButtonRounded(): Promise<boolean> {
-    const borderRadius = await this.twitterButton.evaluate(
-      (el) => window.getComputedStyle(el).borderRadius
-    );
-    return borderRadius.includes("50%") || parseFloat(borderRadius) > 10;
+    const borderRadius = await this.twitterButton.evaluate((el: Element) => {
+      const style = window.getComputedStyle(el);
+      return style.borderRadius;
+    });
+
+    const borderRadiusValue = this.parseStyleValue(borderRadius);
+    return borderRadius.includes("50%") || borderRadiusValue > 10;
   }
 
   async isTwitterIconVisible(): Promise<boolean> {
@@ -107,73 +128,122 @@ export class FooterPOF {
   }
 
   async hasTwitterButtonConsistentStyle(): Promise<boolean> {
-    const bgColor = await this.twitterButton.evaluate(
-      (el) => window.getComputedStyle(el).backgroundColor
-    );
-    const color = await this.twitterIcon.evaluate(
-      (el) => window.getComputedStyle(el).color
-    );
+    const [buttonStyle, iconStyle] = await Promise.all([
+      this.getElementStyles(this.twitterButton),
+      this.getElementStyles(this.twitterIcon)
+    ]);
 
-    return bgColor !== "rgba(0, 0, 0, 0)" && color !== "rgba(0, 0, 0, 0)";
+    const hasBackground = buttonStyle.backgroundColor !== "rgba(0, 0, 0, 0)";
+    const hasIconColor = iconStyle.color !== "rgba(0, 0, 0, 0)";
+    
+    return hasBackground && hasIconColor;
   }
 
   async isCopyrightTextOnRight(): Promise<boolean> {
-    const socialBox = await this.socialMediaSection.boundingBox();
-    const copyrightBox = await this.copyrightText.boundingBox();
+    const [socialBox, copyrightBox] = await Promise.all([
+      this.getBoundingBox(this.socialMediaSection),
+      this.getBoundingBox(this.copyrightText)
+    ]);
 
-    return !!(socialBox && copyrightBox && copyrightBox.x > socialBox.x);
+    if (!socialBox || !copyrightBox) {
+      return false;
+    }
+
+    return copyrightBox.x > socialBox.x;
   }
 
   async hasProperHorizontalSpacing(): Promise<boolean> {
-    const footerStyle = await this.footer.evaluate(
-      (el) =>
-        window.getComputedStyle(el).gap ||
-        window.getComputedStyle(el).paddingLeft
-    );
-    return parseFloat(footerStyle) > 20;
+    const footerStyle = await this.getElementStyles(this.footer);
+    const gap = this.parseStyleValue(footerStyle.gap);
+    const paddingLeft = this.parseStyleValue(footerStyle.paddingLeft);
+    
+    return gap > 20 || paddingLeft > 20;
   }
 
   async hasProperVerticalPadding(): Promise<boolean> {
-    const padding = await this.footer.evaluate(
-      (el) => window.getComputedStyle(el).paddingTop
-    );
-    return parseFloat(padding) > 15;
+    const paddingTop = await this.footer.evaluate((el: Element) => {
+      return parseFloat(window.getComputedStyle(el).paddingTop);
+    });
+    
+    return paddingTop > 15;
   }
 
   async isFooterNotCramped(): Promise<boolean> {
-    const boundingBox = await this.footer.boundingBox();
+    const boundingBox = await this.getBoundingBox(this.footer);
     return !!(boundingBox && boundingBox.height > 60);
   }
 
   async hasFooterLinkHoverEffect(): Promise<boolean> {
-    if (!this.hoveredFooterLink) return false;
-    const colorBefore = await this.hoveredFooterLink.evaluate(
-      (el) => window.getComputedStyle(el).color
-    );
+    if (!this.hoveredElement) {
+      return false;
+    }
 
-    await this.hoveredFooterLink.hover();
-    const colorAfter = await this.hoveredFooterLink.evaluate(
-      (el) => window.getComputedStyle(el).color
-    );
+    const styleBefore = await this.getElementStyles(this.hoveredElement);
+    await this.hoveredElement.hover();
+    const styleAfter = await this.getElementStyles(this.hoveredElement);
 
-    return colorBefore !== colorAfter;
+    return styleBefore.color !== styleAfter.color;
   }
 
   async isFooterLinkCursorPointer(): Promise<boolean> {
-    if (!this.hoveredFooterLink) return false;
-    const cursor = await this.hoveredFooterLink.evaluate(
-      (el) => window.getComputedStyle(el).cursor
-    );
+    if (!this.hoveredElement) {
+      return false;
+    }
+
+    const cursor = await this.hoveredElement.evaluate((el: Element) => {
+      return window.getComputedStyle(el).cursor;
+    });
+    
     return cursor === "pointer";
   }
 
   async hoverOverTwitterButton(): Promise<void> {
     await this.twitterButton.hover();
-    this.hoveredFooterLink = this.twitterButton;
+    this.hoveredElement = this.twitterButton;
+    await this.waitForHoverTransition();
   }
 
   async unhoverTwitterButton(): Promise<void> {
     await this.footer.hover();
-    this.hoveredFooterLink = null;
+    this.hoveredElement = null;
+    await this.waitForHoverTransition();
+  }
+
+  async getFooterLinkCount(): Promise<number> {
+    return await this.footerLinksSection.getByRole("link").count();
+  }
+
+  async getSocialMediaLinksCount(): Promise<number> {
+    return await this.socialMediaSection.getByRole("link").count();
+  }
+
+  async isFooterSticky(): Promise<boolean> {
+    const position = await this.footer.evaluate((el: Element) => {
+      return window.getComputedStyle(el).position;
+    });
+    
+    return position === "fixed" || position === "sticky";
+  }
+
+  async getFooterBackgroundColor(): Promise<string> {
+    return await this.footer.evaluate((el: Element) => {
+      return window.getComputedStyle(el).backgroundColor;
+    });
+  }
+
+  async areFooterLinksAccessible(): Promise<boolean> {
+    const links = await this.footerLinksSection.getByRole("link").all();
+    
+    for (const link of links) {
+      const isVisible = await link.isVisible();
+      const isEnabled = await link.isEnabled();
+      const hasText = !!(await link.textContent())?.trim();
+      
+      if (!isVisible || !isEnabled || !hasText) {
+        return false;
+      }
+    }
+    
+    return links.length > 0;
   }
 }

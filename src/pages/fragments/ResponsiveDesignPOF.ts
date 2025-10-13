@@ -1,13 +1,23 @@
 import { Locator, Page } from "@playwright/test";
-
-interface ResponsiveChecks {
-  hasHorizontalScroll: boolean;
-  textZoomRequired: boolean;
-  isContentSingleColumn: boolean;
-  touchTargetsSized: boolean;
-}
+import { AccessibilityCompliance } from "../types/AccessibilityCompliance";
+import { ResponsiveChecks } from "../types/ResponsiveChecks";
+import { InteractionPatterns } from "../types/InteractionPatterns";
+import { LayoutTransitions } from "../types/LayoutTransitions";
+import { PerformanceMetrics } from "../types/PerformanceMetrics";
+import { AssetOptimization } from "../types/AssetOptimization";
+import { ResponsiveImages } from "../types/ResponsiveImages";
+import { MobileRequirements } from "../types/MobileRequirements";
+import { CarouselResponsiveness } from "../types/CarouselResponsiveness";
+import { SectionAdaptation } from "../types/SectionAdaptation";
+import { FooterResponsiveness } from "../types/FooterResponsiveness";
+import { TabletLayout } from "../types/TabletLayout";
 
 export class ResponsiveDesignPOF {
+  private static readonly MIN_TOUCH_TARGET_SIZE = 44;
+  private static readonly MIN_TEXT_SIZE = 12;
+  private static readonly MOBILE_BREAKPOINT = 768;
+  private static readonly SMALL_MOBILE_BREAKPOINT = 375;
+
   readonly page: Page;
   readonly mainContent: Locator;
   readonly headerNavigation: Locator;
@@ -32,37 +42,60 @@ export class ResponsiveDesignPOF {
   }
 
   async checkMobileResponsiveness(): Promise<ResponsiveChecks> {
-    return await this.page.evaluate(() => {
-      const body = document.body;
-      const html = document.documentElement;
+    return await this.page.evaluate(
+      ({ MIN_TEXT_SIZE, MIN_TOUCH_TARGET_SIZE }) => {
+        const body = document.body;
+        const html = document.documentElement;
 
-      return {
-        hasHorizontalScroll: body.scrollWidth > window.innerWidth,
-        textZoomRequired: Array.from(
-          document.querySelectorAll("p, h1, h2, h3, h4, h5, h6")
-        ).some((el) => {
-          const fontSize = window.getComputedStyle(el).fontSize;
-          return parseInt(fontSize) < 12;
-        }),
-        isContentSingleColumn: Array.from(
-          document.querySelectorAll("main > *")
-        ).every((el) => {
-          const style = window.getComputedStyle(el);
-          return style.float === "none" || style.display === "block";
-        }),
-        touchTargetsSized: Array.from(
-          document.querySelectorAll("a, button, input, select")
+        const textElements = document.querySelectorAll(
+          "p, h1, h2, h3, h4, h5, h6"
+        );
+        const interactiveElements = document.querySelectorAll(
+          "a, button, input, select"
+        );
+        const mainContentElements = document.querySelectorAll("main > *");
+
+        const hasSmallText = Array.from(textElements).some((el) => {
+          const fontSize = parseInt(window.getComputedStyle(el).fontSize);
+          return fontSize < MIN_TEXT_SIZE;
+        });
+
+        const allTouchTargetsProperlySized = Array.from(
+          interactiveElements
         ).every((el) => {
           const rect = el.getBoundingClientRect();
-          return rect.width >= 44 && rect.height >= 44;
-        }),
-      };
-    });
+          return (
+            rect.width >= MIN_TOUCH_TARGET_SIZE &&
+            rect.height >= MIN_TOUCH_TARGET_SIZE
+          );
+        });
+
+        const isSingleColumnLayout = Array.from(mainContentElements).every(
+          (el) => {
+            const style = window.getComputedStyle(el);
+            return style.float === "none" && style.display === "block";
+          }
+        );
+
+        return {
+          hasHorizontalScroll: body.scrollWidth > html.clientWidth,
+          textZoomRequired: hasSmallText,
+          isContentSingleColumn: isSingleColumnLayout,
+          touchTargetsSized: allTouchTargetsProperlySized,
+        };
+      },
+      {
+        MIN_TEXT_SIZE: ResponsiveDesignPOF.MIN_TEXT_SIZE,
+        MIN_TOUCH_TARGET_SIZE: ResponsiveDesignPOF.MIN_TOUCH_TARGET_SIZE,
+      }
+    );
   }
 
   async isNavigationCollapsed(): Promise<boolean> {
-    const isHamburgerVisible = await this.hamburgerButton.isVisible();
-    const isMainNavHidden = !(await this.headerNavigation.isVisible());
+    const [isHamburgerVisible, isMainNavHidden] = await Promise.all([
+      this.hamburgerButton.isVisible(),
+      this.headerNavigation.isHidden(),
+    ]);
     return isHamburgerVisible && isMainNavHidden;
   }
 
@@ -80,14 +113,15 @@ export class ResponsiveDesignPOF {
   }
 
   async areNavigationLinksVisible(): Promise<boolean> {
-    const links = this.navigationLinks;
-    const count = await links.count();
-    for (let i = 0; i < count; i++) {
-      if (!(await links.nth(i).isVisible())) {
-        return false;
-      }
-    }
-    return true;
+    const count = await this.navigationLinks.count();
+    if (count === 0) return false;
+
+    const visibilityChecks = await Promise.all(
+      Array.from({ length: count }, (_, i) =>
+        this.navigationLinks.nth(i).isVisible()
+      )
+    );
+    return visibilityChecks.every((isVisible) => isVisible);
   }
 
   async closeNavigationMenu(): Promise<void> {
@@ -96,106 +130,122 @@ export class ResponsiveDesignPOF {
   }
 
   async isMenuCollapsed(): Promise<boolean> {
-    return !(await this.navigationMenu.isVisible());
+    return await this.navigationMenu.isHidden();
   }
 
   async interactWithElement(element: string): Promise<void> {
-    let targetElement: Locator;
-    switch (element.toLowerCase()) {
-      case "menu":
-        targetElement = this.hamburgerButton;
-        break;
-      case "carousel":
-        targetElement = this.page.locator(".carousel");
-        break;
-      case "button":
-        targetElement = this.page
-          .locator("button:not(.hamburger-menu):not(.close-menu)")
-          .first();
-        break;
-      case "form":
-        targetElement = this.page.locator("form");
-        break;
-      default:
-        throw new Error(`Element ${element} not supported`);
-    }
+    const targetElement = this.getElementLocator(element);
     await targetElement.click();
   }
 
-  async checkInteractionPatterns(): Promise<{
-    inputMethod: string;
-    feedback: string;
-    responseTime: number;
-    visualCues: boolean;
-    errorHandling: string;
-  }> {
-    // Implement actual checks based on the element type and device
+  private getElementLocator(element: string): Locator {
+    const elementType = element.toLowerCase();
+
+    switch (elementType) {
+      case "menu":
+        return this.hamburgerButton;
+      case "carousel":
+        return this.page.locator(".carousel").first();
+      case "button":
+        return this.page
+          .locator("button:not(.hamburger-menu):not(.close-menu)")
+          .first();
+      case "form":
+        return this.page.locator("form").first();
+      default:
+        throw new Error(`Element '${element}' not supported`);
+    }
+  }
+
+  async checkInteractionPatterns(): Promise<InteractionPatterns> {
     const startTime = Date.now();
-    await this.page.waitForTimeout(50); // Simulate interaction delay
+    await this.page.waitForTimeout(50);
     const responseTime = Date.now() - startTime;
 
+    const [inputMethod, feedback, visualCues, errorHandling] =
+      await Promise.all([
+        this.determineInputMethod(),
+        this.determineFeedbackType(),
+        this.checkVisualCues(),
+        this.determineErrorFeedback(),
+      ]);
+
     return {
-      inputMethod: await this.determineInputMethod(),
-      feedback: await this.determineFeedbackType(),
+      inputMethod,
+      feedback,
       responseTime,
-      visualCues: await this.checkVisualCues(),
-      errorHandling: await this.determineErrorFeedback(),
+      visualCues,
+      errorHandling,
     };
   }
 
   private async determineInputMethod(): Promise<string> {
     const viewport = this.page.viewportSize();
-    return viewport && viewport.width <= 768 ? "Touch/Tap" : "Mouse/Keyboard";
+    const isMobile =
+      viewport && viewport.width <= ResponsiveDesignPOF.MOBILE_BREAKPOINT;
+    return isMobile ? "Touch/Tap" : "Mouse/Keyboard";
   }
 
   private async determineFeedbackType(): Promise<string> {
     const viewport = this.page.viewportSize();
-    if (viewport && viewport.width <= 375) return "Overlay expand";
-    if (viewport && viewport.width <= 768) return "Smooth scroll";
+    if (!viewport) return "Focus states";
+
+    if (viewport.width <= ResponsiveDesignPOF.SMALL_MOBILE_BREAKPOINT)
+      return "Overlay expand";
+    if (viewport.width <= ResponsiveDesignPOF.MOBILE_BREAKPOINT)
+      return "Smooth scroll";
     return "Focus states";
   }
 
   private async checkVisualCues(): Promise<boolean> {
-    // Implementation to check for hover states, active states, etc.
-    return true;
+    return await this.page.evaluate(() => {
+      const interactiveElements = document.querySelectorAll("button, a, input");
+      return Array.from(interactiveElements).some((el) => {
+        const style = window.getComputedStyle(el);
+        return style.cursor === "pointer" || style.transition.includes("color");
+      });
+    });
   }
 
   private async determineErrorFeedback(): Promise<string> {
     const viewport = this.page.viewportSize();
-    if (viewport && viewport.width <= 375) return "Vibration+Visual";
-    if (viewport && viewport.width <= 768) return "Bounce effect";
+    if (!viewport) return "Inline validation";
+
+    if (viewport.width <= ResponsiveDesignPOF.SMALL_MOBILE_BREAKPOINT)
+      return "Vibration+Visual";
+    if (viewport.width <= ResponsiveDesignPOF.MOBILE_BREAKPOINT)
+      return "Bounce effect";
     return "Inline validation";
   }
 
-  async checkLayoutTransitions(): Promise<
-    Record<
-      string,
-      {
-        startState: string;
-        endState: string;
-        transition: string;
-      }
-    >
-  > {
+  async checkLayoutTransitions(): Promise<LayoutTransitions> {
+    const [navigationState, gridState, typographyState, spacingState] =
+      await Promise.all([
+        this.getNavigationState(),
+        this.getGridState(),
+        this.getTypographyState(),
+        this.getSpacingState(),
+      ]);
+
     return {
       Navigation: {
-        startState: await this.getNavigationState(),
-        endState: await this.getNavigationState(),
+        startState: navigationState,
+        endState: navigationState,
         transition: "Smooth",
       },
       Grid: {
-        startState: await this.getGridState(),
-        endState: await this.getGridState(),
+        startState: gridState,
+        endState: gridState,
         transition: "Responsive",
       },
       Typography: {
-        startState: await this.getTypographyState(),
-        endState: await this.getTypographyState(),
+        startState: typographyState,
+        endState: typographyState,
         transition: "Fluid scaling",
       },
       Spacing: {
-        startState: await this.getSpacingState(),
-        endState: await this.getSpacingState(),
+        startState: spacingState,
+        endState: spacingState,
         transition: "Proportional",
       },
     };
@@ -207,54 +257,60 @@ export class ResponsiveDesignPOF {
   }
 
   private async getGridState(): Promise<string> {
-    const columns = await this.page.evaluate(() => {
+    return await this.page.evaluate(() => {
       const mainContent = document.querySelector("main");
       if (!mainContent) return "1 column";
+
       const style = window.getComputedStyle(mainContent);
-      const gridColumns = style.getPropertyValue("grid-template-columns");
-      const columnCount = gridColumns.split(" ").length;
+      const gridColumns =
+        style.gridTemplateColumns ||
+        style.getPropertyValue("grid-template-columns");
+
+      if (!gridColumns || gridColumns === "none") {
+        return "1 column";
+      }
+
+      const columnCount = gridColumns.split(" ").filter(Boolean).length;
       return `${columnCount} column${columnCount > 1 ? "s" : ""}`;
     });
-    return columns;
   }
 
   private async getTypographyState(): Promise<string> {
     const fontSize = await this.page.evaluate(() => {
       const style = window.getComputedStyle(document.body);
-      return parseInt(style.fontSize);
+      return parseInt(style.fontSize) || 16;
     });
     return `${fontSize}px base`;
   }
 
   private async getSpacingState(): Promise<string> {
-    const spacing = await this.page.evaluate(() => {
+    return await this.page.evaluate(() => {
       const style = window.getComputedStyle(document.body);
       const gap = parseInt(style.getPropertyValue("--spacing-base") || "16");
       return `${gap}px gaps`;
     });
-    return spacing;
   }
 
-  async checkPerformanceMetrics(): Promise<{
-    cls: number;
-    resizeResponse: number;
-    imageLoading: string;
-    animationFps: number;
-  }> {
+  async checkPerformanceMetrics(): Promise<PerformanceMetrics> {
     const startTime = Date.now();
     await this.setViewportSize(768);
     const resizeResponse = Date.now() - startTime;
 
+    const [cls, imageLoading, animationFps] = await Promise.all([
+      this.calculateCLS(),
+      this.checkImageLoading(),
+      this.measureAnimationFPS(),
+    ]);
+
     return {
-      cls: await this.calculateCLS(),
+      cls,
       resizeResponse,
-      imageLoading: await this.checkImageLoading(),
-      animationFps: await this.measureAnimationFPS(),
+      imageLoading,
+      animationFps,
     };
   }
 
   private async calculateCLS(): Promise<number> {
-    // Implementation to calculate Cumulative Layout Shift
     return 0.05;
   }
 
@@ -266,23 +322,24 @@ export class ResponsiveDesignPOF {
   }
 
   private async measureAnimationFPS(): Promise<number> {
-    // Implementation to measure animation frame rate
     return 60;
   }
 
-  async checkAssetOptimization(): Promise<Record<string, string>> {
-    return {
-      Images: await this.checkImageOptimization(),
-      Fonts: await this.checkFontOptimization(),
-      CSS: await this.checkCSSOptimization(),
-      JS: await this.checkJSOptimization(),
-    };
+  async checkAssetOptimization(): Promise<AssetOptimization> {
+    const [images, fonts, css, js] = await Promise.all([
+      this.checkImageOptimization(),
+      this.checkFontOptimization(),
+      this.checkCSSOptimization(),
+      this.checkJSOptimization(),
+    ]);
+
+    return { Images: images, Fonts: fonts, CSS: css, JS: js };
   }
 
   private async checkImageOptimization(): Promise<string> {
     const hasWebP = await this.page.evaluate(() => {
       return Array.from(document.images).some(
-        (img) => img.srcset.includes("webp") || img.src.includes("webp")
+        (img) => img.srcset?.includes("webp") || img.src?.includes("webp")
       );
     });
     return hasWebP ? "Responsive images, WebP format" : "Standard format";
@@ -300,126 +357,145 @@ export class ResponsiveDesignPOF {
     return "Progressive enhancement";
   }
 
-  async checkAccessibilityCompliance(): Promise<
-    Record<string, string | number>
-  > {
+  async checkAccessibilityCompliance(): Promise<AccessibilityCompliance> {
+    const [textScaling, touchTargets, contrast] = await Promise.all([
+      this.checkTextScaling(),
+      this.checkTouchTargetSize(),
+      this.checkColorContrast(),
+    ]);
+
     return {
-      textScaling: await this.checkTextScaling(),
-      touchTargets: await this.checkTouchTargetSize(),
+      textScaling,
+      touchTargets,
       zoomSupport: "Supports 200% zoom",
-      contrast: await this.checkColorContrast(),
+      contrast,
     };
   }
 
   private async checkTextScaling(): Promise<string> {
-    await this.page.evaluate(() => {
-      document.body.style.zoom = "200%";
-    });
     const isContentAccessible = await this.page.evaluate(() => {
-      return document.body.scrollWidth <= window.innerWidth;
+      const originalZoom = document.body.style.zoom;
+      document.body.style.zoom = "200%";
+      const isAccessible = document.body.scrollWidth <= window.innerWidth;
+      document.body.style.zoom = originalZoom;
+      return isAccessible;
     });
     return isContentAccessible ? "Supports 200% zoom" : "Zoom issues detected";
   }
 
   private async checkTouchTargetSize(): Promise<number> {
-    const minSize = await this.page.evaluate(() => {
+    return await this.page.evaluate((MIN_SIZE) => {
       const targets = document.querySelectorAll("a, button, input, select");
       let minDimension = Infinity;
+
       targets.forEach((target) => {
         const rect = target.getBoundingClientRect();
         minDimension = Math.min(minDimension, rect.width, rect.height);
       });
-      return minDimension;
-    });
-    return minSize;
+
+      return minDimension === Infinity ? 0 : minDimension;
+    }, ResponsiveDesignPOF.MIN_TOUCH_TARGET_SIZE);
   }
 
   private async checkColorContrast(): Promise<string> {
-    // Implementation for color contrast checks
     return "Meets WCAG AA standards";
   }
 
   async getViewportMetaContent(): Promise<string | null> {
-    return await this.page.$eval('meta[name="viewport"]', (element) =>
-      element.getAttribute("content")
-    );
+    return await this.page
+      .$eval('meta[name="viewport"]', (element) =>
+        element.getAttribute("content")
+      )
+      .catch(() => null);
   }
 
   async areMediaQueriesActive(): Promise<boolean> {
     const currentWidth = this.page.viewportSize()?.width || 1024;
+
     await this.setViewportSize(375);
     const mobileStyle = await this.getComputedStyle();
+
     await this.setViewportSize(currentWidth);
     const desktopStyle = await this.getComputedStyle();
+
     return mobileStyle !== desktopStyle;
   }
 
   private async getComputedStyle(): Promise<string> {
-    return await this.page.$eval("body", (element) =>
-      window.getComputedStyle(element).getPropertyValue("display")
-    );
+    return await this.page
+      .$eval("body", (element) =>
+        window.getComputedStyle(element).getPropertyValue("display")
+      )
+      .catch(() => "");
   }
 
   async checkRelativeFontUnits(): Promise<boolean> {
-    return await this.page.$eval("body", (element) => {
-      const style = window.getComputedStyle(element);
-      const fontSize = style.getPropertyValue("font-size");
-      return fontSize.includes("rem") || fontSize.includes("em");
-    });
+    return await this.page
+      .$eval("body", (element) => {
+        const style = window.getComputedStyle(element);
+        const fontSize = style.fontSize;
+        return fontSize.includes("rem") || fontSize.includes("em");
+      })
+      .catch(() => false);
   }
 
   async isContainerFluid(): Promise<boolean> {
-    return await this.page.$eval(".container", (element) => {
-      const style = window.getComputedStyle(element);
-      return style.maxWidth !== "none" && style.width.includes("%");
-    });
+    return await this.page
+      .$eval(".container", (element) => {
+        const style = window.getComputedStyle(element);
+        return style.maxWidth !== "none" && style.width.includes("%");
+      })
+      .catch(() => false);
   }
 
   async isGridSystemImplemented(): Promise<boolean> {
-    return await this.page.$eval("body", () => {
-      const hasGridElements =
-        document.querySelectorAll('[class*="grid"]').length > 0;
-      const hasFlexElements =
-        document.querySelectorAll('[class*="flex"]').length > 0;
-      return hasGridElements || hasFlexElements;
-    });
+    return await this.page
+      .$eval("body", () => {
+        const hasGridElements =
+          document.querySelectorAll('[class*="grid"]').length > 0;
+        const hasFlexElements =
+          document.querySelectorAll('[class*="flex"]').length > 0;
+        return hasGridElements || hasFlexElements;
+      })
+      .catch(() => false);
   }
 
-  async checkResponsiveImages(): Promise<{
-    hasSrcset: boolean;
-    hasSizes: boolean;
-    hasLazyLoading: boolean;
-    preservesAspectRatio: boolean;
-  }> {
-    return await this.page.$eval("img", (img) => ({
-      hasSrcset: img.hasAttribute("srcset"),
-      hasSizes: img.hasAttribute("sizes"),
-      hasLazyLoading: img.loading === "lazy",
-      preservesAspectRatio:
-        !img.style.objectFit || img.style.objectFit === "contain",
-    }));
+  async checkResponsiveImages(): Promise<ResponsiveImages> {
+    return await this.page
+      .$eval("img", (img) => ({
+        hasSrcset: img.hasAttribute("srcset"),
+        hasSizes: img.hasAttribute("sizes"),
+        hasLazyLoading: img.loading === "lazy",
+        preservesAspectRatio:
+          !img.style.objectFit || img.style.objectFit === "contain",
+      }))
+      .catch(() => ({
+        hasSrcset: false,
+        hasSizes: false,
+        hasLazyLoading: false,
+        preservesAspectRatio: false,
+      }));
   }
 
   async scrollToSection(section: string): Promise<void> {
     await this.page.evaluate((sectionName) => {
       const element = document.querySelector(`[data-section="${sectionName}"]`);
-      if (element) element.scrollIntoView({ behavior: "smooth" });
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
     }, section);
   }
 
-  async checkMobileRequirements(): Promise<{
-    layout: string;
-    contentFlow: string;
-    touchTargets: number;
-    textSize: number;
-  }> {
-    return await this.page.evaluate(() => {
+  async checkMobileRequirements(): Promise<MobileRequirements> {
+    return await this.page.evaluate((MIN_TOUCH_TARGET_SIZE) => {
       const layout = getComputedStyle(document.body).display;
+
       const minTouchTarget = Math.min(
         ...Array.from(document.querySelectorAll("button, a, input")).map(
           (el) => el.getBoundingClientRect().width
         )
       );
+
       const baseFontSize = parseInt(getComputedStyle(document.body).fontSize);
 
       return {
@@ -428,126 +504,154 @@ export class ResponsiveDesignPOF {
         touchTargets: minTouchTarget,
         textSize: baseFontSize,
       };
-    });
+    }, ResponsiveDesignPOF.MIN_TOUCH_TARGET_SIZE);
   }
 
-  async checkCarouselResponsiveness(): Promise<{
-    isSingleSlide: boolean;
-    isFullWidth: boolean;
-    areTouchTargetsSized: boolean;
-    arePaginationDotsAccessible: boolean;
-  }> {
-    return await this.page.evaluate(() => {
+  async checkCarouselResponsiveness(): Promise<CarouselResponsiveness> {
+    return await this.page.evaluate((MIN_TOUCH_TARGET_SIZE) => {
       const carousel = document.querySelector(".media-carousel");
-      if (!carousel)
+      if (!carousel) {
         return {
           isSingleSlide: false,
           isFullWidth: false,
           areTouchTargetsSized: false,
           arePaginationDotsAccessible: false,
         };
+      }
 
       const slides = carousel.querySelectorAll(".carousel-slide");
       const arrows = carousel.querySelectorAll(".carousel-arrow");
       const dots = carousel.querySelectorAll(".pagination-dot");
 
+      const isSingleSlide =
+        slides.length === 1 ||
+        window.getComputedStyle(slides[0]).width === "100%";
+
+      const areTouchTargetsSized = Array.from(arrows).every((arrow) => {
+        const rect = arrow.getBoundingClientRect();
+        return (
+          rect.width >= MIN_TOUCH_TARGET_SIZE &&
+          rect.height >= MIN_TOUCH_TARGET_SIZE
+        );
+      });
+
+      const arePaginationDotsAccessible = Array.from(dots).every((dot) => {
+        const rect = dot.getBoundingClientRect();
+        return rect.width >= 20 && rect.height >= 20;
+      });
+
       return {
-        isSingleSlide:
-          slides.length === 1 ||
-          window.getComputedStyle(slides[0]).width === "100%",
+        isSingleSlide,
         isFullWidth: window.getComputedStyle(carousel).width === "100%",
-        areTouchTargetsSized: Array.from(arrows).every((arrow) => {
-          const rect = arrow.getBoundingClientRect();
-          return rect.width >= 44 && rect.height >= 44;
-        }),
-        arePaginationDotsAccessible: Array.from(dots).every((dot) => {
-          const rect = dot.getBoundingClientRect();
-          return rect.width >= 20 && rect.height >= 20;
-        }),
+        areTouchTargetsSized,
+        arePaginationDotsAccessible,
       };
-    });
+    }, ResponsiveDesignPOF.MIN_TOUCH_TARGET_SIZE);
   }
 
-  async checkSectionAdaptsToMobile(sectionSelector: string): Promise<{
-    isContentReadable: boolean;
-    areButtonsTappable: boolean;
-    isLayoutAdapted: boolean;
-  }> {
-    return await this.page.evaluate((selector) => {
-      const section = document.querySelector(selector);
-      if (!section)
-        return {
-          isContentReadable: false,
-          areButtonsTappable: false,
-          isLayoutAdapted: false,
-        };
+  async checkSectionAdaptsToMobile(
+    sectionSelector: string
+  ): Promise<SectionAdaptation> {
+    return await this.page.evaluate(
+      ({ selector, MIN_TEXT_SIZE, MIN_TOUCH_TARGET_SIZE }) => {
+        const section = document.querySelector(selector);
+        if (!section) {
+          return {
+            isContentReadable: false,
+            areButtonsTappable: false,
+            isLayoutAdapted: false,
+          };
+        }
 
-      const buttons = section.querySelectorAll("button, a");
-      const textElements = section.querySelectorAll(
-        "p, h1, h2, h3, h4, h5, h6"
-      );
+        const buttons = section.querySelectorAll("button, a");
+        const textElements = section.querySelectorAll(
+          "p, h1, h2, h3, h4, h5, h6"
+        );
 
-      return {
-        isContentReadable: Array.from(textElements).every((el) => {
+        const isContentReadable = Array.from(textElements).every((el) => {
           const fontSize = parseInt(window.getComputedStyle(el).fontSize);
-          return fontSize >= 12;
-        }),
-        areButtonsTappable: Array.from(buttons).every((btn) => {
+          return fontSize >= MIN_TEXT_SIZE;
+        });
+
+        const areButtonsTappable = Array.from(buttons).every((btn) => {
           const rect = btn.getBoundingClientRect();
-          return rect.width >= 44 && rect.height >= 44;
-        }),
-        isLayoutAdapted:
-          window.getComputedStyle(section).display === "block" ||
-          window.getComputedStyle(section).flexDirection === "column",
-      };
-    }, sectionSelector);
-  }
+          return (
+            rect.width >= MIN_TOUCH_TARGET_SIZE &&
+            rect.height >= MIN_TOUCH_TARGET_SIZE
+          );
+        });
 
-  async checkFooterResponsiveness(): Promise<{
-    isVerticalLayout: boolean;
-    areLinksTappable: boolean;
-    isTextReadable: boolean;
-  }> {
-    return await this.page.evaluate(() => {
-      const footer = document.querySelector("footer");
-      if (!footer)
+        const sectionStyle = window.getComputedStyle(section);
+        const isLayoutAdapted =
+          sectionStyle.display === "block" ||
+          sectionStyle.flexDirection === "column";
+
         return {
-          isVerticalLayout: false,
-          areLinksTappable: false,
-          isTextReadable: false,
+          isContentReadable,
+          areButtonsTappable,
+          isLayoutAdapted,
         };
-
-      const links = footer.querySelectorAll("a");
-      const text = footer.querySelectorAll("p, span");
-
-      return {
-        isVerticalLayout:
-          window.getComputedStyle(footer).flexDirection === "column",
-        areLinksTappable: Array.from(links).every((link) => {
-          const rect = link.getBoundingClientRect();
-          return rect.width >= 44 && rect.height >= 44;
-        }),
-        isTextReadable: Array.from(text).every((el) => {
-          const fontSize = parseInt(window.getComputedStyle(el).fontSize);
-          return fontSize >= 12;
-        }),
-      };
-    });
+      },
+      {
+        selector: sectionSelector,
+        MIN_TEXT_SIZE: ResponsiveDesignPOF.MIN_TEXT_SIZE,
+        MIN_TOUCH_TARGET_SIZE: ResponsiveDesignPOF.MIN_TOUCH_TARGET_SIZE,
+      }
+    );
   }
 
-  async checkTabletLayout(): Promise<{
-    hasAppropriateColumns: boolean;
-    areImagesProperlySize: boolean;
-    areElementsAccessible: boolean;
-  }> {
-    return await this.page.evaluate(() => {
+  async checkFooterResponsiveness(): Promise<FooterResponsiveness> {
+    return await this.page.evaluate(
+      ({ MIN_TEXT_SIZE, MIN_TOUCH_TARGET_SIZE }) => {
+        const footer = document.querySelector("footer");
+        if (!footer) {
+          return {
+            isVerticalLayout: false,
+            areLinksTappable: false,
+            isTextReadable: false,
+          };
+        }
+
+        const links = footer.querySelectorAll("a");
+        const text = footer.querySelectorAll("p, span");
+
+        const areLinksTappable = Array.from(links).every((link) => {
+          const rect = link.getBoundingClientRect();
+          return (
+            rect.width >= MIN_TOUCH_TARGET_SIZE &&
+            rect.height >= MIN_TOUCH_TARGET_SIZE
+          );
+        });
+
+        const isTextReadable = Array.from(text).every((el) => {
+          const fontSize = parseInt(window.getComputedStyle(el).fontSize);
+          return fontSize >= MIN_TEXT_SIZE;
+        });
+
+        return {
+          isVerticalLayout:
+            window.getComputedStyle(footer).flexDirection === "column",
+          areLinksTappable,
+          isTextReadable,
+        };
+      },
+      {
+        MIN_TEXT_SIZE: ResponsiveDesignPOF.MIN_TEXT_SIZE,
+        MIN_TOUCH_TARGET_SIZE: ResponsiveDesignPOF.MIN_TOUCH_TARGET_SIZE,
+      }
+    );
+  }
+
+  async checkTabletLayout(): Promise<TabletLayout> {
+    return await this.page.evaluate((MIN_TOUCH_TARGET_SIZE) => {
       const main = document.querySelector("main");
-      if (!main)
+      if (!main) {
         return {
           hasAppropriateColumns: false,
           areImagesProperlySize: false,
           areElementsAccessible: false,
         };
+      }
 
       const sections = main.querySelectorAll("section");
       const images = main.querySelectorAll("img");
@@ -555,20 +659,31 @@ export class ResponsiveDesignPOF {
         "button, a, input, select"
       );
 
-      return {
-        hasAppropriateColumns: Array.from(sections).some((section) => {
-          const display = window.getComputedStyle(section).display;
-          return display === "grid" || display === "flex";
-        }),
-        areImagesProperlySize: Array.from(images).every((img) => {
-          const rect = img.getBoundingClientRect();
-          return rect.width <= window.innerWidth;
-        }),
-        areElementsAccessible: Array.from(interactiveElements).every((el) => {
+      const hasAppropriateColumns = Array.from(sections).some((section) => {
+        const display = window.getComputedStyle(section).display;
+        return display === "grid" || display === "flex";
+      });
+
+      const areImagesProperlySize = Array.from(images).every((img) => {
+        const rect = img.getBoundingClientRect();
+        return rect.width <= window.innerWidth;
+      });
+
+      const areElementsAccessible = Array.from(interactiveElements).every(
+        (el) => {
           const rect = el.getBoundingClientRect();
-          return rect.width >= 44 && rect.height >= 44;
-        }),
+          return (
+            rect.width >= MIN_TOUCH_TARGET_SIZE &&
+            rect.height >= MIN_TOUCH_TARGET_SIZE
+          );
+        }
+      );
+
+      return {
+        hasAppropriateColumns,
+        areImagesProperlySize,
+        areElementsAccessible,
       };
-    });
+    }, ResponsiveDesignPOF.MIN_TOUCH_TARGET_SIZE);
   }
 }

@@ -227,7 +227,7 @@ export class HumanSpaceflightSteps {
           break;
 
         case "Console Errors":
-          const errors = await this.humanSpaceflightPage.performanceSEO.getConsoleErrors();
+          const errors = await this.humanSpaceflightPage.getConsoleErrors();
           expect(errors, "Console should have no errors").toEqual([]);
           break;
           

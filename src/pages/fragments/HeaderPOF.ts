@@ -6,14 +6,13 @@ export class HeaderPOF {
   private readonly mobileMenu: Locator;
   private readonly logoLink: Locator;
   private readonly mobileMenuCloseButton: Locator;
-  private initialHeaderHeight: number | null = null;
-  private initialLogoSize: number | null = null;
+  
+  private cachedHeaderHeight: number | null = null;
+  private cachedLogoSize: number | null = null;
 
   constructor(page: Page) {
     this.navigation = page.getByRole("navigation").first();
-    this.menuButton = page
-      .getByRole("button", { name: /menu|toggle/i })
-      .first();
+    this.menuButton = page.getByRole("button", { name: /menu|toggle/i }).first();
     this.mobileMenu = page
       .getByRole("dialog", { name: "Menu" })
       .or(page.locator("nav.black-overlay"))
@@ -27,90 +26,98 @@ export class HeaderPOF {
       .first();
   }
 
-  async isHeaderVisible(): Promise<boolean> {
-    return this.isNavigationVisible(); 
+  private getPage(): Page {
+    return this.navigation.page();
   }
 
-  async isLogoVisible(): Promise<boolean> {
+  private async waitForAnimation(): Promise<void> {
+    await this.getPage().waitForTimeout(300);
+  }
+
+  private async waitForElementVisible(element: Locator, timeout: number = 5000): Promise<boolean> {
     try {
-      await this.logoLink.waitFor({ state: "visible", timeout: 5000 });
-      return await this.logoLink.isVisible();
-    } catch {
-      return false;
-    }
-  }
-  
-  async isLogoClickable(): Promise<boolean> {
-    return await this.logoLink.isVisible() && await this.logoLink.isEnabled(); 
-  }
-
-  async openNavigationMenu() {
-    if (await this.menuButton.isVisible()) {
-      await this.menuButton.click();
-      await this.menuButton.page().waitForTimeout(500);
-    }
-  }
-
-  async clickMobileMenuButton() {
-    await this.menuButton.waitFor({ state: "visible" });
-    await this.menuButton.click();
-    await this.menuButton.page().waitForTimeout(500);
-  }
-
-  async clickMobileMenuCloseButton() {
-    await this.mobileMenuCloseButton.click();
-    await this.mobileMenuCloseButton.page().waitForTimeout(500);
-  }
-
-  async isNavigationVisible(): Promise<boolean> {
-    try {
-      await this.navigation.waitFor({ state: "visible", timeout: 10000 });
+      await element.waitFor({ state: "visible", timeout });
       return true;
     } catch {
       return false;
     }
   }
 
-  async isMobileMenuButtonVisible(): Promise<boolean> {
-    try {
-      await this.menuButton.waitFor({ state: "visible", timeout: 10000 });
-      return await this.menuButton.isVisible();
-    } catch {
-      return false;
+  private async getElementBoundingBox(element: Locator): Promise<{ width: number; height: number } | null> {
+    const box = await element.boundingBox();
+    return box ? { width: box.width, height: box.height } : null;
+  }
+
+  private getNavigationLink(linkText: string): Locator {
+    return this.navigation.getByRole("link", { name: linkText, exact: true }).first();
+  }
+
+  async isHeaderVisible(): Promise<boolean> {
+    return await this.isNavigationVisible();
+  }
+
+  async isLogoVisible(): Promise<boolean> {
+    return await this.waitForElementVisible(this.logoLink, 5000);
+  }
+  
+  async isLogoClickable(): Promise<boolean> {
+    const [isVisible, isEnabled] = await Promise.all([
+      this.logoLink.isVisible(),
+      this.logoLink.isEnabled()
+    ]);
+    return isVisible && isEnabled;
+  }
+
+  async openNavigationMenu(): Promise<void> {
+    if (await this.menuButton.isVisible()) {
+      await this.menuButton.click();
+      await this.waitForAnimation();
     }
+  }
+
+  async clickMobileMenuButton(): Promise<void> {
+    await this.menuButton.waitFor({ state: "visible" });
+    await this.menuButton.click();
+    await this.waitForAnimation();
+  }
+
+  async clickMobileMenuCloseButton(): Promise<void> {
+    await this.mobileMenuCloseButton.click();
+    await this.waitForAnimation();
+  }
+
+  async isNavigationVisible(): Promise<boolean> {
+    return await this.waitForElementVisible(this.navigation, 10000);
+  }
+
+  async isMobileMenuButtonVisible(): Promise<boolean> {
+    return await this.waitForElementVisible(this.menuButton, 10000);
   }
 
   async isMenuCollapsed(): Promise<boolean> {
-    const isButtonVisible = await this.isMobileMenuButtonVisible();
-    const isMenuNotExpanded = await this.mobileMenu.isHidden();
-    return isButtonVisible && isMenuNotExpanded; 
+    const [isButtonVisible, isMenuHidden] = await Promise.all([
+      this.isMobileMenuButtonVisible(),
+      this.mobileMenu.isHidden()
+    ]);
+    
+    return isButtonVisible && isMenuHidden;
   }
 
   async isMobileMenuExpanded(): Promise<boolean> {
-    try {
-      await this.mobileMenu.waitFor({ state: "visible", timeout: 4000 });
-      return await this.mobileMenu.isVisible();
-    } catch {
-      return false;
-    }
+    return await this.waitForElementVisible(this.mobileMenu, 4000);
   }
 
   async isNavLinkVisible(linkText: string): Promise<boolean> {
-    const link = this.navigation
-      .getByRole("link", { name: linkText, exact: true })
-      .first();
+    const link = this.getNavigationLink(linkText);
     return await link.isVisible();
   }
 
   async checkNavigationLinksExist(links: string[]): Promise<boolean> {
     for (const linkText of links) {
-      const link = this.navigation
-        .getByRole("link", { name: linkText, exact: true })
-        .first();
-      const exists = (await link.count()) > 0;
+      const link = this.getNavigationLink(linkText);
+      const exists = await link.count().then(count => count > 0);
 
       if (!exists) {
-        console.log(`Navigation link "${linkText}" not found`);
         return false;
       }
     }
@@ -118,9 +125,7 @@ export class HeaderPOF {
   }
 
   async clickNavigationLink(linkText: string): Promise<void> {
-    const link = this.navigation
-      .getByRole("link", { name: linkText, exact: true })
-      .first();
+    const link = this.getNavigationLink(linkText);
     await link.click();
   }
 
@@ -129,30 +134,48 @@ export class HeaderPOF {
   }
   
   async getInitialHeaderHeight(): Promise<number> {
-    if (this.initialHeaderHeight === null) {
+    if (this.cachedHeaderHeight === null) {
       await this.navigation.waitFor({ state: 'visible' }); 
-      const box = await this.navigation.boundingBox();
-      this.initialHeaderHeight = box ? box.height : 0;
+      const box = await this.getElementBoundingBox(this.navigation);
+      this.cachedHeaderHeight = box ? box.height : 0;
     }
-    return this.initialHeaderHeight!;
+    return this.cachedHeaderHeight;
   }
 
   async getCurrentHeaderHeight(): Promise<number> {
-    const box = await this.navigation.boundingBox();
+    const box = await this.getElementBoundingBox(this.navigation);
     return box ? box.height : 0;
   }
 
   async getInitialLogoSize(): Promise<number> {
-    if (this.initialLogoSize === null) {
+    if (this.cachedLogoSize === null) {
       await this.logoLink.waitFor({ state: 'visible' }); 
-      const box = await this.logoLink.boundingBox();
-      this.initialLogoSize = box ? box.width : 0;
+      const box = await this.getElementBoundingBox(this.logoLink);
+      this.cachedLogoSize = box ? box.width : 0;
     }
-    return this.initialLogoSize!;
+    return this.cachedLogoSize;
   }
 
   async getCurrentLogoSize(): Promise<number> {
-    const box = await this.logoLink.boundingBox();
+    const box = await this.getElementBoundingBox(this.logoLink);
     return box ? box.width : 0;
+  }
+
+  async getNavigationLinkCount(): Promise<number> {
+    return await this.navigation.getByRole("link").count();
+  }
+
+  async isMobileMenuAccessible(): Promise<boolean> {
+    const [isButtonVisible, isButtonEnabled] = await Promise.all([
+      this.menuButton.isVisible(),
+      this.menuButton.isEnabled()
+    ]);
+    
+    return isButtonVisible && isButtonEnabled;
+  }
+
+  async getMobileMenuState(): Promise<'expanded' | 'collapsed'> {
+    const isExpanded = await this.isMobileMenuExpanded();
+    return isExpanded ? 'expanded' : 'collapsed';
   }
 }

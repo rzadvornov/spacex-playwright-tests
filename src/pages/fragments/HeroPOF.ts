@@ -1,4 +1,5 @@
 import { Locator, Page } from "@playwright/test";
+import { BoundingBox } from "../types/BoundingBox";
 
 export class HeroPOF {
   private readonly heroSection: Locator;
@@ -7,7 +8,8 @@ export class HeroPOF {
   private readonly upcomingLaunchesWidget: Locator;
   private readonly scrollDownArrow: Locator;
   private readonly mediaCarouselSection: Locator;
-  private initialHeroSectionHeight: number | null = null;
+
+  private cachedHeroSectionHeight: number | null = null;
 
   constructor(page: Page) {
     this.heroSection = page
@@ -32,29 +34,60 @@ export class HeroPOF {
       .first();
   }
 
-  public getHeroTitleLocator(): Locator {
-    return this.heroTitle;
+  private getPage(): Page {
+    return this.heroSection.page();
   }
 
-  async isHeroSectionVisible(): Promise<boolean> {
+  private async waitForElementVisible(
+    element: Locator,
+    timeout: number = 5000
+  ): Promise<boolean> {
     try {
-      if (this.initialHeroSectionHeight === null) {
-        const box = await this.heroSection.boundingBox();
-        this.initialHeroSectionHeight = box ? box.height : 0;
-      }
-      await this.heroSection.waitFor({ state: "visible", timeout: 5000 });
+      await element.waitFor({ state: "visible", timeout });
       return true;
     } catch {
       return false;
     }
   }
 
+  private async getElementBoundingBox(
+    element: Locator
+  ): Promise<BoundingBox | null> {
+    return await element.boundingBox();
+  }
+
+  private async getHeroSectionHeight(): Promise<number> {
+    if (this.cachedHeroSectionHeight === null) {
+      const box = await this.getElementBoundingBox(this.heroSection);
+      this.cachedHeroSectionHeight = box ? box.height : 800;
+    }
+    return this.cachedHeroSectionHeight;
+  }
+
+  private getCTAButton(buttonText: string): Locator {
+    return this.heroSection.getByRole("button", {
+      name: buttonText,
+      exact: true,
+    });
+  }
+
+  public getHeroTitleLocator(): Locator {
+    return this.heroTitle;
+  }
+
+  async isHeroSectionVisible(): Promise<boolean> {
+    await this.getHeroSectionHeight();
+    return await this.waitForElementVisible(this.heroSection, 5000);
+  }
+
   async getHeroTitleText(): Promise<string> {
-    return (await this.heroTitle.textContent())?.trim() || "";
+    const text = await this.heroTitle.textContent();
+    return text?.trim() ?? "";
   }
 
   async getHeroSubtitleText(): Promise<string> {
-    return (await this.heroSubtitle.textContent())?.trim() || "";
+    const text = await this.heroSubtitle.textContent();
+    return text?.trim() ?? "";
   }
 
   async isScrollDownArrowVisible(): Promise<boolean> {
@@ -62,40 +95,29 @@ export class HeroPOF {
   }
 
   async isMissionStatusVisible(): Promise<boolean> {
-    return this.isUpcomingLaunchesWidgetDisplayed(); 
+    return await this.isUpcomingLaunchesWidgetDisplayed();
   }
-  
+
   async isUpcomingLaunchesWidgetDisplayed(): Promise<boolean> {
-    try {
-      await this.upcomingLaunchesWidget.waitFor({
-        state: "visible",
-        timeout: 5000,
-      });
-      return await this.upcomingLaunchesWidget.isVisible();
-    } catch {
-      return false;
-    }
+    return await this.waitForElementVisible(this.upcomingLaunchesWidget, 5000);
   }
 
   async clickScrollDownArrow(): Promise<void> {
     await this.scrollDownArrow.click();
   }
-  
+
   async scrollToNextSection(): Promise<void> {
-    await this.mediaCarouselSection.scrollIntoViewIfNeeded(); 
-  }
-  
-  async isPageScrolledPastHero(): Promise<boolean> {
-    const scrollPosition = await this.heroSection.page().evaluate(() => window.scrollY);
-    
-    if (this.initialHeroSectionHeight === null) {
-        const box = await this.heroSection.boundingBox();
-        this.initialHeroSectionHeight = box ? box.height : 800; // Default estimate
-    }
-    
-    return scrollPosition > (this.initialHeroSectionHeight * 0.5); 
+    await this.mediaCarouselSection.scrollIntoViewIfNeeded();
   }
 
+  async isPageScrolledPastHero(): Promise<boolean> {
+    const [scrollPosition, heroHeight] = await Promise.all([
+      this.getPage().evaluate(() => window.scrollY),
+      this.getHeroSectionHeight(),
+    ]);
+
+    return scrollPosition > heroHeight * 0.5;
+  }
 
   async isMediaCarouselSectionVisible(): Promise<boolean> {
     try {
@@ -103,33 +125,75 @@ export class HeroPOF {
         state: "visible",
         timeout: 5000,
       });
-      const boundingBox = await this.mediaCarouselSection.boundingBox();
-      const viewport = this.mediaCarouselSection.page().viewportSize();
 
-      return !!(
-        boundingBox &&
-        viewport &&
+      const [boundingBox, viewport] = await Promise.all([
+        this.getElementBoundingBox(this.mediaCarouselSection),
+        this.getPage().viewportSize(),
+      ]);
+
+      if (!boundingBox || !viewport) {
+        return false;
+      }
+
+      const isInViewport =
         boundingBox.y < viewport.height &&
-        boundingBox.y > 0
-      );
+        boundingBox.y + boundingBox.height > 0;
+
+      return isInViewport;
     } catch {
       return false;
     }
   }
 
   async isCTAButtonVisible(buttonText: string): Promise<boolean> {
-    const ctaButton = this.heroSection.getByRole("button", {
-      name: buttonText,
-      exact: true,
-    });
+    const ctaButton = this.getCTAButton(buttonText);
     return await ctaButton.isVisible();
   }
 
   async clickCTAButton(buttonText: string): Promise<void> {
-    const ctaButton = this.heroSection.getByRole("button", {
-      name: buttonText,
-      exact: true,
-    });
+    const ctaButton = this.getCTAButton(buttonText);
     await ctaButton.click();
+  }
+
+  async getHeroSectionDimensions(): Promise<{
+    width: number;
+    height: number;
+  } | null> {
+    const box = await this.getElementBoundingBox(this.heroSection);
+    return box ? { width: box.width, height: box.height } : null;
+  }
+
+  async isScrollDownArrowClickable(): Promise<boolean> {
+    const [isVisible, isEnabled] = await Promise.all([
+      this.scrollDownArrow.isVisible(),
+      this.scrollDownArrow.isEnabled(),
+    ]);
+    return isVisible && isEnabled;
+  }
+
+  async getUpcomingLaunchesWidgetText(): Promise<string> {
+    const text = await this.upcomingLaunchesWidget.textContent();
+    return text?.trim() ?? "";
+  }
+
+  async isHeroContentCentered(): Promise<boolean> {
+    const [heroBox, titleBox] = await Promise.all([
+      this.getElementBoundingBox(this.heroSection),
+      this.getElementBoundingBox(this.heroTitle),
+    ]);
+
+    if (!heroBox || !titleBox) {
+      return false;
+    }
+
+    const heroCenter = heroBox.x + heroBox.width / 2;
+    const titleCenter = titleBox.x + titleBox.width / 2;
+    const centerOffset = Math.abs(heroCenter - titleCenter);
+
+    return centerOffset < 50;
+  }
+
+  async getCurrentScrollPosition(): Promise<number> {
+    return await this.getPage().evaluate(() => window.scrollY);
   }
 }

@@ -1,22 +1,11 @@
-import { Locator, Page } from "@playwright/test";
-
-interface PerformanceMetrics {
-  lcp?: number;
-  fid?: number;
-  cls?: number;
-  ttfb?: number;
-  fcp?: number;
-}
-
-interface ResourceInfo {
-  url: string;
-  type: string;
-  size: number;
-  transferSize: number;
-  protocol: string;
-  status: number;
-  cacheControl?: string;
-}
+import { Page } from "@playwright/test";
+import { PerformanceMetrics } from "../types/PerformanceMetrics";
+import { ResourceInfo } from "../types/ResourceInfo";
+import { ImageInfo } from "../types/ImageInfo";
+import { HeadingInfo } from "../types/HeadingInfo";
+import { LinkInfo } from "../types/LinkInfo";
+import { DuplicateContentResult } from "../types/DuplicateContentResult";
+import { MobileOptimizationResult } from "../types/MobileOptimizationResult";
 
 export class PerformanceSEOPOF {
   readonly page: Page;
@@ -25,37 +14,41 @@ export class PerformanceSEOPOF {
     this.page = page;
   }
 
+  private async evaluateInPage<T>(fn: () => T): Promise<T> {
+    return await this.page.evaluate(fn);
+  }
+
   async getPerformanceMetrics(): Promise<PerformanceMetrics> {
-    return await this.page.evaluate(() => {
+    return await this.evaluateInPage(() => {
       const metrics: PerformanceMetrics = {};
 
-      // Get Core Web Vitals
-      const lcpEntry = performance.getEntriesByType(
-        "largest-contentful-paint"
-      )[0] as any;
-      if (lcpEntry) metrics.lcp = lcpEntry.startTime;
+      const lcpEntry = performance.getEntriesByType("largest-contentful-paint")[0] as PerformanceEntry & { startTime: number };
+      if (lcpEntry) {
+        metrics.lcp = Math.round(lcpEntry.startTime);
+      }
 
-      const fidEntry = performance.getEntriesByType("first-input")[0] as any;
-      if (fidEntry) metrics.fid = fidEntry.processingStart - fidEntry.startTime;
+      const fidEntry = performance.getEntriesByType("first-input")[0] as PerformanceEventTiming;
+      if (fidEntry) {
+        metrics.fid = Math.round(fidEntry.processingStart - fidEntry.startTime);
+      }
 
-      // Get CLS
-      let clsValue = 0;
-      new PerformanceObserver((entryList) => {
-        for (const entry of entryList.getEntries()) {
-          if (!(entry as any).hadRecentInput) {
-            clsValue += (entry as any).value;
-          }
-        }
-      }).observe({ entryTypes: ["layout-shift"] });
-      metrics.cls = clsValue;
+      const layoutShiftEntries = performance.getEntriesByType("layout-shift") as any[];
+      if (layoutShiftEntries.length > 0) {
+        metrics.cls = layoutShiftEntries.reduce((sum, entry) => {
+          return entry.hadRecentInput ? sum : sum + entry.value;
+        }, 0);
+      }
 
-      // Get TTFB and FCP
-      const navigationEntry = performance.getEntriesByType(
-        "navigation"
-      )[0] as any;
+      const navigationEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
       if (navigationEntry) {
-        metrics.ttfb = navigationEntry.responseStart;
-        metrics.fcp = navigationEntry.firstContentfulPaint;
+        metrics.ttfb = Math.round(navigationEntry.responseStart);
+      }
+
+      const fcpEntry = performance.getEntriesByType("paint").find(
+        (entry: PerformanceEntry) => entry.name === "first-contentful-paint"
+      ) as PerformanceEntry & { startTime: number };
+      if (fcpEntry) {
+        metrics.fcp = Math.round(fcpEntry.startTime);
       }
 
       return metrics;
@@ -63,157 +56,169 @@ export class PerformanceSEOPOF {
   }
 
   async getLighthouseScore(): Promise<number> {
-    // Note: In a real implementation, you would integrate with Lighthouse API
-    // This is a mock implementation
-    return 85;
+    const metrics = await this.getPerformanceMetrics();
+    
+    let score = 100;
+    if (metrics.lcp && metrics.lcp > 2500) score -= 30;
+    if (metrics.fid && metrics.fid > 100) score -= 20;
+    if (metrics.cls && metrics.cls > 0.1) score -= 20;
+    if (metrics.fcp && metrics.fcp > 2000) score -= 15;
+    
+    return Math.max(0, score);
   }
 
-  async getImageOptimizationInfo(): Promise<
-    {
-      format: string;
-      size: number;
-      hasWebp: boolean;
-      hasSrcset: boolean;
-      loading: string | null;
-    }[]
-  > {
-    return await this.page.evaluate(() => {
-      return Array.from(document.querySelectorAll("img")).map((img) => ({
-        format: img.src.split(".").pop() || "",
-        size: (img as any).naturalWidth * (img as any).naturalHeight,
-        hasWebp: img.srcset.includes("webp"),
-        hasSrcset: !!img.srcset,
-        loading: img.getAttribute("loading"),
-      }));
+  async getImageOptimizationInfo(): Promise<ImageInfo[]> {
+    return await this.evaluateInPage(() => {
+      return Array.from(document.querySelectorAll("img")).map((img): ImageInfo => {
+        const src = img.getAttribute("src") || "";
+        const format = src.split('.').pop()?.toLowerCase() || '';
+        const naturalWidth = (img as HTMLImageElement).naturalWidth;
+        const naturalHeight = (img as HTMLImageElement).naturalHeight;
+        
+        return {
+          format,
+          size: naturalWidth * naturalHeight,
+          hasWebp: img.srcset.toLowerCase().includes('webp'),
+          hasSrcset: !!img.srcset && img.srcset.length > 0,
+          loading: img.getAttribute("loading")
+        };
+      });
     });
   }
 
   async getCSSResourcesInfo(): Promise<ResourceInfo[]> {
-    return await this.page.evaluate(() => {
-      const cssResources = performance
-        .getEntriesByType("resource")
-        .filter(
-          (entry) =>
-            (entry as PerformanceResourceTiming).initiatorType === "css" ||
-            entry.name.endsWith(".css")
-        );
-
-      return cssResources.map((resource) => ({
-        url: resource.name,
-        type: "css",
-        size: (resource as PerformanceResourceTiming).decodedBodySize,
-        transferSize: (resource as PerformanceResourceTiming).transferSize,
-        protocol: (resource as any).nextHopProtocol,
-        status: 200, // In a real implementation, you'd get this from the response
-      }));
+    return await this.evaluateInPage(() => {
+      return performance.getEntriesByType("resource")
+        .filter((entry): entry is PerformanceResourceTiming => {
+          const resource = entry as PerformanceResourceTiming;
+          return resource.initiatorType === "css" || resource.name.endsWith(".css");
+        })
+        .map((resource): ResourceInfo => ({
+          url: resource.name,
+          type: "css",
+          size: resource.decodedBodySize || 0,
+          transferSize: resource.transferSize || 0,
+          protocol: resource.nextHopProtocol,
+          status: 200
+        }));
     });
   }
 
   async getJavaScriptResourcesInfo(): Promise<ResourceInfo[]> {
-    return await this.page.evaluate(() => {
-      const jsResources = performance
-        .getEntriesByType("resource")
-        .filter(
-          (entry) =>
-            (entry as PerformanceResourceTiming).initiatorType === "script" ||
-            entry.name.endsWith(".js")
-        );
-
-      return jsResources.map((resource) => ({
-        url: resource.name,
-        type: "js",
-        size: (resource as PerformanceResourceTiming).decodedBodySize,
-        transferSize: (resource as PerformanceResourceTiming).transferSize,
-        protocol: (resource as any).nextHopProtocol,
-        status: 200,
-      }));
+    return await this.evaluateInPage(() => {
+      return performance.getEntriesByType("resource")
+        .filter((entry): entry is PerformanceResourceTiming => {
+          const resource = entry as PerformanceResourceTiming;
+          return resource.initiatorType === "script" || resource.name.endsWith(".js");
+        })
+        .map((resource): ResourceInfo => ({
+          url: resource.name,
+          type: "js",
+          size: resource.decodedBodySize || 0,
+          transferSize: resource.transferSize || 0,
+          protocol: resource.nextHopProtocol,
+          status: 200
+        }));
     });
   }
 
   async getMetaTags(): Promise<{ [key: string]: string }> {
-    const metaTags = await this.page.$$eval("meta", (tags) => {
-      return tags.map((tag) => ({
-        name: tag.getAttribute("name") || tag.getAttribute("property") || "",
-        content: tag.getAttribute("content") || "",
-      }));
+    return await this.evaluateInPage(() => {
+      const metaTags = Array.from(document.querySelectorAll("meta"));
+      return metaTags.reduce((acc: { [key: string]: string }, tag) => {
+        const name = tag.getAttribute("name") || tag.getAttribute("property") || "";
+        const content = tag.getAttribute("content") || "";
+        
+        if (name && content) {
+          acc[name] = content;
+        }
+        
+        return acc;
+      }, {});
     });
-
-    return metaTags.reduce((acc: { [key: string]: string }, tag) => {
-      if (tag.name) acc[tag.name] = tag.content;
-      return acc;
-    }, {});
   }
 
   async getOpenGraphTags(): Promise<{ [key: string]: string }> {
-    const ogTags = await this.page.$$eval('meta[property^="og:"]', (tags) => {
-      return tags.map((tag) => ({
-        property: tag.getAttribute("property") || "",
-        content: tag.getAttribute("content") || "",
-      }));
+    return await this.evaluateInPage(() => {
+      const ogTags = Array.from(document.querySelectorAll('meta[property^="og:"]'));
+      return ogTags.reduce((acc: { [key: string]: string }, tag) => {
+        const property = tag.getAttribute("property") || "";
+        const content = tag.getAttribute("content") || "";
+        
+        if (property && content) {
+          const key = property.replace("og:", "");
+          acc[key] = content;
+        }
+        
+        return acc;
+      }, {});
     });
-
-    return ogTags.reduce((acc: { [key: string]: string }, tag) => {
-      if (tag.property) acc[tag.property.replace("og:", "")] = tag.content;
-      return acc;
-    }, {});
   }
 
   async getStructuredData(): Promise<any[]> {
-    return await this.page.evaluate(() => {
-      const scripts = document.querySelectorAll(
-        'script[type="application/ld+json"]'
-      );
-      return Array.from(scripts).map((script) =>
-        JSON.parse(script.textContent || "{}")
-      );
+    return await this.evaluateInPage(() => {
+      const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+      return Array.from(scripts).map((script) => {
+        try {
+          return JSON.parse(script.textContent || "{}");
+        } catch {
+          return {};
+        }
+      }).filter(data => Object.keys(data).length > 0);
     });
   }
 
-  async getHeadingStructure(): Promise<Array<{ tag: string; text: string }>> {
-    return await this.page.evaluate(() => {
+  async getHeadingStructure(): Promise<HeadingInfo[]> {
+    return await this.evaluateInPage(() => {
       const headings = document.querySelectorAll("h1, h2, h3, h4, h5, h6");
-      return Array.from(headings).map((h) => ({
-        tag: h.tagName.toLowerCase(),
-        text: h.textContent || "",
+      return Array.from(headings).map((heading): HeadingInfo => ({
+        tag: heading.tagName.toLowerCase(),
+        text: heading.textContent?.trim() || ""
       }));
     });
   }
 
   async getRobotsMetaContent(): Promise<string | null> {
-    const robotsMeta = await this.page.$('meta[name="robots"]');
-    return robotsMeta ? await robotsMeta.getAttribute("content") : null;
+    return await this.evaluateInPage(() => {
+      const robotsMeta = document.querySelector('meta[name="robots"]');
+      return robotsMeta?.getAttribute("content") || null;
+    });
   }
 
   async getCanonicalUrl(): Promise<string | null> {
-    const canonical = await this.page.$('link[rel="canonical"]');
-    return canonical ? await canonical.getAttribute("href") : null;
+    return await this.evaluateInPage(() => {
+      const canonical = document.querySelector('link[rel="canonical"]');
+      return canonical?.getAttribute("href") || null;
+    });
   }
 
-  async getInternalLinks(): Promise<Array<{ href: string; text: string }>> {
+  async getInternalLinks(): Promise<LinkInfo[]> {
     const baseUrl = new URL(this.page.url()).origin;
-    return await this.page.$$eval(
-      'a[href^="/"], a[href^="' + baseUrl + '"]',
-      (links) =>
-        links.map((link) => ({
-          href: link.getAttribute("href") || "",
-          text: link.textContent || "",
-        }))
-    );
+    
+    return await this.evaluateInPage(() => {
+      const links = Array.from(document.querySelectorAll('a[href^="/"], a[href^="' + baseUrl + '"]'));
+      return links.map((link): LinkInfo => ({
+        href: link.getAttribute("href") || "",
+        text: link.textContent?.trim() || ""
+      }));
+    });
   }
 
-  async checkDuplicateContent(): Promise<{
-    duplicateParagraphs: number;
-    totalParagraphs: number;
-  }> {
-    return await this.page.evaluate(() => {
-      const paragraphs = document.querySelectorAll("p");
-      const textContent = new Set();
+  async checkDuplicateContent(): Promise<DuplicateContentResult> {
+    return await this.evaluateInPage(() => {
+      const paragraphs = Array.from(document.querySelectorAll("p"));
+      const textContent = new Set<string>();
       let duplicates = 0;
 
       paragraphs.forEach((p) => {
         const text = p.textContent?.trim();
-        if (text && textContent.has(text)) duplicates++;
-        textContent.add(text);
+        if (text) {
+          if (textContent.has(text)) {
+            duplicates++;
+          } else {
+            textContent.add(text);
+          }
+        }
       });
 
       return {
@@ -223,75 +228,87 @@ export class PerformanceSEOPOF {
     });
   }
 
-  async checkMobileOptimization(): Promise<{
-    textReadable: boolean;
-    touchTargetsSize: boolean;
-    noInterstitials: boolean;
-  }> {
-    return await this.page.evaluate(() => {
-      // Check text readability
-      const textElements = document.querySelectorAll(
-        "p, h1, h2, h3, h4, h5, h6"
-      );
-      const textReadable = Array.from(textElements).every((el) => {
-        const fontSize = window.getComputedStyle(el).fontSize;
-        return parseInt(fontSize) >= 12;
+  async checkMobileOptimization(): Promise<MobileOptimizationResult> {
+    return await this.evaluateInPage(() => {
+      const textElements = Array.from(document.querySelectorAll("p, h1, h2, h3, h4, h5, h6"));
+      const textReadable = textElements.every((el) => {
+        const fontSize = parseInt(window.getComputedStyle(el).fontSize);
+        return fontSize >= 12;
       });
 
-      // Check touch target sizes
-      const touchTargets = document.querySelectorAll(
-        "a, button, input, select, textarea"
-      );
-      const touchTargetsSize = Array.from(touchTargets).every((el) => {
+      const touchTargets = Array.from(document.querySelectorAll("a, button, input, select, textarea"));
+      const touchTargetsSize = touchTargets.every((el) => {
         const rect = el.getBoundingClientRect();
         return rect.width >= 44 && rect.height >= 44;
       });
 
-      // Check for interstitials
-      const noInterstitials = !document.querySelector(
-        ".interstitial, .popup, .modal"
-      );
+      const noInterstitials = !document.querySelector(".interstitial, .popup, .modal");
 
       return { textReadable, touchTargetsSize, noInterstitials };
     });
   }
 
   async getLargestContentfulPaint(): Promise<number> {
-    return await this.page.evaluate(() => {
-      const lcpEntry = performance.getEntriesByType(
-        "largest-contentful-paint"
-      )[0] as any;
-      // Return LCP time in milliseconds (or 0 if not found)
+    return await this.evaluateInPage(() => {
+      const lcpEntry = performance.getEntriesByType("largest-contentful-paint")[0] as PerformanceEntry & { startTime: number };
       return lcpEntry ? Math.round(lcpEntry.startTime) : 0;
     });
   }
 
   async getFirstInputDelay(): Promise<number> {
-    return await this.page.evaluate(() => {
-      const fidEntry = performance.getEntriesByType("first-input")[0] as any;
-      // Return FID time in milliseconds (or 0 if not found)
-      return fidEntry
-        ? Math.round(fidEntry.processingStart - fidEntry.startTime)
-        : 0;
+    return await this.evaluateInPage(() => {
+      const fidEntry = performance.getEntriesByType("first-input")[0] as PerformanceEventTiming;
+      return fidEntry ? Math.round(fidEntry.processingStart - fidEntry.startTime) : 0;
     });
   }
 
-  async getConsoleErrors(): Promise<string[]> {
-    return [];
+  async getFirstContentfulPaint(): Promise<number> {
+    return await this.evaluateInPage(() => {
+      const fcpEntry = performance.getEntriesByType("paint").find(
+        (entry: PerformanceEntry) => entry.name === "first-contentful-paint"
+      ) as PerformanceEntry & { startTime: number };
+      return fcpEntry ? Math.round(fcpEntry.startTime) : 0;
+    });
   }
 
   async checkImageLoading404s(): Promise<boolean> {
-    const brokenImageCount = await this.page.evaluate(() => {
-      let count = 0;
-      document.querySelectorAll("img").forEach((el) => {
-        const img = el as HTMLImageElement;
-        if (img.complete && img.naturalWidth === 0) {
-          count++;
-        }
+    return await this.evaluateInPage(() => {
+      const images = Array.from(document.querySelectorAll("img"));
+      return images.some((img) => {
+        const image = img as HTMLImageElement;
+        return image.complete && image.naturalWidth === 0;
       });
-      return count;
     });
+  }
 
-    return brokenImageCount > 0;
+  async getPageLoadTime(): Promise<number> {
+    return await this.evaluateInPage(() => {
+      const navigationEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
+      return navigationEntry ? Math.round(navigationEntry.loadEventEnd - navigationEntry.fetchStart) : 0;
+    });
+  }
+
+  async getResourceCount(): Promise<{ css: number; js: number; images: number }> {
+    return await this.evaluateInPage(() => {
+      const resources = performance.getEntriesByType("resource") as PerformanceResourceTiming[];
+      
+      return {
+        css: resources.filter(r => r.initiatorType === "css" || r.name.endsWith(".css")).length,
+        js: resources.filter(r => r.initiatorType === "script" || r.name.endsWith(".js")).length,
+        images: resources.filter(r => r.initiatorType === "img").length
+      };
+    });
+  }
+
+  async isAboveTheFoldContentLoaded(): Promise<boolean> {
+    return await this.evaluateInPage(() => {
+      const viewportHeight = window.innerHeight;
+      const elements = document.querySelectorAll("h1, h2, img, p");
+      
+      return Array.from(elements).some(el => {
+        const rect = el.getBoundingClientRect();
+        return rect.top >= 0 && rect.top <= viewportHeight;
+      });
+    });
   }
 }

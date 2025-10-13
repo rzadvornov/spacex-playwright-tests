@@ -1,4 +1,6 @@
-import { Locator, Page, expect } from "@playwright/test";
+import { Locator, Page } from "@playwright/test";
+import { MissionTab } from "../types/MissionTab";
+import { MissionMetric } from "../types/MissionMetric";
 
 export class OurMissionsPOF {
   readonly page: Page;
@@ -13,20 +15,34 @@ export class OurMissionsPOF {
 
   constructor(page: Page) {
     this.page = page;
-    this.ourMissionsSection = page.locator(
-      '[data-test="our-missions-section"]'
-    );
+    this.ourMissionsSection = page.locator('[data-test="our-missions-section"]');
     this.sectionTitle = this.ourMissionsSection.locator("h2");
-    this.sectionDescription = this.ourMissionsSection.locator(
-      ".section-description"
-    );
+    this.sectionDescription = this.ourMissionsSection.locator(".section-description");
     this.missionTabs = this.ourMissionsSection.locator(".mission-tab");
     this.metricsTable = this.ourMissionsSection.locator(".metrics-table");
-    this.joinMissionButton = this.ourMissionsSection.locator(
-      'button:text("Join a mission")'
-    );
+    this.joinMissionButton = this.ourMissionsSection.locator('button:text("Join a mission")');
     this.backgroundImage = this.ourMissionsSection.locator(".background-image");
-    this.submissionForm = page.locator('form[aria-label="Mission Submission"]'); 
+    this.submissionForm = page.locator('form[aria-label="Mission Submission"]');
+  }
+
+  private async getElementTextContent(element: Locator): Promise<string> {
+    const text = await element.textContent();
+    return text?.trim() ?? "";
+  }
+
+  private async getElementAttribute(element: Locator, attribute: string): Promise<string> {
+    const value = await element.getAttribute(attribute);
+    return value ?? "";
+  }
+
+  private async getComputedStyle(element: Locator, property: string): Promise<string> {
+    return await element.evaluate((el: Element, prop: string) => {
+      return window.getComputedStyle(el)[prop as any];
+    }, property);
+  }
+
+  private parseStyleNumber(styleValue: string): number {
+    return parseFloat(styleValue) || 0;
   }
 
   async scrollIntoView(): Promise<void> {
@@ -35,26 +51,32 @@ export class OurMissionsPOF {
   }
 
   async getSectionTitle(): Promise<string> {
-    return (await this.sectionTitle.textContent()) || "";
+    return await this.getElementTextContent(this.sectionTitle);
   }
 
   async getSectionDescription(): Promise<string> {
-    return (await this.sectionDescription.textContent()) || "";
+    return await this.getElementTextContent(this.sectionDescription);
   }
 
-  async getMissionTabs(): Promise<{ name: string; order: string }[]> {
-    const tabs = await this.missionTabs.all();
-    const missionTabs: { name: string; order: string }[] = [];
+  async getMissionTabs(): Promise<MissionTab[]> {
+    const tabsCount = await this.missionTabs.count();
+    const missionTabs: MissionTab[] = [];
 
-    for (let i = 0; i < tabs.length; i++) {
-      const tab = tabs[i];
-      const name = (await tab.textContent())?.trim() || "";
-      const order = (await tab.getAttribute("data-order")) || String(i + 1);
+    for (let i = 0; i < tabsCount; i++) {
+      const tab = this.missionTabs.nth(i);
+      const [name, order] = await Promise.all([
+        this.getElementTextContent(tab),
+        this.getElementAttribute(tab, "data-order")
+      ]);
 
       if (name) {
-        missionTabs.push({ name, order });
+        missionTabs.push({ 
+          name, 
+          order: order || String(i + 1) 
+        });
       }
     }
+    
     return missionTabs;
   }
 
@@ -63,28 +85,34 @@ export class OurMissionsPOF {
   }
 
   async clickMissionTab(tabName: string): Promise<void> {
-    await (await this.getTabByName(tabName)).click();
+    const tab = await this.getTabByName(tabName);
+    await tab.click();
   }
 
   async isTabActive(tabName: string): Promise<boolean> {
     const tab = await this.getTabByName(tabName);
-    const classAttr = await tab.getAttribute("class");
-    return classAttr?.includes("active") ?? false;
+    const classAttr = await this.getElementAttribute(tab, "class");
+    return classAttr.includes("active");
   }
 
-  async getActiveMissionMetrics(): Promise<
-    Array<{ metric: string; value: string }>
-  > {
+  async getActiveMissionMetrics(): Promise<MissionMetric[]> {
     const rows = await this.metricsTable.locator("tr").all();
-    const metrics: Array<{ metric: string; value: string }> = [];
+    const metrics: MissionMetric[] = [];
 
     for (const row of rows) {
-      const header = await row.locator("th").textContent();
-      const value = await row.locator("td").textContent();
+      const [header, value] = await Promise.all([
+        this.getElementTextContent(row.locator("th")),
+        this.getElementTextContent(row.locator("td"))
+      ]);
+
       if (header && value) {
-        metrics.push({ metric: header.trim(), value: value.trim() });
+        metrics.push({ 
+          metric: header, 
+          value: value 
+        });
       }
     }
+    
     return metrics;
   }
 
@@ -102,11 +130,8 @@ export class OurMissionsPOF {
   }
 
   async getBackgroundImageOpacity(): Promise<number> {
-    const opacity = await this.backgroundImage.evaluate((el) => {
-      const style = window.getComputedStyle(el);
-      return parseFloat(style.opacity);
-    });
-    return opacity;
+    const opacity = await this.getComputedStyle(this.backgroundImage, "opacity");
+    return this.parseStyleNumber(opacity);
   }
 
   async getCargoScienceLines(): Promise<string[]> {
@@ -116,7 +141,7 @@ export class OurMissionsPOF {
       })
       .locator("td");
 
-    const text = (await cargoCell.textContent()) || "";
+    const text = await this.getElementTextContent(cargoCell);
     return text
       .split("\n")
       .map((line) => line.trim())
@@ -127,24 +152,20 @@ export class OurMissionsPOF {
     const row = this.metricsTable.locator("tr", {
       has: this.page.locator(`th:text("${metricName}")`),
     });
-    return (await row.locator("td").textContent()) || "";
+    return await this.getElementTextContent(row.locator("td"));
   }
 
-  async isTabContentUpdated(
-    previousMetrics: Array<{ metric: string; value: string }>
-  ): Promise<boolean> {
+  async isTabContentUpdated(previousMetrics: MissionMetric[]): Promise<boolean> {
     const currentMetrics = await this.getActiveMissionMetrics();
-    if (currentMetrics.length === 0 || previousMetrics.length === 0)
+    
+    if (currentMetrics.length === 0 || previousMetrics.length === 0) {
       return false;
+    }
 
-    const hasChanged = currentMetrics.some((current) => {
-      const previous = previousMetrics.find(
-        (prev) => prev.metric === current.metric
-      );
+    return currentMetrics.some((current) => {
+      const previous = previousMetrics.find(prev => prev.metric === current.metric);
       return previous ? previous.value !== current.value : true;
     });
-
-    return hasChanged;
   }
 
   async isMissionSubmissionFormVisible(): Promise<boolean> {
@@ -154,96 +175,127 @@ export class OurMissionsPOF {
   async performRapidTabSwitching(tabs: string[]): Promise<void> {
     for (const tabName of tabs) {
       await this.clickMissionTab(tabName);
+      await this.page.waitForTimeout(50);
     }
   }
 
   async isContentTransitionSmooth(): Promise<boolean> {
-      let noErrorsBefore = true; 
-      const errors: any[] = [];
-      this.page.on('console', (msg) => {
-          if (msg.type() === 'error') {
-              errors.push(msg.text());
-          }
-      });
-      
-      const tabNames = ['Earth Orbit', 'Space Station', 'Moon', 'Mars'];
-      const tabs = tabNames.map(name => this.getTabByName(name));
-
-      for (let i = 0; i < 4; i++) {
-          await (await tabs[i]).click();
-          await this.page.waitForTimeout(100); 
+    const errors: string[] = [];
+    
+    this.page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        errors.push(msg.text());
       }
+    });
 
-      return errors.length === 0;
+    const tabNames = ['Earth Orbit', 'Space Station', 'Moon', 'Mars'];
+    
+    for (let i = 0; i < 4; i++) {
+      await this.clickMissionTab(tabNames[i]);
+      await this.page.waitForTimeout(100);
+    }
+
+    this.page.off('console', () => {});
+    
+    return errors.length === 0;
   }
 
   async isUIResponsive(): Promise<boolean> {
     const startTime = Date.now();
-    await this.joinMissionButton.click({ timeout: 5000 });
-    await this.page.goBack();
-    const endTime = Date.now();
-
-    return endTime - startTime < 2000;
+    
+    try {
+      await this.joinMissionButton.click({ timeout: 5000 });
+      await this.page.goBack();
+      const endTime = Date.now();
+      
+      return endTime - startTime < 2000;
+    } catch {
+      return false;
+    }
   }
 
-  async isBackgroundImageRelevantToMission(
-    missionName: string
-  ): Promise<boolean> {
-    const imgSrc = await this.backgroundImage.getAttribute("src");
-    const isVisible = await this.backgroundImage.isVisible();
-    const relevantCheck = imgSrc
-      ?.toLowerCase()
-      .includes(missionName.toLowerCase().replace(/\s/g, ""));
+  async isBackgroundImageRelevantToMission(missionName: string): Promise<boolean> {
+    const [isVisible, imgSrc] = await Promise.all([
+      this.backgroundImage.isVisible(),
+      this.getElementAttribute(this.backgroundImage, "src")
+    ]);
 
-    return isVisible && !!relevantCheck;
+    if (!isVisible || !imgSrc) {
+      return false;
+    }
+
+    const normalizedMissionName = missionName.toLowerCase().replace(/\s/g, "");
+    const normalizedSrc = imgSrc.toLowerCase();
+    
+    return normalizedSrc.includes(normalizedMissionName);
   }
 
   async isTabDesignConsistent(): Promise<boolean> {
-    const tabs = await this.missionTabs.all();
-    if (tabs.length === 0) return false;
+    const tabsCount = await this.missionTabs.count();
+    if (tabsCount === 0) return false;
 
-    const firstTabClass = await tabs[0].getAttribute("class");
-    if (!firstTabClass) return false;
-
-    for (let i = 1; i < tabs.length; i++) {
-      const className = await tabs[i].getAttribute("class");
-      if (!className?.includes("mission-tab")) return false;
+    for (let i = 0; i < tabsCount; i++) {
+      const className = await this.getElementAttribute(this.missionTabs.nth(i), "class");
+      if (!className.includes("mission-tab")) {
+        return false;
+      }
     }
+    
     return true;
   }
 
   async isMetricsGridLayoutClean(): Promise<boolean> {
-    const displayStyle = await this.metricsTable.evaluate(
-      (el) => window.getComputedStyle(el).display
-    );
-    const gap = await this.metricsTable.evaluate(
-      (el) =>
-        window.getComputedStyle(el).gap || window.getComputedStyle(el).padding
-    );
+    const [displayStyle, gap] = await Promise.all([
+      this.getComputedStyle(this.metricsTable, "display"),
+      this.getComputedStyle(this.metricsTable, "gap")
+    ]);
 
-    const isGridOrFlex =
-      displayStyle === "grid" ||
-      displayStyle === "flex" ||
-      displayStyle === "block" ||
-      displayStyle === "table";
-    const hasSpacing = parseFloat(gap) > 0;
+    const validDisplays = ["grid", "flex", "block", "table"];
+    const gapValue = this.parseStyleNumber(gap);
+    const hasSpacing = gapValue > 0;
 
-    return isGridOrFlex && hasSpacing;
+    return validDisplays.includes(displayStyle) && hasSpacing;
   }
 
   async isTypographyClearAndReadable(): Promise<boolean> {
-    const descriptionColor = await this.sectionDescription.evaluate(
-      (el) => window.getComputedStyle(el).color
-    );
-    const descriptionFontSize = await this.sectionDescription.evaluate(
-      (el) => window.getComputedStyle(el).fontSize
-    );
+    const [color, fontSize] = await Promise.all([
+      this.getComputedStyle(this.sectionDescription, "color"),
+      this.getComputedStyle(this.sectionDescription, "fontSize")
+    ]);
 
-    const isGoodSize = parseFloat(descriptionFontSize) > 14;
-    const isReadableContrast =
-      descriptionColor !== "rgb(255, 255, 255)" &&
-      descriptionColor !== "rgba(0, 0, 0, 0)";
+    const fontSizeValue = this.parseStyleNumber(fontSize);
+    const isGoodSize = fontSizeValue > 14;
+    const isReadableContrast = !color.includes("255, 255, 255") && color !== "rgba(0, 0, 0, 0)";
 
     return isGoodSize && isReadableContrast;
+  }
+
+  async getMissionTabsCount(): Promise<number> {
+    return await this.missionTabs.count();
+  }
+
+  async getMetricsCount(): Promise<number> {
+    const metrics = await this.getActiveMissionMetrics();
+    return metrics.length;
+  }
+
+  async isSectionFullyLoaded(): Promise<boolean> {
+    const [isSectionVisible, hasTabs, hasMetrics] = await Promise.all([
+      this.ourMissionsSection.isVisible(),
+      this.missionTabs.first().isVisible(),
+      this.metricsTable.isVisible()
+    ]);
+
+    return isSectionVisible && hasTabs && hasMetrics;
+  }
+
+  async getActiveTabName(): Promise<string> {
+    const tabs = await this.getMissionTabs();
+    for (const tab of tabs) {
+      if (await this.isTabActive(tab.name)) {
+        return tab.name;
+      }
+    }
+    return "";
   }
 }

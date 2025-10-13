@@ -1,4 +1,5 @@
 import { Locator, Page } from "@playwright/test";
+import { MediaTile } from "../types/MediaTile";
 
 export class MediaCarouselPOF {
   readonly page: Page;
@@ -19,20 +20,56 @@ export class MediaCarouselPOF {
     this.audioPlayer = page.locator(".audio-player");
   }
 
+  private async getElementTextContent(element: Locator): Promise<string> {
+    const text = await element.textContent();
+    return text?.trim() ?? "";
+  }
+
+  private async getElementAttribute(element: Locator, attribute: string): Promise<string> {
+    const value = await element.getAttribute(attribute);
+    return value ?? "";
+  }
+
+  private getMediaTileByTitle(title: string): Locator {
+    return this.mediaTiles.filter({ hasText: title });
+  }
+
+  private getVideoPlayButton(tile: Locator): Locator {
+    return tile.locator('button[aria-label*="Play"], .video-play-button, .play-button');
+  }
+
+  private async isElementInViewport(element: Locator): Promise<boolean> {
+    const boundingBox = await element.boundingBox();
+    const viewport = this.page.viewportSize();
+
+    if (!boundingBox || !viewport) {
+      return false;
+    }
+
+    return boundingBox.y < viewport.height && boundingBox.y + boundingBox.height > 0;
+  }
+
+  private async hasActiveClass(element: Locator): Promise<boolean> {
+    const classNames = await this.getElementAttribute(element, "class");
+    return classNames.includes("active");
+  }
+
   async isVisible(): Promise<boolean> {
     return await this.carouselSection.isVisible();
   }
 
-  async getMediaTiles() {
-    const tiles = [];
+  async getMediaTiles(): Promise<MediaTile[]> {
     const count = await this.mediaTiles.count();
+    const tiles: MediaTile[] = [];
 
     for (let i = 0; i < count; i++) {
       const tile = this.mediaTiles.nth(i);
-      tiles.push({
-        title: (await tile.locator(".title").textContent()) || "",
-        type: (await tile.getAttribute("data-media-type")) || "",
-      });
+      const [title, type] = await Promise.all([
+        this.getElementTextContent(tile.locator(".title")),
+        this.getElementAttribute(tile, "data-media-type")
+      ]);
+      
+      tiles.push({ title, type });
     }
 
     return tiles;
@@ -40,21 +77,25 @@ export class MediaCarouselPOF {
 
   async checkTilesHaveMedia(): Promise<boolean> {
     const count = await this.mediaTiles.count();
+    
     for (let i = 0; i < count; i++) {
       const tile = this.mediaTiles.nth(i);
-      const hasMedia = await tile.locator("img, .player").isVisible();
+      const hasMedia = await tile.locator("img, .player, video, audio").isVisible();
       if (!hasMedia) return false;
     }
-    return true;
+    
+    return count > 0;
   }
 
   async arePaginationDotsVisible(): Promise<boolean> {
-    return await this.paginationDots.first().isVisible();
+    const firstDot = this.paginationDots.first();
+    return await firstDot.isVisible();
   }
 
   async clickVideoTilePlayButton(title: string): Promise<void> {
-    const tile = this.mediaTiles.filter({ hasText: title });
-    await tile.locator(".play-button").click();
+    const tile = this.getMediaTileByTitle(title);
+    const playButton = this.getVideoPlayButton(tile);
+    await playButton.click();
   }
 
   async isVideoOverlayVisible(): Promise<boolean> {
@@ -67,24 +108,21 @@ export class MediaCarouselPOF {
   }
 
   async getVideoTitle(): Promise<string> {
-    return (
-      (await this.videoOverlay.locator(".video-title").textContent()) || ""
-    );
+    return await this.getElementTextContent(this.videoOverlay.locator(".video-title"));
   }
 
   async getVideoDescription(): Promise<string> {
-    return (
-      (await this.videoOverlay.locator(".video-description").textContent()) ||
-      ""
-    );
+    return await this.getElementTextContent(this.videoOverlay.locator(".video-description"));
   }
 
   async isOverlayCloseButtonVisible(): Promise<boolean> {
-    return await this.videoOverlay.locator(".close-button").isVisible();
+    const closeButton = this.videoOverlay.locator(".close-button");
+    return await closeButton.isVisible();
   }
 
   async clickOverlayCloseButton(): Promise<void> {
-    await this.videoOverlay.locator(".close-button").click();
+    const closeButton = this.videoOverlay.locator(".close-button");
+    await closeButton.click();
   }
 
   async isVideoOverlayClosed(): Promise<boolean> {
@@ -92,7 +130,8 @@ export class MediaCarouselPOF {
   }
 
   async clickAudioTile(title: string): Promise<void> {
-    await this.mediaTiles.filter({ hasText: title }).click();
+    const tile = this.getMediaTileByTitle(title);
+    await tile.click();
   }
 
   async isAudioPlayerVisible(): Promise<boolean> {
@@ -115,13 +154,11 @@ export class MediaCarouselPOF {
   }
 
   async getAudioTitle(): Promise<string> {
-    return (await this.audioPlayer.locator(".audio-title").textContent()) || "";
+    return await this.getElementTextContent(this.audioPlayer.locator(".audio-title"));
   }
 
   async getAudioDescription(): Promise<string> {
-    return (
-      (await this.audioPlayer.locator(".audio-description").textContent()) || ""
-    );
+    return await this.getElementTextContent(this.audioPlayer.locator(".audio-description"));
   }
 
   async clickPaginationDot(index: number): Promise<void> {
@@ -129,13 +166,13 @@ export class MediaCarouselPOF {
   }
 
   async isTileActive(title: string): Promise<boolean> {
-    const tile = this.mediaTiles.filter({ hasText: title });
-    const classNames = (await tile.getAttribute("class")) || "";
-    return classNames.includes("active");
+    const tile = this.getMediaTileByTitle(title);
+    return await this.hasActiveClass(tile);
   }
 
   async clickNextArrow(): Promise<void> {
-    await this.navigationArrows.last().click();
+    const arrowsCount = await this.navigationArrows.count();
+    await this.navigationArrows.nth(arrowsCount - 1).click();
   }
 
   async clickPreviousArrow(): Promise<void> {
@@ -143,45 +180,37 @@ export class MediaCarouselPOF {
   }
 
   async isMediaAutoplayDisabled(): Promise<boolean> {
-    const autoplayVideos = await this.page.evaluate(() => {
-      const videos = document.querySelectorAll("video[autoplay]");
-      const audios = document.querySelectorAll("audio[autoplay]");
-      return videos.length === 0 && audios.length === 0;
+    return await this.page.evaluate(() => {
+      const autoplayVideos = document.querySelectorAll("video[autoplay]");
+      const autoplayAudios = document.querySelectorAll("audio[autoplay]");
+      return autoplayVideos.length === 0 && autoplayAudios.length === 0;
     });
-    return autoplayVideos;
   }
 
   async isSectionInViewport(): Promise<boolean> {
     await this.carouselSection.waitFor({ state: "visible", timeout: 5000 });
-
-    const boundingBox = await this.carouselSection.boundingBox();
-    const viewport = this.page.viewportSize();
-
-    if (!boundingBox || !viewport) {
-      return false;
-    }
-
-    const isInViewport =
-      boundingBox.y < viewport.height && boundingBox.y + boundingBox.height > 0;
-
-    return isInViewport;
+    return await this.isElementInViewport(this.carouselSection);
   }
 
   async areNavigationArrowsVisible(): Promise<boolean> {
-    const count = await this.navigationArrows.count();
-    return count >= 2 && (await this.navigationArrows.first().isVisible());
+    const arrowsCount = await this.navigationArrows.count();
+    if (arrowsCount < 2) return false;
+
+    const firstArrow = this.navigationArrows.first();
+    return await firstArrow.isVisible();
   }
 
   private async getTileIndex(title: string): Promise<number> {
-    const tiles = await this.mediaTiles.all();
-    for (let i = 0; i < tiles.length; i++) {
-      const tileTitle = (
-        await tiles[i].locator(".title").textContent()
-      )?.trim();
+    const count = await this.mediaTiles.count();
+    
+    for (let i = 0; i < count; i++) {
+      const tile = this.mediaTiles.nth(i);
+      const tileTitle = await this.getElementTextContent(tile.locator(".title"));
       if (tileTitle === title) {
         return i;
       }
     }
+    
     return -1;
   }
 
@@ -190,24 +219,62 @@ export class MediaCarouselPOF {
     if (index === -1) return false;
 
     const dot = this.paginationDots.nth(index);
-    const classNames = (await dot.getAttribute("class")) || "";
-    return classNames.includes("active");
+    return await this.hasActiveClass(dot);
   }
 
   async clickFirstVideoTile(): Promise<void> {
-    const videoTileButton = this.mediaTiles
+    const videoTile = this.mediaTiles
       .filter({ has: this.page.locator('[data-media-type="video"]') })
-      .first()
-      .locator('button[aria-label="Play"], button[role="button"]')
       .first();
-
-    await videoTileButton.click();
+    
+    const playButton = this.getVideoPlayButton(videoTile);
+    await playButton.click();
   }
 
   async clickVideoTile(title: string): Promise<void> {
-    const tile = this.mediaTiles.filter({ hasText: title });
-    await tile
-      .locator('button[aria-label*="Play"], .video-play-button')
-      .click();
+    const tile = this.getMediaTileByTitle(title);
+    const playButton = this.getVideoPlayButton(tile);
+    await playButton.click();
+  }
+
+  async getMediaTilesCount(): Promise<number> {
+    return await this.mediaTiles.count();
+  }
+
+  async getPaginationDotsCount(): Promise<number> {
+    return await this.paginationDots.count();
+  }
+
+  async isNavigationArrowEnabled(direction: 'previous' | 'next'): Promise<boolean> {
+    const arrow = direction === 'previous' 
+      ? this.navigationArrows.first()
+      : this.navigationArrows.last();
+    
+    return await arrow.isEnabled();
+  }
+
+  async getActiveTileIndex(): Promise<number> {
+    const count = await this.mediaTiles.count();
+    
+    for (let i = 0; i < count; i++) {
+      const tile = this.mediaTiles.nth(i);
+      if (await this.hasActiveClass(tile)) {
+        return i;
+      }
+    }
+    
+    return -1;
+  }
+
+  async areAllMediaTilesLoaded(): Promise<boolean> {
+    const count = await this.mediaTiles.count();
+    
+    for (let i = 0; i < count; i++) {
+      const tile = this.mediaTiles.nth(i);
+      const isVisible = await tile.isVisible();
+      if (!isVisible) return false;
+    }
+    
+    return count > 0;
   }
 }
