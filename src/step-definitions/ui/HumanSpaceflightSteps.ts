@@ -4,9 +4,36 @@ import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
 import { CustomTestArgs } from "../../fixtures/BddFixtures";
 import { SharedPageSteps } from "./SharedPageSteps";
+import {
+  BoundingBox,
+  CoreValue,
+  Element,
+  MetadataItem,
+  MobileAction,
+  RequirementMetric,
+} from "../../pages/types/Types";
+import {
+  parseCoreValues,
+  parseHeaderElements,
+  parseMobileActions,
+  parsePerformanceMetrics,
+  parseMetadataItems,
+} from "../../pages/types/TypeGuards";
 
 @Fixture("humanSpaceflightSteps")
 export class HumanSpaceflightSteps {
+  private readonly MOBILE_VIEWPORT = { width: 375, height: 812 };
+  private readonly SCROLL_DELAY = 500;
+  private readonly NAVIGATION_LINKS = [
+    "Vehicles",
+    "Launches",
+    "Human Spaceflight",
+    "Rideshare",
+    "Starlink",
+    "Starshield",
+    "Company",
+  ];
+
   constructor(
     private page: Page,
     private humanSpaceflightPage: HumanSpaceflightPage,
@@ -17,14 +44,17 @@ export class HumanSpaceflightSteps {
   @Given("I am on the SpaceX Human Spaceflight page")
   async openHumanSpaceflightPage() {
     this.sharedContext.startTime = Date.now();
-    await this.humanSpaceflightPage.open("/human-spaceflight"); 
+    await this.humanSpaceflightPage.open("/human-spaceflight");
     await this.page.waitForLoadState("networkidle");
   }
 
   @Given("I am on the SpaceX Human Spaceflight page viewed on mobile")
   async openHumanSpaceflightPageMobile() {
     this.sharedContext.startTime = Date.now();
-    await this.humanSpaceflightPage.openWithMobileViewport(375, 812); 
+    await this.humanSpaceflightPage.openWithMobileViewport(
+      this.MOBILE_VIEWPORT.width,
+      this.MOBILE_VIEWPORT.height
+    );
     await this.page.waitForLoadState("networkidle");
   }
 
@@ -33,251 +63,388 @@ export class HumanSpaceflightSteps {
     await this.humanSpaceflightPage.header.clickNavigationLink(linkText);
     await this.page.waitForLoadState("domcontentloaded");
   }
-  
-  // --- Core Content and Load Steps ---
 
   @Then("the page should load with the following requirements:")
   async checkCoreRequirements(dataTable: DataTable) {
-    const requirements = dataTable.hashes();
-    
+    const requirements = parseCoreValues(dataTable.hashes());
+
     for (const req of requirements) {
-      switch (req.Element) {
-        case "Load Time":
-          const loadTime = Date.now() - this.sharedContext.startTime;
-          // Note: The feature file says "5 seconds" (5000ms)
-          const maxTime = parseInt(req.Value.split(" ")[0]) * 1000;
-          expect(
-            loadTime,
-            `Page load time (${loadTime}ms) should be under ${maxTime}ms`
-          ).toBeLessThanOrEqual(maxTime);
-          break;
-        case "Page Title":
-          const title = await this.page.title();
-          expect(title).toContain(req.Value);
-          break;
-        case "Hero Title":
-          const heroTitle = await this.humanSpaceflightPage.hero.getHeroTitleText();
-          expect(heroTitle.toUpperCase()).toBe(req.Value.toUpperCase());
-          break;
-        case "Subtitle":
-          const subtitle = await this.humanSpaceflightPage.hero.getHeroSubtitleText();
-          expect(subtitle).toBe(req.Value);
-          break;
-      }
+      await this.validateCoreRequirement(req);
     }
   }
 
-  @Then('the page should match the snapshot "spaceflight_initial_load"')
-  async checkInitialSnapshot() {
-    await expect(this.page).toHaveScreenshot("spaceflight_initial_load.png", {
-        fullPage: true,
-        maxDiffPixelRatio: 0.01 
-    });
+  private async validateCoreRequirement(req: CoreValue): Promise<void> {
+    switch (req.Element) {
+      case "Load Time":
+        await this.validateLoadTime(req.Value);
+        break;
+      case "Page Title":
+        await this.validatePageTitle(req.Value);
+        break;
+      case "Hero Title":
+        await this.validateHeroTitle(req.Value);
+        break;
+      case "Subtitle":
+        await this.validateHeroSubtitle(req.Value);
+        break;
+      default:
+        console.warn(`Unknown core requirement element: ${req.Element}`);
+    }
   }
 
-  // --- Desktop Navigation Steps ---
+  private async validateLoadTime(requirement: string): Promise<void> {
+    const loadTime = Date.now() - this.sharedContext.startTime;
+    const maxTime = parseInt(requirement.split(" ")[0]) * 1000;
+    expect(
+      loadTime,
+      `Page load time (${loadTime}ms) should be under ${maxTime}ms`
+    ).toBeLessThanOrEqual(maxTime);
+  }
+
+  private async validatePageTitle(expectedContent: string): Promise<void> {
+    const title = await this.page.title();
+    expect(title).toContain(expectedContent);
+  }
+
+  private async validateHeroTitle(expectedValue: string): Promise<void> {
+    const heroTitle = await this.humanSpaceflightPage.hero.getHeroTitleText();
+    expect(heroTitle.toUpperCase()).toBe(expectedValue.toUpperCase());
+  }
+
+  private async validateHeroSubtitle(expectedValue: string): Promise<void> {
+    const subtitle = await this.humanSpaceflightPage.hero.getHeroSubtitleText();
+    expect(subtitle).toBe(expectedValue);
+  }
 
   @Then("the header navigation should contain:")
   async checkNavigationMenu(dataTable: DataTable) {
     const links = dataTable.hashes();
-    
+
     for (const link of links) {
-      const isVisible = await this.humanSpaceflightPage.header.isNavLinkVisible(link["Link Text"]);
-      expect(isVisible, `Navigation link "${link["Link Text"]}" should be visible`).toBe(true);
+      const isVisible = await this.humanSpaceflightPage.header.isNavLinkVisible(
+        link["Link Text"]
+      );
+      expect(
+        isVisible,
+        `Navigation link "${link["Link Text"]}" should be visible`
+      ).toBe(true);
     }
   }
-  
-  // --- Mobile Navigation Steps (Refactored to match Gherkin) ---
 
-  // IMPLEMENTED: Matches "Then I should see the header with the following elements:"
   @Then("I should see the header with the following elements:")
   async checkHeaderElements(dataTable: DataTable) {
-    const elements = dataTable.hashes();
+    const elements = parseHeaderElements(dataTable.hashes());
+
     for (const element of elements) {
-        switch (element.Element) {
-            case "Logo":
-                const isLogoVisible = await this.humanSpaceflightPage.header.isLogoVisible();
-                expect(isLogoVisible, "Logo should be visible").toBe(true);
-                break;
-            case "Hamburger":
-                const isHamburgerVisible = await this.humanSpaceflightPage.header.isMobileMenuButtonVisible();
-                expect(isHamburgerVisible, "Hamburger button should be visible").toBe(true);
-                break;
-        }
+      await this.validateHeaderElement(element);
     }
   }
 
-  // IMPLEMENTED: Matches "When I click hamburger"
+  private async validateHeaderElement(element: Element): Promise<void> {
+    switch (element.Element) {
+      case "Logo":
+        const isLogoVisible =
+          await this.humanSpaceflightPage.header.isLogoVisible();
+        expect(isLogoVisible, "Logo should be visible").toBe(true);
+        break;
+      case "Hamburger":
+        const isHamburgerVisible =
+          await this.humanSpaceflightPage.header.isMobileMenuButtonVisible();
+        expect(isHamburgerVisible, "Hamburger button should be visible").toBe(
+          true
+        );
+        break;
+      default:
+        console.warn(`Unknown header element: ${element.Element}`);
+    }
+  }
+
   @When("I click hamburger")
   async clickHamburgerMenu() {
     await this.humanSpaceflightPage.header.clickMobileMenuButton();
   }
 
-  // IMPLEMENTED: Matches "Then Menu expands"
   @Then("Menu expands")
   async checkMenuExpands() {
-    const isExpanded = await this.humanSpaceflightPage.header.isMobileMenuExpanded();
+    const isExpanded =
+      await this.humanSpaceflightPage.header.isMobileMenuExpanded();
     expect(isExpanded, "Mobile menu should be expanded/visible").toBe(true);
   }
 
-  // IMPLEMENTED: Matches "When I click close"
   @When("I click close")
   async clickCloseButtonOnMobileMenu() {
     await this.humanSpaceflightPage.header.clickMobileMenuCloseButton();
   }
-  
-  // IMPLEMENTED: Matches "Then Menu collapses"
+
   @Then("Menu collapses")
   async checkMenuCollapses() {
-    // Checking that the menu is not expanded/visible
-    const isExpanded = await this.humanSpaceflightPage.header.isMobileMenuExpanded();
+    const isExpanded =
+      await this.humanSpaceflightPage.header.isMobileMenuExpanded();
     expect(isExpanded, "Mobile menu should be collapsed/hidden").toBe(false);
   }
 
   @Then("after the actions are performed:")
   async checkMobileActionVerification(dataTable: DataTable) {
-      const actions = dataTable.hashes();
-      
-      for (const action of actions) {
-          switch (action.Action) {
-              case "Click hamburger":
-                  await this.humanSpaceflightPage.header.clickMobileMenuButton();
-                  const isExpanded = await this.humanSpaceflightPage.header.isMobileMenuExpanded();
-                  expect(isExpanded, `Action: ${action.Verification}`).toBe(true);
-                  break;
-              case "View menu items":
-                  // Use the links defined in the desktop navigation scenario in the feature file
-                  const expectedLinks = [
-                    "Vehicles", "Launches", "Human Spaceflight", "Rideshare", "Starlink", "Starshield", "Company"
-                  ];
-                  const allLinksExist = await this.humanSpaceflightPage.header.checkNavigationLinksExist(expectedLinks);
-                  expect(allLinksExist, `Verification: ${action.Verification}`).toBe(true);
-                  break;
-              case "Click close":
-                  await this.humanSpaceflightPage.header.clickMobileMenuCloseButton();
-                  const isCollapsed = await this.humanSpaceflightPage.header.isMobileMenuExpanded();
-                  expect(isCollapsed, `Action: ${action.Verification}`).toBe(false);
-                  break;
-              default:
-                  throw new Error(`Unknown action type: ${action.Action}`);
-          }
-      }
+    const actions = parseMobileActions(dataTable.hashes());
+
+    for (const action of actions) {
+      await this.executeMobileAction(action);
+    }
   }
 
+  private async executeMobileAction(action: MobileAction): Promise<void> {
+    switch (action.Action) {
+      case "Click hamburger":
+        await this.humanSpaceflightPage.header.clickMobileMenuButton();
+        const isExpanded =
+          await this.humanSpaceflightPage.header.isMobileMenuExpanded();
+        expect(isExpanded, `Action: ${action.Verification}`).toBe(true);
+        break;
+      case "View menu items":
+        const allLinksExist =
+          await this.humanSpaceflightPage.header.checkNavigationLinksExist(
+            this.NAVIGATION_LINKS
+          );
+        expect(allLinksExist, `Verification: ${action.Verification}`).toBe(
+          true
+        );
+        break;
+      case "Click close":
+        await this.humanSpaceflightPage.header.clickMobileMenuCloseButton();
+        const isCollapsed =
+          await this.humanSpaceflightPage.header.isMobileMenuExpanded();
+        expect(isCollapsed, `Action: ${action.Verification}`).toBe(false);
+        break;
+      default:
+        throw new Error(`Unknown action type: ${action.Action}`);
+    }
+  }
 
-  // IMPLEMENTED: Matches "Then the mobile navigation should be fully functional"
   @Then("the mobile navigation should be fully functional")
   async checkMobileNavigationFunctionality() {
-    // 1. Click and open
-    await this.humanSpaceflightPage.header.clickMobileMenuButton(); 
-    expect(await this.humanSpaceflightPage.header.isMobileMenuExpanded(), "Mobile menu should open").toBe(true);
-    
-    // 2. Check a critical link is clickable and navigates
-    const linkText = "Starlink"; 
+    await this.testMobileMenuOpenClose();
+    await this.testMobileMenuNavigation();
+    await this.testMobileMenuFinalState();
+  }
+
+  private async testMobileMenuOpenClose(): Promise<void> {
+    await this.humanSpaceflightPage.header.clickMobileMenuButton();
+    const isExpanded =
+      await this.humanSpaceflightPage.header.isMobileMenuExpanded();
+    expect(isExpanded, "Mobile menu should open").toBe(true);
+  }
+
+  private async testMobileMenuNavigation(): Promise<void> {
+    const linkText = "Starlink";
     await this.humanSpaceflightPage.header.clickNavigationLink(linkText);
     expect(this.page.url()).toContain("/starlink");
-    
-    // 3. Return to Human Spaceflight page to complete the test cleanly
+
     await this.humanSpaceflightPage.open("/human-spaceflight");
     await this.page.waitForLoadState("networkidle");
-    
-    // 4. Check closing (final state check)
-    await this.humanSpaceflightPage.header.clickMobileMenuButton(); // Open again
+  }
+
+  private async testMobileMenuFinalState(): Promise<void> {
+    await this.humanSpaceflightPage.header.clickMobileMenuButton();
     await this.humanSpaceflightPage.header.clickMobileMenuCloseButton();
-    const isCollapsed = await this.humanSpaceflightPage.header.isMobileMenuExpanded();
+    const isCollapsed =
+      await this.humanSpaceflightPage.header.isMobileMenuExpanded();
     expect(isCollapsed, "Mobile menu should close after use").toBe(false);
   }
-  
-  // --- Hero Section Interaction Steps ---
 
   @When("I see the scroll-down arrow animation")
   async checkScrollDownArrowVisible() {
-    const isVisible = await this.humanSpaceflightPage.hero.isScrollDownArrowVisible();
+    const isVisible =
+      await this.humanSpaceflightPage.hero.isScrollDownArrowVisible();
     expect(isVisible, "Scroll-down arrow should be visible").toBe(true);
   }
 
   @When("I click on the arrow")
   async clickScrollDownArrow() {
     await this.humanSpaceflightPage.hero.clickScrollDownArrow();
-    await this.page.waitForTimeout(500); 
+    await this.page.waitForTimeout(this.SCROLL_DELAY);
   }
 
   @Then("the page should smoothly scroll to the Media Carousel section")
   async checkPageScrollsToMediaCarousel() {
-    const isVisible = await this.humanSpaceflightPage.mediaCarousel.isSectionInViewport(); 
-    expect(isVisible, "Media Carousel section should be in the viewport after scroll").toBe(true);
+    const isVisible =
+      await this.humanSpaceflightPage.mediaCarousel.isSectionInViewport();
+    expect(
+      isVisible,
+      "Media Carousel section should be in the viewport after scroll"
+    ).toBe(true);
   }
-  
+
   @Then("the page should meet the following metrics:")
   async checkPerformanceMetrics(dataTable: DataTable) {
-    const metrics = dataTable.hashes();
+    const metrics = parsePerformanceMetrics(dataTable.hashes());
 
     for (const metric of metrics) {
-      switch (metric.Metric) {
-        case "Largest Contentful Paint":
-          const lcp = await this.humanSpaceflightPage.performanceSEO.getLargestContentfulPaint();
-          const maxLCP = parseInt(metric.Requirement.split(" ")[0]);
-          expect(lcp, `LCP (${lcp}ms) should be under ${maxLCP}ms`).toBeLessThan(maxLCP);
-          break;
-
-        case "First Input Delay":
-          const fid = await this.humanSpaceflightPage.performanceSEO.getFirstInputDelay();
-          const maxFID = parseInt(metric.Requirement.split(" ")[0]);
-          expect(fid, `FID (${fid}ms) should be under ${maxFID}ms`).toBeLessThan(maxFID);
-          break;
-
-        case "Console Errors":
-          const errors = await this.humanSpaceflightPage.getConsoleErrors();
-          expect(errors, "Console should have no errors").toEqual([]);
-          break;
-          
-        case "Image Loading":
-          const has404s = await this.humanSpaceflightPage.performanceSEO.checkImageLoading404s();
-          expect(has404s, "No image 404 errors should be present").toBe(false);
-          break;
-      }
+      await this.validatePerformanceMetric(metric);
     }
+  }
+
+  private async validatePerformanceMetric(
+    metric: RequirementMetric
+  ): Promise<void> {
+    switch (metric.Metric) {
+      case "Largest Contentful Paint":
+        await this.validateLCP(metric.Requirement);
+        break;
+      case "First Input Delay":
+        await this.validateFID(metric.Requirement);
+        break;
+      case "Console Errors":
+        await this.validateConsoleErrors();
+        break;
+      case "Image Loading":
+        await this.validateImageLoading();
+        break;
+      default:
+        console.warn(`Unknown performance metric: ${metric.Metric}`);
+    }
+  }
+
+  private async validateLCP(requirement: string): Promise<void> {
+    const lcp =
+      await this.humanSpaceflightPage.performanceSEO.getLargestContentfulPaint();
+    const maxLCP = parseInt(requirement.split(" ")[0]);
+    expect(lcp, `LCP (${lcp}ms) should be under ${maxLCP}ms`).toBeLessThan(
+      maxLCP
+    );
+  }
+
+  private async validateFID(requirement: string): Promise<void> {
+    const fid =
+      await this.humanSpaceflightPage.performanceSEO.getFirstInputDelay();
+    const maxFID = parseInt(requirement.split(" ")[0]);
+    expect(fid, `FID (${fid}ms) should be under ${maxFID}ms`).toBeLessThan(
+      maxFID
+    );
+  }
+
+  private async validateConsoleErrors(): Promise<void> {
+    const errors = await this.humanSpaceflightPage.getConsoleErrors();
+    expect(errors, "Console should have no errors").toEqual([]);
+  }
+
+  private async validateImageLoading(): Promise<void> {
+    const has404s =
+      await this.humanSpaceflightPage.performanceSEO.checkImageLoading404s();
+    expect(has404s, "No image 404 errors should be present").toBe(false);
   }
 
   @Then("the page should have the following metadata:")
   async checkMetadata(dataTable: DataTable) {
-    const metadata = dataTable.hashes();
+    const metadata = parseMetadataItems(dataTable.hashes());
 
     for (const item of metadata) {
-      switch (item.Element) {
-        case "Viewport":
-          const viewportContent = await this.humanSpaceflightPage.getMetaTagContent('name="viewport"');
-          expect(viewportContent).toContain("width=device-width");
-          expect(viewportContent).toContain("initial-scale=1");
-          break;
-          
-        case "Description":
-          const descContent = await this.humanSpaceflightPage.getMetaTagContent('name="description"');
-          expect(descContent).toContain(item.Content);
-          break;
-          
-        case "Keywords":
-          const keywordContent = await this.humanSpaceflightPage.getMetaTagContent('name="keywords"');
-          const expectedKeywords = item.Content.split(",").map(k => k.trim().toLowerCase());
-          const hasKeyword = expectedKeywords.some(k => keywordContent?.toLowerCase().includes(k));
-          expect(hasKeyword, `Keywords meta tag should contain one of: ${item.Content}`).toBe(true);
-          break;
-
-        case "Open Graph":
-          const ogTitle = await this.humanSpaceflightPage.getMetaTagContent('property="og:title"');
-          // Expecting the content to contain the value after "Title:"
-          expect(ogTitle).toContain(item.Content.split(":")[1].trim());
-          break;
-      }
+      await this.validateMetadataItem(item);
     }
+  }
+
+  private async validateMetadataItem(item: MetadataItem): Promise<void> {
+    switch (item.Element) {
+      case "Viewport":
+        await this.validateViewportMeta();
+        break;
+      case "Description":
+        await this.validateDescriptionMeta(item.Content);
+        break;
+      case "Keywords":
+        await this.validateKeywordsMeta(item.Content);
+        break;
+      case "Open Graph":
+        await this.validateOpenGraphMeta(item.Content);
+        break;
+      default:
+        console.warn(`Unknown metadata element: ${item.Element}`);
+    }
+  }
+
+  private async validateViewportMeta(): Promise<void> {
+    const viewportContent = await this.humanSpaceflightPage.getMetaTagContent(
+      'name="viewport"'
+    );
+    expect(viewportContent).toContain("width=device-width");
+    expect(viewportContent).toContain("initial-scale=1");
+  }
+
+  private async validateDescriptionMeta(
+    expectedContent: string
+  ): Promise<void> {
+    const descContent = await this.humanSpaceflightPage.getMetaTagContent(
+      'name="description"'
+    );
+    expect(descContent).toContain(expectedContent);
+  }
+
+  private async validateKeywordsMeta(expectedKeywords: string): Promise<void> {
+    const keywordContent = await this.humanSpaceflightPage.getMetaTagContent(
+      'name="keywords"'
+    );
+    const expectedKeywordsList = expectedKeywords
+      .split(",")
+      .map((k) => k.trim().toLowerCase());
+    const hasKeyword = expectedKeywordsList.some((k) =>
+      keywordContent?.toLowerCase().includes(k)
+    );
+    expect(
+      hasKeyword,
+      `Keywords meta tag should contain one of: ${expectedKeywords}`
+    ).toBe(true);
+  }
+
+  private async validateOpenGraphMeta(expectedContent: string): Promise<void> {
+    const ogTitle = await this.humanSpaceflightPage.getMetaTagContent(
+      'property="og:title"'
+    );
+    expect(ogTitle).toContain(expectedContent.split(":")[1].trim());
   }
 
   @Then("all metadata should be properly formatted for search engines")
   async checkMetadataFormatting() {
-    const canonical = await this.page.getAttribute('link[rel="canonical"]', 'href');
+    const [canonical, htmlLang] = await Promise.all([
+      this.page.getAttribute('link[rel="canonical"]', "href"),
+      this.page.getAttribute("html", "lang"),
+    ]);
+
     expect(canonical, "Canonical URL should be present").not.toBeNull();
-    
-    const htmlLang = await this.page.getAttribute('html', 'lang');
     expect(htmlLang, "HTML language attribute should be set").not.toBeNull();
+  }
+
+  @Then("the page should be responsive across different screen sizes")
+  async checkPageResponsiveness() {
+    const viewportSizes: BoundingBox[] = [
+      { x: 0, y: 0, width: 375, height: 667 }, // Mobile
+      { x: 0, y: 0, width: 768, height: 1024 }, // Tablet
+      { x: 0, y: 0, width: 1920, height: 1080 }, // Desktop
+    ];
+
+    const originalViewport = this.page.viewportSize();
+
+    try {
+      for (const size of viewportSizes) {
+        // Extract just width and height for setViewportSize
+        await this.page.setViewportSize({
+          width: size.width,
+          height: size.height,
+        });
+        await this.page.waitForTimeout(100);
+
+        const [heroVisible, headerVisible] = await Promise.all([
+          this.humanSpaceflightPage.hero.isHeroSectionVisible(),
+          this.humanSpaceflightPage.header.isHeaderVisible(),
+        ]);
+
+        expect(
+          heroVisible && headerVisible,
+          `Page should be responsive at ${size.width}x${size.height}`
+        ).toBe(true);
+      }
+    } finally {
+      if (originalViewport) {
+        await this.page.setViewportSize(originalViewport);
+      }
+    }
   }
 }

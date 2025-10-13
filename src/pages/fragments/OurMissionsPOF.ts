@@ -1,6 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import { MissionTab } from "../types/MissionTab";
-import { MissionMetric } from "../types/MissionMetric";
+import { MissionMetric, MissionTab } from "../types/Types";
 
 export class OurMissionsPOF {
   readonly page: Page;
@@ -15,12 +14,18 @@ export class OurMissionsPOF {
 
   constructor(page: Page) {
     this.page = page;
-    this.ourMissionsSection = page.locator('[data-test="our-missions-section"]');
+    this.ourMissionsSection = page.locator(
+      '[data-test="our-missions-section"]'
+    );
     this.sectionTitle = this.ourMissionsSection.locator("h2");
-    this.sectionDescription = this.ourMissionsSection.locator(".section-description");
+    this.sectionDescription = this.ourMissionsSection.locator(
+      ".section-description"
+    );
     this.missionTabs = this.ourMissionsSection.locator(".mission-tab");
     this.metricsTable = this.ourMissionsSection.locator(".metrics-table");
-    this.joinMissionButton = this.ourMissionsSection.locator('button:text("Join a mission")');
+    this.joinMissionButton = this.ourMissionsSection.locator(
+      'button:text("Join a mission")'
+    );
     this.backgroundImage = this.ourMissionsSection.locator(".background-image");
     this.submissionForm = page.locator('form[aria-label="Mission Submission"]');
   }
@@ -30,12 +35,18 @@ export class OurMissionsPOF {
     return text?.trim() ?? "";
   }
 
-  private async getElementAttribute(element: Locator, attribute: string): Promise<string> {
+  private async getElementAttribute(
+    element: Locator,
+    attribute: string
+  ): Promise<string> {
     const value = await element.getAttribute(attribute);
     return value ?? "";
   }
 
-  private async getComputedStyle(element: Locator, property: string): Promise<string> {
+  private async getComputedStyle(
+    element: Locator,
+    property: string
+  ): Promise<string> {
     return await element.evaluate((el: Element, prop: string) => {
       return window.getComputedStyle(el)[prop as any];
     }, property);
@@ -66,17 +77,17 @@ export class OurMissionsPOF {
       const tab = this.missionTabs.nth(i);
       const [name, order] = await Promise.all([
         this.getElementTextContent(tab),
-        this.getElementAttribute(tab, "data-order")
+        this.getElementAttribute(tab, "data-order"),
       ]);
 
       if (name) {
-        missionTabs.push({ 
-          name, 
-          order: order || String(i + 1) 
+        missionTabs.push({
+          "Tab Name": name,
+          Order: order || String(i + 1),
         });
       }
     }
-    
+
     return missionTabs;
   }
 
@@ -102,17 +113,17 @@ export class OurMissionsPOF {
     for (const row of rows) {
       const [header, value] = await Promise.all([
         this.getElementTextContent(row.locator("th")),
-        this.getElementTextContent(row.locator("td"))
+        this.getElementTextContent(row.locator("td")),
       ]);
 
       if (header && value) {
-        metrics.push({ 
-          metric: header, 
-          value: value 
+        metrics.push({
+          Metric: header,
+          Value: value,
         });
       }
     }
-    
+
     return metrics;
   }
 
@@ -130,7 +141,10 @@ export class OurMissionsPOF {
   }
 
   async getBackgroundImageOpacity(): Promise<number> {
-    const opacity = await this.getComputedStyle(this.backgroundImage, "opacity");
+    const opacity = await this.getComputedStyle(
+      this.backgroundImage,
+      "opacity"
+    );
     return this.parseStyleNumber(opacity);
   }
 
@@ -155,16 +169,20 @@ export class OurMissionsPOF {
     return await this.getElementTextContent(row.locator("td"));
   }
 
-  async isTabContentUpdated(previousMetrics: MissionMetric[]): Promise<boolean> {
+  async isTabContentUpdated(
+    previousMetrics: MissionMetric[]
+  ): Promise<boolean> {
     const currentMetrics = await this.getActiveMissionMetrics();
-    
+
     if (currentMetrics.length === 0 || previousMetrics.length === 0) {
       return false;
     }
 
     return currentMetrics.some((current) => {
-      const previous = previousMetrics.find(prev => prev.metric === current.metric);
-      return previous ? previous.value !== current.value : true;
+      const previous = previousMetrics.find(
+        (prev) => prev.Metric === current.Metric
+      );
+      return previous ? previous.Value !== current.Value : true;
     });
   }
 
@@ -181,43 +199,45 @@ export class OurMissionsPOF {
 
   async isContentTransitionSmooth(): Promise<boolean> {
     const errors: string[] = [];
-    
-    this.page.on('console', (msg) => {
-      if (msg.type() === 'error') {
+
+    this.page.on("console", (msg) => {
+      if (msg.type() === "error") {
         errors.push(msg.text());
       }
     });
 
-    const tabNames = ['Earth Orbit', 'Space Station', 'Moon', 'Mars'];
-    
+    const tabNames = ["Earth Orbit", "Space Station", "Moon", "Mars"];
+
     for (let i = 0; i < 4; i++) {
       await this.clickMissionTab(tabNames[i]);
       await this.page.waitForTimeout(100);
     }
 
-    this.page.off('console', () => {});
-    
+    this.page.off("console", () => {});
+
     return errors.length === 0;
   }
 
   async isUIResponsive(): Promise<boolean> {
     const startTime = Date.now();
-    
+
     try {
       await this.joinMissionButton.click({ timeout: 5000 });
       await this.page.goBack();
       const endTime = Date.now();
-      
+
       return endTime - startTime < 2000;
     } catch {
       return false;
     }
   }
 
-  async isBackgroundImageRelevantToMission(missionName: string): Promise<boolean> {
+  async isBackgroundImageRelevantToMission(
+    missionName: string
+  ): Promise<boolean> {
     const [isVisible, imgSrc] = await Promise.all([
       this.backgroundImage.isVisible(),
-      this.getElementAttribute(this.backgroundImage, "src")
+      this.getElementAttribute(this.backgroundImage, "src"),
     ]);
 
     if (!isVisible || !imgSrc) {
@@ -226,7 +246,7 @@ export class OurMissionsPOF {
 
     const normalizedMissionName = missionName.toLowerCase().replace(/\s/g, "");
     const normalizedSrc = imgSrc.toLowerCase();
-    
+
     return normalizedSrc.includes(normalizedMissionName);
   }
 
@@ -235,19 +255,22 @@ export class OurMissionsPOF {
     if (tabsCount === 0) return false;
 
     for (let i = 0; i < tabsCount; i++) {
-      const className = await this.getElementAttribute(this.missionTabs.nth(i), "class");
+      const className = await this.getElementAttribute(
+        this.missionTabs.nth(i),
+        "class"
+      );
       if (!className.includes("mission-tab")) {
         return false;
       }
     }
-    
+
     return true;
   }
 
   async isMetricsGridLayoutClean(): Promise<boolean> {
     const [displayStyle, gap] = await Promise.all([
       this.getComputedStyle(this.metricsTable, "display"),
-      this.getComputedStyle(this.metricsTable, "gap")
+      this.getComputedStyle(this.metricsTable, "gap"),
     ]);
 
     const validDisplays = ["grid", "flex", "block", "table"];
@@ -260,12 +283,13 @@ export class OurMissionsPOF {
   async isTypographyClearAndReadable(): Promise<boolean> {
     const [color, fontSize] = await Promise.all([
       this.getComputedStyle(this.sectionDescription, "color"),
-      this.getComputedStyle(this.sectionDescription, "fontSize")
+      this.getComputedStyle(this.sectionDescription, "fontSize"),
     ]);
 
     const fontSizeValue = this.parseStyleNumber(fontSize);
     const isGoodSize = fontSizeValue > 14;
-    const isReadableContrast = !color.includes("255, 255, 255") && color !== "rgba(0, 0, 0, 0)";
+    const isReadableContrast =
+      !color.includes("255, 255, 255") && color !== "rgba(0, 0, 0, 0)";
 
     return isGoodSize && isReadableContrast;
   }
@@ -283,7 +307,7 @@ export class OurMissionsPOF {
     const [isSectionVisible, hasTabs, hasMetrics] = await Promise.all([
       this.ourMissionsSection.isVisible(),
       this.missionTabs.first().isVisible(),
-      this.metricsTable.isVisible()
+      this.metricsTable.isVisible(),
     ]);
 
     return isSectionVisible && hasTabs && hasMetrics;
@@ -292,8 +316,8 @@ export class OurMissionsPOF {
   async getActiveTabName(): Promise<string> {
     const tabs = await this.getMissionTabs();
     for (const tab of tabs) {
-      if (await this.isTabActive(tab.name)) {
-        return tab.name;
+      if (await this.isTabActive(tab["Tab Name"])) {
+        return tab["Tab Name"];
       }
     }
     return "";

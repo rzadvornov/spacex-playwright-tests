@@ -7,10 +7,20 @@ import { FooterSteps } from "../step-definitions/ui/FooterSteps";
 import { HomePageSteps } from "../step-definitions/ui/HomePageSteps";
 import { HumanSpaceflightSteps } from "../step-definitions/ui/HumanSpaceflightSteps";
 import { SharedPageSteps } from "../step-definitions/ui/SharedPageSteps";
-import { ConsoleErrorFixture } from "../pages/types/ConsoleErrorFixture";
-import { SharedContext } from "../pages/types/SharedContext";
-import { BddFixtures } from "../pages/types/BddFixtures";
-import { CustomTestArgs } from "../pages/types/CustomTestArgs";
+import {
+  BddFixtures,
+  ConsoleErrorFixture,
+  CustomTestArgs,
+  SharedContext,
+} from "../pages/types/Types";
+import { AccessibilitySteps } from "../step-definitions/ui/AccessibilitySteps";
+import { MediaCarouselSteps } from "../step-definitions/ui/MediaCarouselSteps";
+import { OurMissionsSteps } from "../step-definitions/ui/OurMissionsSteps";
+import { PerformanceSeoSteps } from "../step-definitions/ui/PerformanceSeoSteps";
+import { ResponsiveDesignSteps } from "../step-definitions/ui/ResponsiveDesignSteps";
+import { TheSuitesSteps } from "../step-definitions/ui/TheSuitesSteps";
+import { TimelineSteps } from "../step-definitions/ui/TimelineSteps";
+import { VehiclesSteps } from "../step-definitions/ui/VehiclesSteps";
 
 export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   sharedPageSteps: [
@@ -87,6 +97,75 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
         humanSpaceflightPage
       );
       await use(destinationsSteps);
+    },
+    { scope: "test" },
+  ],
+  accessubilitySteps: [
+    async ({ page, humanSpaceflightPage }, use) => {
+      const accessibilitySteps = new AccessibilitySteps(
+        page,
+        humanSpaceflightPage
+      );
+      await use(accessibilitySteps);
+    },
+    { scope: "test" },
+  ],
+  mediaCarouselSteps: [
+    async ({ page, humanSpaceflightPage }, use) => {
+      const mediaCarouselSteps = new MediaCarouselSteps(
+        page,
+        humanSpaceflightPage
+      );
+      await use(mediaCarouselSteps);
+    },
+    { scope: "test" },
+  ],
+  ourMissionSteps: [
+    async ({ page, humanSpaceflightPage }, use) => {
+      const ourMissionSteps = new OurMissionsSteps(page, humanSpaceflightPage);
+      await use(ourMissionSteps);
+    },
+    { scope: "test" },
+  ],
+  performanceSeoSteps: [
+    async ({ page, humanSpaceflightPage, sharedContext }, use) => {
+      const performanceSeoSteps = new PerformanceSeoSteps(
+        page,
+        humanSpaceflightPage,
+        sharedContext
+      );
+      await use(performanceSeoSteps);
+    },
+    { scope: "test" },
+  ],
+  responsiveDesignSteps: [
+    async ({ page, humanSpaceflightPage }, use) => {
+      const responsiveDesignSteps = new ResponsiveDesignSteps(
+        page,
+        humanSpaceflightPage
+      );
+      await use(responsiveDesignSteps);
+    },
+    { scope: "test" },
+  ],
+  theSuitesSteps: [
+    async ({ page, humanSpaceflightPage }, use) => {
+      const theSuitesSteps = new TheSuitesSteps(page, humanSpaceflightPage);
+      await use(theSuitesSteps);
+    },
+    { scope: "test" },
+  ],
+  timelineSteps: [
+    async ({ page, humanSpaceflightPage }, use) => {
+      const timelineSteps = new TimelineSteps(page, humanSpaceflightPage);
+      await use(timelineSteps);
+    },
+    { scope: "test" },
+  ],
+  vehiclesSteps: [
+    async ({ page, humanSpaceflightPage }, use) => {
+      const vehiclesSteps = new VehiclesSteps(page, humanSpaceflightPage);
+      await use(vehiclesSteps);
     },
     { scope: "test" },
   ],

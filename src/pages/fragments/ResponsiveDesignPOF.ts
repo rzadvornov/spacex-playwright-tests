@@ -1,16 +1,18 @@
 import { Locator, Page } from "@playwright/test";
-import { AccessibilityCompliance } from "../types/AccessibilityCompliance";
-import { ResponsiveChecks } from "../types/ResponsiveChecks";
-import { InteractionPatterns } from "../types/InteractionPatterns";
-import { LayoutTransitions } from "../types/LayoutTransitions";
-import { PerformanceMetrics } from "../types/PerformanceMetrics";
-import { AssetOptimization } from "../types/AssetOptimization";
-import { ResponsiveImages } from "../types/ResponsiveImages";
-import { MobileRequirements } from "../types/MobileRequirements";
-import { CarouselResponsiveness } from "../types/CarouselResponsiveness";
-import { SectionAdaptation } from "../types/SectionAdaptation";
-import { FooterResponsiveness } from "../types/FooterResponsiveness";
-import { TabletLayout } from "../types/TabletLayout";
+import {
+  AccessibilityCompliance,
+  AssetOptimization,
+  CarouselResponsiveness,
+  FooterResponsiveness,
+  InteractionPatterns,
+  LayoutTransitions,
+  MobileRequirements,
+  PerformanceMetrics,
+  ResponsiveChecks,
+  ResponsiveImages,
+  SectionAdaptation,
+  TabletLayout,
+} from "../types/Types";
 
 export class ResponsiveDesignPOF {
   private static readonly MIN_TOUCH_TARGET_SIZE = 44;

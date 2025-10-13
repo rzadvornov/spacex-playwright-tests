@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import { BoundingBox } from "../types/BoundingBox"; 
+import { BoundingBox } from "../types/Types";
 
 export class FooterPOF {
   readonly footer: Locator;
@@ -8,11 +8,14 @@ export class FooterPOF {
   readonly twitterButton: Locator;
   readonly twitterIcon: Locator;
   readonly copyrightText: Locator;
-  
+
   private hoveredElement: Locator | null = null;
 
   constructor(page: Page) {
-    this.footer = page.getByRole("contentinfo").or(page.locator("footer")).first();
+    this.footer = page
+      .getByRole("contentinfo")
+      .or(page.locator("footer"))
+      .first();
     this.footerLinksSection = this.footer
       .getByRole("navigation")
       .or(this.footer.locator(".footer-links"))
@@ -37,7 +40,9 @@ export class FooterPOF {
     await this.getPage().waitForTimeout(100);
   }
 
-  private async getElementStyles(element: Locator): Promise<CSSStyleDeclaration> {
+  private async getElementStyles(
+    element: Locator
+  ): Promise<CSSStyleDeclaration> {
     return await element.evaluate((el: Element) => window.getComputedStyle(el));
   }
 
@@ -50,7 +55,9 @@ export class FooterPOF {
   }
 
   private getFooterLink(linkText: string): Locator {
-    return this.footer.getByRole("link", { name: linkText, exact: true }).first();
+    return this.footer
+      .getByRole("link", { name: linkText, exact: true })
+      .first();
   }
 
   async scrollToFooter(): Promise<void> {
@@ -69,7 +76,7 @@ export class FooterPOF {
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -130,19 +137,19 @@ export class FooterPOF {
   async hasTwitterButtonConsistentStyle(): Promise<boolean> {
     const [buttonStyle, iconStyle] = await Promise.all([
       this.getElementStyles(this.twitterButton),
-      this.getElementStyles(this.twitterIcon)
+      this.getElementStyles(this.twitterIcon),
     ]);
 
     const hasBackground = buttonStyle.backgroundColor !== "rgba(0, 0, 0, 0)";
     const hasIconColor = iconStyle.color !== "rgba(0, 0, 0, 0)";
-    
+
     return hasBackground && hasIconColor;
   }
 
   async isCopyrightTextOnRight(): Promise<boolean> {
     const [socialBox, copyrightBox] = await Promise.all([
       this.getBoundingBox(this.socialMediaSection),
-      this.getBoundingBox(this.copyrightText)
+      this.getBoundingBox(this.copyrightText),
     ]);
 
     if (!socialBox || !copyrightBox) {
@@ -156,7 +163,7 @@ export class FooterPOF {
     const footerStyle = await this.getElementStyles(this.footer);
     const gap = this.parseStyleValue(footerStyle.gap);
     const paddingLeft = this.parseStyleValue(footerStyle.paddingLeft);
-    
+
     return gap > 20 || paddingLeft > 20;
   }
 
@@ -164,7 +171,7 @@ export class FooterPOF {
     const paddingTop = await this.footer.evaluate((el: Element) => {
       return parseFloat(window.getComputedStyle(el).paddingTop);
     });
-    
+
     return paddingTop > 15;
   }
 
@@ -193,7 +200,7 @@ export class FooterPOF {
     const cursor = await this.hoveredElement.evaluate((el: Element) => {
       return window.getComputedStyle(el).cursor;
     });
-    
+
     return cursor === "pointer";
   }
 
@@ -221,7 +228,7 @@ export class FooterPOF {
     const position = await this.footer.evaluate((el: Element) => {
       return window.getComputedStyle(el).position;
     });
-    
+
     return position === "fixed" || position === "sticky";
   }
 
@@ -233,17 +240,17 @@ export class FooterPOF {
 
   async areFooterLinksAccessible(): Promise<boolean> {
     const links = await this.footerLinksSection.getByRole("link").all();
-    
+
     for (const link of links) {
       const isVisible = await link.isVisible();
       const isEnabled = await link.isEnabled();
       const hasText = !!(await link.textContent())?.trim();
-      
+
       if (!isVisible || !isEnabled || !hasText) {
         return false;
       }
     }
-    
+
     return links.length > 0;
   }
 }

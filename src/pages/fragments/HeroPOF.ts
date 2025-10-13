@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import { BoundingBox } from "../types/BoundingBox";
+import { BoundingBox } from "../types/Types";
 
 export class HeroPOF {
   private readonly heroSection: Locator;

@@ -3,10 +3,28 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
 import { OurMissionsPOF } from "../../pages/fragments/OurMissionsPOF";
+import {
+  BoundingBox,
+  CoreElement,
+  Element,
+  MissionMetric,
+  MissionTab,
+  StructureCheck,
+} from "../../pages/types/Types";
+import {
+  parseCoreElements,
+  parseHeaderElements,
+  parseMissionMetrics,
+  parseMissionTabs,
+  parseNavigationRequirements,
+  parseStructureChecks,
+} from "../../pages/types/TypeGuards";
 
 @Fixture("ourMissionsSteps")
 export class OurMissionsSteps {
-  private previousMetrics: Array<{ metric: string; value: string }> = [];
+  private previousMetrics: Array<MissionMetric> = [];
+  private readonly MIN_CARGO_SCIENCE_ITEMS = 3;
+  private readonly OPACITY_RANGE = { min: 0.1, max: 1 };
 
   constructor(
     private page: Page,
@@ -50,7 +68,7 @@ export class OurMissionsSteps {
 
   @Then("mission tabs should be available:")
   async checkMissionTabsAvailable(dataTable: DataTable) {
-    const expectedTabs = dataTable.hashes();
+    const expectedTabs = parseMissionTabs(dataTable.hashes());
     const actualTabs =
       await this.humanSpaceflightPage.ourMissions.getMissionTabs();
 
@@ -59,18 +77,25 @@ export class OurMissionsSteps {
     );
 
     for (const expectedTab of expectedTabs) {
-      const actualTab = actualTabs.find(
-        (t) => t.name === expectedTab["Tab Name"]
-      );
-      expect(
-        actualTab,
-        `Tab "${expectedTab["Tab Name"]}" should exist`
-      ).toBeDefined();
-      expect(
-        actualTab?.order,
-        `Order for tab "${expectedTab["Tab Name"]}" should match`
-      ).toBe(expectedTab.Order);
+      await this.validateMissionTab(actualTabs, expectedTab);
     }
+  }
+
+  private async validateMissionTab(
+    actualTabs: any[],
+    expectedTab: MissionTab
+  ): Promise<void> {
+    const actualTab = actualTabs.find(
+      (t) => t.name === expectedTab["Tab Name"]
+    );
+    expect(
+      actualTab,
+      `Tab "${expectedTab["Tab Name"]}" should exist`
+    ).toBeDefined();
+    expect(
+      actualTab?.order,
+      `Order for tab "${expectedTab["Tab Name"]}" should match`
+    ).toBe(expectedTab.Order);
   }
 
   @When("I view the {string} tab")
@@ -82,37 +107,43 @@ export class OurMissionsSteps {
 
   @Then("the tab should become active")
   async checkTabIsActive() {
-    // This step is a control flow step, its primary assertion is implicitly covered by subsequent checks like `checkMetricsTable`
+    // This step is a control flow step, its primary assertion is implicitly covered by subsequent checks
   }
 
   @Then("the metrics table should show mission-specific information:")
   async checkMetricsTable(dataTable: DataTable) {
-    const expectedMetrics = dataTable.hashes();
+    const expectedMetrics = parseMissionMetrics(dataTable.hashes());
     const actualMetrics =
       await this.humanSpaceflightPage.ourMissions.getActiveMissionMetrics();
 
     for (const expected of expectedMetrics) {
-      const actual = actualMetrics.find(
-        (m) => m.metric.toUpperCase() === expected.Metric.toUpperCase()
-      );
+      await this.validateMetric(actualMetrics, expected);
+    }
+  }
 
+  private async validateMetric(
+    actualMetrics: MissionMetric[],
+    expected: MissionMetric
+  ): Promise<void> {
+    const actual = actualMetrics.find(
+      (m) => m.Metric.toUpperCase() === expected.Metric.toUpperCase()
+    );
+    expect(
+      actual,
+      `Metric "${expected.Metric}" should be displayed`
+    ).toBeDefined();
+
+    const placeholderValues = [
+      "<Primary Value>",
+      "<Passengers>",
+      "<Altitude>",
+      "<Duration>",
+    ];
+    if (expected.Value && !placeholderValues.includes(expected.Value)) {
       expect(
-        actual,
-        `Metric "${expected.Metric}" should be displayed`
-      ).toBeDefined();
-
-      if (
-        expected.Value !== "<Primary Value>" &&
-        expected.Value !== "<Passengers>" &&
-        expected.Value !== "<Altitude>" &&
-        expected.Value !== "<Duration>" &&
-        expected.Value
-      ) {
-        expect(
-          actual?.value,
-          `Value for metric "${expected.Metric}" should match`
-        ).toContain(expected.Value);
-      }
+        actual?.Value,
+        `Value for metric "${expected.Metric}" should match`
+      ).toContain(expected.Value);
     }
   }
 
@@ -155,40 +186,47 @@ export class OurMissionsSteps {
 
   @Then("the key content should be structured logically:")
   async checkKeyContentStructure(dataTable: DataTable) {
-    const checks = dataTable.hashes();
+    const checks = parseStructureChecks(dataTable.hashes());
     const ourMissionsPOF = this.humanSpaceflightPage
       .ourMissions as OurMissionsPOF;
 
     for (const check of checks) {
-      switch (check.Element) {
-        case "Mission Title":
-          const title = await ourMissionsPOF.getSectionTitle();
-          expect(title.length).toBeGreaterThan(0);
-          break;
-        case "Metrics Table":
-          const isGrid = await ourMissionsPOF.isMetricsGridLayoutClean();
-          expect(isGrid).toBe(true);
-          break;
-        case "Tab Content":
-          const isVisible = await (
-            await ourMissionsPOF.getTabByName(check["Default Tab"])
-          ).isVisible();
-          expect(isVisible).toBe(true);
-          break;
-        case "CTA Button":
-          const isButtonVisible =
-            await ourMissionsPOF.isJoinMissionButtonVisible();
-          expect(isButtonVisible).toBe(true);
-          break;
-        case "Primary Tab":
-          const isActive = await ourMissionsPOF.isTabActive(
-            check["Default Tab"]
-          );
-          expect(isActive).toBe(true);
-          break;
-        default:
-          throw new Error(`Unknown structure element check: ${check.Element}`);
-      }
+      await this.validateStructureCheck(ourMissionsPOF, check);
+    }
+  }
+
+  private async validateStructureCheck(
+    ourMissionsPOF: OurMissionsPOF,
+    check: StructureCheck
+  ): Promise<void> {
+    switch (check.Element) {
+      case "Mission Title":
+        const title = await ourMissionsPOF.getSectionTitle();
+        expect(title.length).toBeGreaterThan(0);
+        break;
+      case "Metrics Table":
+        const isGrid = await ourMissionsPOF.isMetricsGridLayoutClean();
+        expect(isGrid).toBe(true);
+        break;
+      case "Tab Content":
+        const isVisible = await (
+          await ourMissionsPOF.getTabByName(check["Default Tab"]!)
+        ).isVisible();
+        expect(isVisible).toBe(true);
+        break;
+      case "CTA Button":
+        const isButtonVisible =
+          await ourMissionsPOF.isJoinMissionButtonVisible();
+        expect(isButtonVisible).toBe(true);
+        break;
+      case "Primary Tab":
+        const isActive = await ourMissionsPOF.isTabActive(
+          check["Default Tab"]!
+        );
+        expect(isActive).toBe(true);
+        break;
+      default:
+        throw new Error(`Unknown structure element check: ${check.Element}`);
     }
   }
 
@@ -201,12 +239,9 @@ export class OurMissionsSteps {
 
   @Then("I should be navigated to the destination details page for {string}")
   async checkNavigationToDestination(destination: string) {
-    await this.page.waitForURL(
-      `**/*${destination.toLowerCase().replace(/\s/g, "-")}`
-    );
-    expect(this.page.url().toLowerCase()).toContain(
-      destination.toLowerCase().replace(/\s/g, "")
-    );
+    const normalizedDestination = destination.toLowerCase().replace(/\s/g, "-");
+    await this.page.waitForURL(`**/*${normalizedDestination}`);
+    expect(this.page.url().toLowerCase()).toContain(normalizedDestination);
   }
 
   @Then("the URL should contain the path for {string}")
@@ -253,25 +288,32 @@ export class OurMissionsSteps {
 
   @Then("the section should display core elements:")
   async checkCoreElements(dataTable: DataTable) {
-    const coreElements = dataTable.hashes();
+    const coreElements = parseCoreElements(dataTable.hashes());
     const ourMissionsPOF = this.humanSpaceflightPage
       .ourMissions as OurMissionsPOF;
 
     for (const element of coreElements) {
-      switch (element.Element) {
-        case "Title":
-          await this.checkSectionTitle(element.Content);
-          break;
-        case "Description":
-          const description = await ourMissionsPOF.getSectionDescription();
-          expect(description).toContain(element.Description.split(" and ")[0]);
-          break;
-        case "Default Tab":
-          await this.checkDefaultTab(element.Content);
-          break;
-        default:
-          throw new Error(`Unknown core element check: ${element.Element}`);
-      }
+      await this.validateCoreElement(ourMissionsPOF, element);
+    }
+  }
+
+  private async validateCoreElement(
+    ourMissionsPOF: OurMissionsPOF,
+    element: CoreElement
+  ): Promise<void> {
+    switch (element.Element) {
+      case "Title":
+        await this.checkSectionTitle(element.Content!);
+        break;
+      case "Description":
+        const description = await ourMissionsPOF.getSectionDescription();
+        expect(description).toContain(element.Description!.split(" and ")[0]);
+        break;
+      case "Default Tab":
+        await this.checkDefaultTab(element.Content!);
+        break;
+      default:
+        throw new Error(`Unknown core element check: ${element.Element}`);
     }
   }
 
@@ -286,15 +328,14 @@ export class OurMissionsSteps {
 
   @Then("I should be directed to:")
   async checkNavigationToSubmissionDetails(dataTable: DataTable) {
-    const requirements = dataTable.hashes()[0];
+    const requirements = parseNavigationRequirements(dataTable.hashes())[0];
     const ourMissionsPOF = this.humanSpaceflightPage
       .ourMissions as OurMissionsPOF;
 
     if (requirements.URL) {
-      await this.page.waitForURL(
-        `**/*${requirements.URL.split("Contains ")[1]}`
-      );
-      expect(this.page.url()).toContain(requirements.URL.split("Contains ")[1]);
+      const urlPath = requirements.URL.split("Contains ")[1];
+      await this.page.waitForURL(`**/*${urlPath}`);
+      expect(this.page.url()).toContain(urlPath);
     }
 
     if (requirements["Page Title"]) {
@@ -349,49 +390,132 @@ export class OurMissionsSteps {
 
   @Then("the section should meet visual standards:")
   async checkVisualStandards(dataTable: DataTable) {
-    const standards = dataTable.hashes();
+    const standards = parseHeaderElements(dataTable.hashes());
     const ourMissionsPOF = this.humanSpaceflightPage
       .ourMissions as OurMissionsPOF;
 
     for (const standard of standards) {
-      switch (standard.Element) {
-        case "Background Image":
-          const isVisible = await ourMissionsPOF.isBackgroundImageVisible();
-          const isRelevant =
-            await ourMissionsPOF.isBackgroundImageRelevantToMission(
-              "Earth Orbit"
-            );
-          expect(
-            isVisible && isRelevant,
-            "Background image should be visible, left-aligned, and relevant"
-          ).toBe(true);
-          break;
-        case "Image Opacity":
-          const opacity = await ourMissionsPOF.getBackgroundImageOpacity();
-          expect(opacity).toBeGreaterThan(0.1);
-          expect(opacity).toBeLessThan(1);
-          break;
-        case "Tab Design":
-          const isConsistent = await ourMissionsPOF.isTabDesignConsistent();
-          expect(isConsistent, "Tab design should be consistent").toBe(true);
-          break;
-        case "Metrics Layout":
-          const isCleanGrid = await ourMissionsPOF.isMetricsGridLayoutClean();
-          expect(
-            isCleanGrid,
-            "Metrics table should have a clean, organized grid layout"
-          ).toBe(true);
-          break;
-        case "Typography":
-          const isReadable =
-            await ourMissionsPOF.isTypographyClearAndReadable();
-          expect(isReadable, "Typography should be clear and readable").toBe(
-            true
-          );
-          break;
-        default:
-          throw new Error(`Unknown visual standard check: ${standard.Element}`);
+      await this.validateVisualStandard(ourMissionsPOF, standard);
+    }
+  }
+
+  private async validateVisualStandard(
+    ourMissionsPOF: OurMissionsPOF,
+    standard: Element
+  ): Promise<void> {
+    switch (standard.Element) {
+      case "Background Image":
+        const [isVisible, isRelevant] = await Promise.all([
+          ourMissionsPOF.isBackgroundImageVisible(),
+          ourMissionsPOF.isBackgroundImageRelevantToMission("Earth Orbit"),
+        ]);
+        expect(
+          isVisible && isRelevant,
+          "Background image should be visible, left-aligned, and relevant"
+        ).toBe(true);
+        break;
+      case "Image Opacity":
+        const opacity = await ourMissionsPOF.getBackgroundImageOpacity();
+        expect(opacity).toBeGreaterThan(this.OPACITY_RANGE.min);
+        expect(opacity).toBeLessThan(this.OPACITY_RANGE.max);
+        break;
+      case "Tab Design":
+        const isConsistent = await ourMissionsPOF.isTabDesignConsistent();
+        expect(isConsistent, "Tab design should be consistent").toBe(true);
+        break;
+      case "Metrics Layout":
+        const isCleanGrid = await ourMissionsPOF.isMetricsGridLayoutClean();
+        expect(
+          isCleanGrid,
+          "Metrics table should have a clean, organized grid layout"
+        ).toBe(true);
+        break;
+      case "Typography":
+        const isReadable = await ourMissionsPOF.isTypographyClearAndReadable();
+        expect(isReadable, "Typography should be clear and readable").toBe(
+          true
+        );
+        break;
+      default:
+        throw new Error(`Unknown visual standard check: ${standard.Element}`);
+    }
+  }
+
+  @Then("the Our Missions section should be responsive across screen sizes")
+  async checkOurMissionsResponsiveness() {
+    const viewportSizes: BoundingBox[] = [
+      { width: 375, height: 667, x: 0, y: 0 }, // Mobile
+      { width: 768, height: 1024, x: 0, y: 0 }, // Tablet
+      { width: 1920, height: 1080, x: 0, y: 0 }, // Desktop
+    ];
+
+    const originalViewport = this.page.viewportSize();
+
+    try {
+      for (const viewport of viewportSizes) {
+        await this.page.setViewportSize(viewport);
+        await this.page.waitForTimeout(150);
+
+        const sectionBox =
+          await this.humanSpaceflightPage.ourMissions.ourMissionsSection.boundingBox();
+
+        await this.validateResponsiveLayout(viewport, sectionBox);
       }
+    } finally {
+      if (originalViewport) {
+        await this.page.setViewportSize(originalViewport);
+      }
+    }
+  }
+
+  private async validateResponsiveLayout(
+    viewport: BoundingBox,
+    sectionBox: BoundingBox | null
+  ): Promise<void> {
+    const [sectionVisible, tabsExist] = await Promise.all([
+      this.humanSpaceflightPage.ourMissions.ourMissionsSection.isVisible(),
+      this.humanSpaceflightPage.ourMissions
+        .getMissionTabs()
+        .then((tabs) => tabs.length > 0),
+    ]);
+
+    expect(
+      sectionVisible,
+      `Section should be visible at ${viewport.width}x${viewport.height}`
+    ).toBe(true);
+    expect(
+      tabsExist,
+      `Tabs should exist at ${viewport.width}x${viewport.height}`
+    ).toBe(true);
+
+    if (sectionBox) {
+      expect(
+        sectionBox.width,
+        `Section should have valid width`
+      ).toBeGreaterThan(0);
+      expect(
+        sectionBox.height,
+        `Section should have valid height`
+      ).toBeGreaterThan(0);
+      expect(
+        sectionBox.x,
+        `Section should be positioned within viewport`
+      ).toBeGreaterThanOrEqual(0);
+      expect(
+        sectionBox.y,
+        `Section should be positioned within viewport`
+      ).toBeGreaterThanOrEqual(0);
+
+      const viewportArea = viewport.width * viewport.height;
+      const sectionArea = sectionBox.width * sectionBox.height;
+      const coverageRatio = sectionArea / viewportArea;
+
+      expect(
+        coverageRatio,
+        `Section should have reasonable viewport coverage (${(
+          coverageRatio * 100
+        ).toFixed(1)}%)`
+      ).toBeGreaterThan(0.1);
     }
   }
 }

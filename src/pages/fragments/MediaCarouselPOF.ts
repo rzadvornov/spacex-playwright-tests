@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import { MediaTile } from "../types/MediaTile";
+import { MediaTile } from "../types/Types";
 
 export class MediaCarouselPOF {
   readonly page: Page;
@@ -25,7 +25,10 @@ export class MediaCarouselPOF {
     return text?.trim() ?? "";
   }
 
-  private async getElementAttribute(element: Locator, attribute: string): Promise<string> {
+  private async getElementAttribute(
+    element: Locator,
+    attribute: string
+  ): Promise<string> {
     const value = await element.getAttribute(attribute);
     return value ?? "";
   }
@@ -35,7 +38,9 @@ export class MediaCarouselPOF {
   }
 
   private getVideoPlayButton(tile: Locator): Locator {
-    return tile.locator('button[aria-label*="Play"], .video-play-button, .play-button');
+    return tile.locator(
+      'button[aria-label*="Play"], .video-play-button, .play-button'
+    );
   }
 
   private async isElementInViewport(element: Locator): Promise<boolean> {
@@ -46,7 +51,9 @@ export class MediaCarouselPOF {
       return false;
     }
 
-    return boundingBox.y < viewport.height && boundingBox.y + boundingBox.height > 0;
+    return (
+      boundingBox.y < viewport.height && boundingBox.y + boundingBox.height > 0
+    );
   }
 
   private async hasActiveClass(element: Locator): Promise<boolean> {
@@ -64,12 +71,12 @@ export class MediaCarouselPOF {
 
     for (let i = 0; i < count; i++) {
       const tile = this.mediaTiles.nth(i);
-      const [title, type] = await Promise.all([
+      const [Title, Type] = await Promise.all([
         this.getElementTextContent(tile.locator(".title")),
-        this.getElementAttribute(tile, "data-media-type")
+        this.getElementAttribute(tile, "data-media-type"),
       ]);
-      
-      tiles.push({ title, type });
+
+      tiles.push({ Title, Type });
     }
 
     return tiles;
@@ -77,13 +84,15 @@ export class MediaCarouselPOF {
 
   async checkTilesHaveMedia(): Promise<boolean> {
     const count = await this.mediaTiles.count();
-    
+
     for (let i = 0; i < count; i++) {
       const tile = this.mediaTiles.nth(i);
-      const hasMedia = await tile.locator("img, .player, video, audio").isVisible();
+      const hasMedia = await tile
+        .locator("img, .player, video, audio")
+        .isVisible();
       if (!hasMedia) return false;
     }
-    
+
     return count > 0;
   }
 
@@ -108,11 +117,15 @@ export class MediaCarouselPOF {
   }
 
   async getVideoTitle(): Promise<string> {
-    return await this.getElementTextContent(this.videoOverlay.locator(".video-title"));
+    return await this.getElementTextContent(
+      this.videoOverlay.locator(".video-title")
+    );
   }
 
   async getVideoDescription(): Promise<string> {
-    return await this.getElementTextContent(this.videoOverlay.locator(".video-description"));
+    return await this.getElementTextContent(
+      this.videoOverlay.locator(".video-description")
+    );
   }
 
   async isOverlayCloseButtonVisible(): Promise<boolean> {
@@ -154,11 +167,15 @@ export class MediaCarouselPOF {
   }
 
   async getAudioTitle(): Promise<string> {
-    return await this.getElementTextContent(this.audioPlayer.locator(".audio-title"));
+    return await this.getElementTextContent(
+      this.audioPlayer.locator(".audio-title")
+    );
   }
 
   async getAudioDescription(): Promise<string> {
-    return await this.getElementTextContent(this.audioPlayer.locator(".audio-description"));
+    return await this.getElementTextContent(
+      this.audioPlayer.locator(".audio-description")
+    );
   }
 
   async clickPaginationDot(index: number): Promise<void> {
@@ -202,15 +219,17 @@ export class MediaCarouselPOF {
 
   private async getTileIndex(title: string): Promise<number> {
     const count = await this.mediaTiles.count();
-    
+
     for (let i = 0; i < count; i++) {
       const tile = this.mediaTiles.nth(i);
-      const tileTitle = await this.getElementTextContent(tile.locator(".title"));
+      const tileTitle = await this.getElementTextContent(
+        tile.locator(".title")
+      );
       if (tileTitle === title) {
         return i;
       }
     }
-    
+
     return -1;
   }
 
@@ -226,7 +245,7 @@ export class MediaCarouselPOF {
     const videoTile = this.mediaTiles
       .filter({ has: this.page.locator('[data-media-type="video"]') })
       .first();
-    
+
     const playButton = this.getVideoPlayButton(videoTile);
     await playButton.click();
   }
@@ -245,36 +264,39 @@ export class MediaCarouselPOF {
     return await this.paginationDots.count();
   }
 
-  async isNavigationArrowEnabled(direction: 'previous' | 'next'): Promise<boolean> {
-    const arrow = direction === 'previous' 
-      ? this.navigationArrows.first()
-      : this.navigationArrows.last();
-    
+  async isNavigationArrowEnabled(
+    direction: "previous" | "next"
+  ): Promise<boolean> {
+    const arrow =
+      direction === "previous"
+        ? this.navigationArrows.first()
+        : this.navigationArrows.last();
+
     return await arrow.isEnabled();
   }
 
   async getActiveTileIndex(): Promise<number> {
     const count = await this.mediaTiles.count();
-    
+
     for (let i = 0; i < count; i++) {
       const tile = this.mediaTiles.nth(i);
       if (await this.hasActiveClass(tile)) {
         return i;
       }
     }
-    
+
     return -1;
   }
 
   async areAllMediaTilesLoaded(): Promise<boolean> {
     const count = await this.mediaTiles.count();
-    
+
     for (let i = 0; i < count; i++) {
       const tile = this.mediaTiles.nth(i);
       const isVisible = await tile.isVisible();
       if (!isVisible) return false;
     }
-    
+
     return count > 0;
   }
 }

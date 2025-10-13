@@ -1,12 +1,12 @@
 import { Locator, Page } from "@playwright/test";
-import { EarthImageStyles } from "../types/EarthImageStyles";
+import { EarthImageStyles } from "../types/Types";
 
 export class DestinationsPOF {
   private readonly page: Page;
   private readonly destinationsSection: Locator;
   readonly destinationsHeading: Locator;
   private readonly destinationElements: Locator;
-  
+
   private currentlyHoveredDestination: Locator | null = null;
 
   private readonly DESTINATION_CLASS_MAP: Readonly<Record<string, string>> = {
@@ -19,7 +19,9 @@ export class DestinationsPOF {
   constructor(page: Page) {
     this.page = page;
     this.destinationsSection = page.locator("div.destinations").first();
-    this.destinationsHeading = page.getByRole("heading", { name: /Destinations/i }).first();
+    this.destinationsHeading = page
+      .getByRole("heading", { name: /Destinations/i })
+      .first();
     this.destinationElements = this.destinationsSection.locator(".destination");
   }
 
@@ -33,7 +35,9 @@ export class DestinationsPOF {
 
   private getDestinationElement(name: string): Locator {
     const className = this.getDestinationClassName(name);
-    return this.destinationsSection.locator(`.destination.${className}`).first();
+    return this.destinationsSection
+      .locator(`.destination.${className}`)
+      .first();
   }
 
   private getDestinationMedia(name: string): Locator {
@@ -47,40 +51,44 @@ export class DestinationsPOF {
   private async getAllDestinationElements(): Promise<Locator[]> {
     const count = await this.destinationElements.count();
     const elements: Locator[] = [];
-    
+
     for (let i = 0; i < count; i++) {
       elements.push(this.destinationElements.nth(i));
     }
-    
+
     return elements;
   }
 
-  private async getDestinationMediaElement(destination: Locator): Promise<Locator | null> {
+  private async getDestinationMediaElement(
+    destination: Locator
+  ): Promise<Locator | null> {
     const media = destination.locator("img, svg").first();
     return (await media.count()) > 0 ? media : null;
   }
 
   private async evaluateMediaLoaded(media: Locator): Promise<boolean> {
-    const tagName = await media.evaluate((el: Element) => el.tagName.toLowerCase());
-    
+    const tagName = await media.evaluate((el: Element) =>
+      el.tagName.toLowerCase()
+    );
+
     if (tagName === "img") {
-      return await media.evaluate((img: HTMLImageElement) => 
-        img.complete && img.naturalHeight > 0
+      return await media.evaluate(
+        (img: HTMLImageElement) => img.complete && img.naturalHeight > 0
       );
     }
-    
-    return true; 
+
+    return true;
   }
 
   private async evaluateCursorStyle(element: Locator): Promise<string> {
-    return await element.evaluate((el: Element) => 
-      window.getComputedStyle(el).cursor
+    return await element.evaluate(
+      (el: Element) => window.getComputedStyle(el).cursor
     );
   }
 
   private async evaluateOpacityStyle(element: Locator): Promise<string> {
-    return await element.evaluate((el: Element) => 
-      window.getComputedStyle(el).opacity
+    return await element.evaluate(
+      (el: Element) => window.getComputedStyle(el).opacity
     );
   }
 
@@ -115,9 +123,11 @@ export class DestinationsPOF {
     await media.click();
   }
 
-  async isDestinationImageLoadedCorrectly(destinationName: string): Promise<boolean> {
+  async isDestinationImageLoadedCorrectly(
+    destinationName: string
+  ): Promise<boolean> {
     const media = this.getDestinationMedia(destinationName);
-    
+
     if (!(await media.isVisible())) {
       return false;
     }
@@ -146,32 +156,36 @@ export class DestinationsPOF {
     }
 
     const element = this.currentlyHoveredDestination;
-    
+
     await this.unhoverDestination();
     const defaultOpacity = await this.evaluateOpacityStyle(element);
-    
+
     await element.hover();
     const hoverOpacity = await this.evaluateOpacityStyle(element);
-    
+
     if (this.currentlyHoveredDestination === element) {
       await element.hover();
     }
 
     return defaultOpacity !== hoverOpacity;
   }
-  
-  async hasDestinationSvgCircleOverlay(destinationName: string): Promise<boolean> {
-    const svgOverlay = this.getDestinationElement(destinationName).locator("svg").first();
+
+  async hasDestinationSvgCircleOverlay(
+    destinationName: string
+  ): Promise<boolean> {
+    const svgOverlay = this.getDestinationElement(destinationName)
+      .locator("svg")
+      .first();
     return await svgOverlay.isVisible();
   }
 
   async waitForDestinationsSectionLoad(): Promise<void> {
     await this.destinationsSection.waitFor({ state: "visible" });
   }
-  
+
   async areAllDestinationMediaVisible(): Promise<boolean> {
     const destinations = await this.getAllDestinationElements();
-    
+
     if (destinations.length === 0) {
       return false;
     }
@@ -182,19 +196,22 @@ export class DestinationsPOF {
         return false;
       }
     }
-    
+
     return true;
   }
 
   async areAllDestinationsClickableAndInteractive(): Promise<boolean> {
     const destinations = await this.getAllDestinationElements();
-    
+
     if (destinations.length === 0) {
       return false;
     }
 
     for (const destination of destinations) {
-      if (!(await destination.isVisible()) || !(await destination.isEnabled())) {
+      if (
+        !(await destination.isVisible()) ||
+        !(await destination.isEnabled())
+      ) {
         return false;
       }
 
@@ -208,7 +225,7 @@ export class DestinationsPOF {
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -219,7 +236,7 @@ export class DestinationsPOF {
 
   async getEarthImageComputedStyles(): Promise<EarthImageStyles | null> {
     const earthImage = this.getEarthImageBackground();
-    
+
     if (!(await earthImage.isVisible())) {
       return null;
     }
@@ -240,14 +257,16 @@ export class DestinationsPOF {
     if (!this.currentlyHoveredDestination) {
       return false;
     }
-    
-    const cursorStyle = await this.evaluateCursorStyle(this.currentlyHoveredDestination);
+
+    const cursorStyle = await this.evaluateCursorStyle(
+      this.currentlyHoveredDestination
+    );
     return cursorStyle === "pointer";
   }
 
   async isDestinationHoverEffectDisappeared(): Promise<boolean> {
     const firstDestination = this.destinationElements.first();
-    
+
     if ((await firstDestination.count()) === 0) {
       return true;
     }
@@ -259,10 +278,10 @@ export class DestinationsPOF {
 
     await media.hover();
     const hoverOpacity = await this.evaluateOpacityStyle(media);
-    
+
     await this.unhoverDestination();
     const defaultOpacity = await this.evaluateOpacityStyle(media);
-    
+
     return hoverOpacity !== defaultOpacity;
   }
 
@@ -273,25 +292,25 @@ export class DestinationsPOF {
   async getDestinationNames(): Promise<string[]> {
     const destinations = await this.getAllDestinationElements();
     const names: string[] = [];
-    
+
     for (const destination of destinations) {
       const className = await destination.getAttribute("class");
       const destinationName = Object.entries(this.DESTINATION_CLASS_MAP).find(
         ([, value]) => className?.includes(value)
       )?.[0];
-      
+
       if (destinationName) {
         names.push(destinationName);
       }
     }
-    
+
     return names;
   }
 
   async isDestinationInteractive(destinationName: string): Promise<boolean> {
     const element = this.getDestinationElement(destinationName);
     const media = this.getDestinationMedia(destinationName);
-    
+
     return (
       (await element.isVisible()) &&
       (await element.isEnabled()) &&

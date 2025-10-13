@@ -2,9 +2,37 @@ import { Page, expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
+import {
+  BoundingBox,
+  DestinationInfo,
+  InteractiveState,
+} from "../../pages/types/Types";
+import {
+  parseDestinationInfo,
+  parseBackgroundCharacteristics,
+  parseInteractiveStates,
+} from "../../pages/types/TypeGuards";
 
 @Fixture("destinationsSteps")
 export class DestinationsSteps {
+  private readonly VIEWPORT_SIZES: BoundingBox[] = [
+    { x: 0, y: 0, width: 375, height: 667 }, // Mobile
+    { x: 0, y: 0, width: 768, height: 1024 }, // Tablet
+    { x: 0, y: 0, width: 1920, height: 1080 }, // Desktop
+  ];
+
+  private readonly INTERACTION_ELEMENTS: Record<string, string> = {
+    "destination card": "Earth Orbit",
+    "interactive overlay": "Space Station",
+    "navigation link": "Moon",
+  };
+
+  private readonly DEFAULT_DESTINATIONS = [
+    "Earth Orbit",
+    "Space Station",
+    "Moon",
+  ];
+
   constructor(
     private page: Page,
     private humanSpaceflightPage: HumanSpaceflightPage
@@ -18,23 +46,33 @@ export class DestinationsSteps {
 
   @Then("the section should display destination information:")
   async checkDestinationInformation(dataTable: DataTable) {
-    const destinations = dataTable.hashes();
-    for (const dest of destinations) {
-      // Check destination exists and is in correct order
-      const allVisible =
-        await this.humanSpaceflightPage.destinations.areAllDestinationsVisible([
-          dest.Destination,
-        ]);
-      expect(
-        allVisible,
-        `Destination ${dest.Destination} should be visible`
-      ).toBe(true);
+    const destinations = parseDestinationInfo(dataTable.hashes());
 
-      // Check link path when clicking
+    for (const dest of destinations) {
+      await this.validateDestinationInformation(dest);
+    }
+  }
+
+  private async validateDestinationInformation(
+    dest: DestinationInfo
+  ): Promise<void> {
+    const allVisible =
+      await this.humanSpaceflightPage.destinations.areAllDestinationsVisible([
+        dest.Destination,
+      ]);
+    expect(
+      allVisible,
+      `Destination ${dest.Destination} should be visible`
+    ).toBe(true);
+
+    if (dest.Path) {
       await this.humanSpaceflightPage.destinations.clickDestination(
         dest.Destination
       );
-      expect(this.page.url()).toContain(dest.Path);
+
+      const currentUrl = this.page.url();
+      expect(currentUrl).toContain(dest.Path);
+
       await this.page.goBack();
       await this.humanSpaceflightPage.destinations.waitForDestinationsSectionLoad();
     }
@@ -61,10 +99,17 @@ export class DestinationsSteps {
   @Then("I should be navigated to the destination details page")
   async checkNavigationToDetailsPage() {
     await this.page.waitForLoadState("domcontentloaded");
-    const isNewPage = await this.page.evaluate(() => {
+
+    const isPageReady = await this.page.evaluate(() => {
       return document.readyState === "complete";
     });
-    expect(isNewPage, "Should be navigated to a new page").toBe(true);
+
+    expect(isPageReady, "Should be navigated to a fully loaded page").toBe(
+      true
+    );
+
+    const currentUrl = this.page.url();
+    expect(currentUrl).not.toContain("#");
   }
 
   @Then("the page title should contain {string}")
@@ -75,128 +120,194 @@ export class DestinationsSteps {
 
   @Then("each destination should have proper visual elements:")
   async checkDestinationVisualElements(dataTable: DataTable) {
-    const visualRequirements = dataTable.hashes();
+    const visualRequirements = parseDestinationInfo(dataTable.hashes());
 
     for (const req of visualRequirements) {
-      // Check if image loads correctly
-      const imageLoaded =
-        await this.humanSpaceflightPage.destinations.isDestinationImageLoadedCorrectly(
+      await this.validateVisualElement(req);
+    }
+  }
+
+  private async validateVisualElement(req: DestinationInfo): Promise<void> {
+    const imageLoaded =
+      await this.humanSpaceflightPage.destinations.isDestinationImageLoadedCorrectly(
+        req.Destination
+      );
+    expect(imageLoaded, `${req.Destination} image should load correctly`).toBe(
+      true
+    );
+
+    if (req["Element Type"]?.includes("SVG")) {
+      const hasSvgOverlay =
+        await this.humanSpaceflightPage.destinations.hasDestinationSvgCircleOverlay(
           req.Destination
         );
-      expect(
-        imageLoaded,
-        `${req.Destination} image should load correctly`
-      ).toBe(true);
-
-      // Check for SVG overlay if required
-      if (req["Element Type"].includes("SVG")) {
-        const hasSvgOverlay =
-          await this.humanSpaceflightPage.destinations.hasDestinationSvgCircleOverlay(
-            req.Destination
-          );
-        expect(
-          hasSvgOverlay,
-          `${req.Destination} should have SVG overlay`
-        ).toBe(true);
-      }
+      expect(hasSvgOverlay, `${req.Destination} should have SVG overlay`).toBe(
+        true
+      );
     }
   }
 
   @Then("visual elements should maintain quality across screen sizes")
   async checkVisualQualityAcrossScreenSizes() {
-    // Check different viewport sizes
-    const viewportSizes = [
-      { width: 375, height: 667 }, // Mobile
-      { width: 768, height: 1024 }, // Tablet
-      { width: 1920, height: 1080 }, // Desktop
-    ];
+    const originalViewport = this.page.viewportSize();
 
-    for (const size of viewportSizes) {
-      await this.page.setViewportSize(size);
-      const allMediaVisible =
-        await this.humanSpaceflightPage.destinations.areAllDestinationMediaVisible();
-      expect(
-        allMediaVisible,
-        `Visual elements should be visible at ${size.width}x${size.height}`
-      ).toBe(true);
+    try {
+      for (const size of this.VIEWPORT_SIZES) {
+        await this.page.setViewportSize({
+          width: size.width,
+          height: size.height,
+        });
+        await this.page.waitForTimeout(100);
+
+        const allMediaVisible =
+          await this.humanSpaceflightPage.destinations.areAllDestinationMediaVisible();
+        expect(
+          allMediaVisible,
+          `Visual elements should be visible at ${size.width}x${size.height}`
+        ).toBe(true);
+      }
+    } finally {
+      if (originalViewport) {
+        await this.page.setViewportSize(originalViewport);
+      }
     }
   }
 
   @Then("the background should have these characteristics:")
   async checkBackgroundCharacteristics(dataTable: DataTable) {
-    const characteristics = dataTable.hashes();
+    const characteristics = parseBackgroundCharacteristics(dataTable.hashes());
 
     for (const char of characteristics) {
       if (char.Element === "Earth image") {
-        // Check Earth image position and opacity
-        const styles =
-          await this.humanSpaceflightPage.destinations.getEarthImageComputedStyles();
-        expect(styles, "Earth image styles should be available").not.toBeNull();
-        if (styles) {
-          expect(["absolute", "fixed"]).toContain(styles.position);
-          expect(parseFloat(styles.opacity)).toBeGreaterThan(0);
-        }
+        await this.validateEarthImageCharacteristics();
       }
+    }
+  }
+
+  private async validateEarthImageCharacteristics(): Promise<void> {
+    const styles =
+      await this.humanSpaceflightPage.destinations.getEarthImageComputedStyles();
+    expect(styles, "Earth image styles should be available").not.toBeNull();
+
+    if (styles) {
+      expect(["absolute", "fixed"]).toContain(styles.position);
+      expect(parseFloat(styles.opacity)).toBeGreaterThan(0);
+      expect(parseFloat(styles.opacity)).toBeLessThanOrEqual(1);
     }
   }
 
   @Then("background elements should not interfere with content")
   async checkBackgroundInterference() {
-    // Check if destinations are clickable over the background
     const areClickable =
       await this.humanSpaceflightPage.destinations.areAllDestinationsClickableAndInteractive();
     expect(
       areClickable,
       "Destinations should be clickable over background"
     ).toBe(true);
+
+    const areVisible =
+      await this.humanSpaceflightPage.destinations.areAllDestinationsVisible(
+        this.DEFAULT_DESTINATIONS
+      );
+    expect(
+      areVisible,
+      "Destinations should be clearly visible above background"
+    ).toBe(true);
   }
 
   @When("I interact with the {string} on desktop")
   async interactWithElement(elementType: string) {
-    switch (elementType) {
-      case "destination card":
-        await this.humanSpaceflightPage.destinations.hoverOverDestination(
-          "Earth Orbit"
-        );
-        break;
-      case "interactive overlay":
-        await this.humanSpaceflightPage.destinations.hoverOverDestination(
-          "Space Station"
-        );
-        break;
-      case "navigation link":
-        await this.humanSpaceflightPage.destinations.hoverOverDestination(
-          "Moon"
-        );
-        break;
+    const destinationName = this.INTERACTION_ELEMENTS[elementType];
+
+    if (!destinationName) {
+      throw new Error(
+        `Unknown element type: ${elementType}. Available types: ${Object.keys(
+          this.INTERACTION_ELEMENTS
+        ).join(", ")}`
+      );
     }
+
+    await this.humanSpaceflightPage.destinations.hoverOverDestination(
+      destinationName
+    );
   }
 
   @Then("it should demonstrate the following states:")
   async checkInteractiveStates(dataTable: DataTable) {
-    const states = dataTable.hashes();
+    const states = parseInteractiveStates(dataTable.hashes());
 
     for (const state of states) {
-      switch (state.State) {
-        case "Hover":
-          const hasHoverEffect =
-            await this.humanSpaceflightPage.destinations.isDestinationHoverEffectVisible();
-          expect(hasHoverEffect, "Element should show hover effect").toBe(true);
-
-          const hasPointerCursor =
-            await this.humanSpaceflightPage.destinations.isDestinationCursorPointer();
-          expect(hasPointerCursor, "Cursor should be pointer on hover").toBe(
-            true
-          );
-          break;
-
-        case "Regular":
-          await this.humanSpaceflightPage.destinations.unhoverDestination();
-          const effectDisappeared =
-            await this.humanSpaceflightPage.destinations.isDestinationHoverEffectDisappeared();
-          expect(effectDisappeared, "Hover effect should disappear").toBe(true);
-          break;
-      }
+      await this.validateInteractiveState(state);
     }
+  }
+
+  private async validateInteractiveState(
+    state: InteractiveState
+  ): Promise<void> {
+    switch (state.State) {
+      case "Hover":
+        await this.validateHoverState();
+        break;
+
+      case "Regular":
+        await this.validateRegularState();
+        break;
+
+      default:
+        throw new Error(`Unknown state: ${state.State}`);
+    }
+  }
+
+  private async validateHoverState(): Promise<void> {
+    const hasHoverEffect =
+      await this.humanSpaceflightPage.destinations.isDestinationHoverEffectVisible();
+    expect(hasHoverEffect, "Element should show hover effect").toBe(true);
+
+    const hasPointerCursor =
+      await this.humanSpaceflightPage.destinations.isDestinationCursorPointer();
+    expect(hasPointerCursor, "Cursor should be pointer on hover").toBe(true);
+  }
+
+  private async validateRegularState(): Promise<void> {
+    await this.humanSpaceflightPage.destinations.unhoverDestination();
+
+    const effectDisappeared =
+      await this.humanSpaceflightPage.destinations.isDestinationHoverEffectDisappeared();
+    expect(effectDisappeared, "Hover effect should disappear").toBe(true);
+
+    const hasPointerCursor =
+      await this.humanSpaceflightPage.destinations.isDestinationCursorPointer();
+    expect(hasPointerCursor, "Cursor should not be pointer after unhover").toBe(
+      false
+    );
+  }
+
+  @Then("destinations should be displayed in the correct order:")
+  async checkDestinationsOrder(dataTable: DataTable) {
+    const expectedOrder = dataTable
+      .hashes()
+      .map((row: Record<string, string>) => row.Destination);
+
+    const allVisible =
+      await this.humanSpaceflightPage.destinations.areAllDestinationsVisible(
+        expectedOrder
+      );
+    expect(
+      allVisible,
+      `Destinations should be visible in order: ${expectedOrder.join(", ")}`
+    ).toBe(true);
+  }
+
+  @Then("each destination should have accessible descriptions")
+  async checkAccessibleDescriptions() {
+    const areAccessible =
+      await this.humanSpaceflightPage.destinations.areAllDestinationsVisible(
+        this.DEFAULT_DESTINATIONS
+      );
+
+    expect(
+      areAccessible,
+      "All destinations should have proper content and be accessible"
+    ).toBe(true);
   }
 }

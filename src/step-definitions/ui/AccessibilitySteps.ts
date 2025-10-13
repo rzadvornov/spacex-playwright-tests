@@ -2,9 +2,23 @@ import { Page, expect } from "@playwright/test";
 import { When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
+import { Requirement } from "../../pages/types/Types";
+import {
+  parseAccessibilityRequirements,
+  parseHeadingExpectations,
+  parseLandmarkExpectations,
+} from "../../pages/types/TypeGuards";
 
 @Fixture("accessibilitySteps")
 export class AccessibilitySteps {
+  private readonly ELEMENT_SELECTORS = {
+    LINK: "a:visible",
+    BUTTON: "button:visible",
+    INPUT: "input:visible, textarea:visible, select:visible",
+    INTERACTIVE: "a:visible, button:visible",
+    NON_IMAGE_LINKS: "a:not(:has(img))",
+  } as const;
+
   constructor(
     private page: Page,
     private humanSpaceflightPage: HumanSpaceflightPage
@@ -12,32 +26,45 @@ export class AccessibilitySteps {
 
   @Then("the page heading structure should be correct:")
   async checkHeadingStructure(dataTable: DataTable) {
-    const expectedHeadings = dataTable.hashes();
-    const actualCounts =
-      await this.humanSpaceflightPage.accessibility.getHeadingCounts();
-    const h1Text =
-      await this.humanSpaceflightPage.accessibility.getH1Text();
+    const expectedHeadings = parseHeadingExpectations(dataTable.hashes());
+    const [actualCounts, h1Text] = await Promise.all([
+      this.humanSpaceflightPage.accessibility.getHeadingCounts(),
+      this.humanSpaceflightPage.accessibility.getH1Text(),
+    ]);
 
     for (const row of expectedHeadings) {
       const level = row.Level.toUpperCase();
       const expectedContent = row.Content;
       const minCount = parseInt(row.Count.replace("+", ""), 10);
 
-      if (level === "H1") {
-        expect(
-          actualCounts.H1,
-          "The page must have exactly one H1 tag"
-        ).toBe(1);
-        expect(
-          h1Text?.toUpperCase(),
-          `H1 text should contain "${expectedContent.toUpperCase()}"`
-        ).toContain(expectedContent.toUpperCase());
-      } else if (level === "H2") {
-        expect(
-          actualCounts.H2,
-          `The page should have at least ${minCount} H2 tags`
-        ).toBeGreaterThanOrEqual(minCount);
-      }
+      await this.validateHeadingStructure(
+        level,
+        expectedContent,
+        minCount,
+        actualCounts,
+        h1Text
+      );
+    }
+  }
+
+  private async validateHeadingStructure(
+    level: string,
+    expectedContent: string,
+    minCount: number,
+    actualCounts: any,
+    h1Text: string | null
+  ): Promise<void> {
+    if (level === "H1") {
+      expect(actualCounts.H1, "The page must have exactly one H1 tag").toBe(1);
+      expect(
+        h1Text?.toUpperCase(),
+        `H1 text should contain "${expectedContent.toUpperCase()}"`
+      ).toContain(expectedContent.toUpperCase());
+    } else if (level === "H2") {
+      expect(
+        actualCounts.H2,
+        `The page should have at least ${minCount} H2 tags`
+      ).toBeGreaterThanOrEqual(minCount);
     }
   }
 
@@ -63,12 +90,14 @@ export class AccessibilitySteps {
 
   @Then("the page should have the following landmarks:")
   async checkLandmarks(dataTable: DataTable) {
-    const expectedLandmarks = dataTable.hashes();
+    const expectedLandmarks = parseLandmarkExpectations(dataTable.hashes());
+
     for (const row of expectedLandmarks) {
       const tag = row.Type.toLowerCase();
-      const count = await this.humanSpaceflightPage.accessibility.getLandmarkCount(
-        tag as any
-      );
+      const count =
+        await this.humanSpaceflightPage.accessibility.getLandmarkCount(
+          tag as any
+        );
       expect(
         count,
         `The page must have a visible <${tag}> landmark`
@@ -79,7 +108,10 @@ export class AccessibilitySteps {
   @Then("each landmark should have appropriate ARIA roles")
   async checkAriaRoles() {
     const mainCount =
-      await this.humanSpaceflightPage.accessibility.getLandmarkCount("main", "main");
+      await this.humanSpaceflightPage.accessibility.getLandmarkCount(
+        "main",
+        "main"
+      );
     expect(
       mainCount,
       "The <main> element should either be present or a container should have role='main'"
@@ -88,42 +120,57 @@ export class AccessibilitySteps {
 
   @Then("each {word} should:")
   async checkKeyboardAccessibility(elementType: string, dataTable: DataTable) {
-    let selector: string;
-    switch (elementType.toLowerCase()) {
-      case "link":
-        selector = "a:visible";
-        break;
-      case "button":
-        selector = "button:visible";
-        break;
-      case "input":
-        selector = "input:visible, textarea:visible, select:visible";
-        break;
-      default:
-        throw new Error(`Unsupported element type for accessibility check: ${elementType}`);
-    }
-
+    const selector = this.getElementSelector(elementType);
+    const requirements = parseAccessibilityRequirements(dataTable.hashes());
     const checks =
       await this.humanSpaceflightPage.accessibility.checkKeyboardAccessibility(
         selector
       );
 
-    const requirements = dataTable.hashes().map((h) => h.Requirement);
+    this.validateKeyboardAccessibility(checks, elementType, requirements);
+  }
 
-    if (requirements.includes("Be keyboard focusable")) {
+  private getElementSelector(elementType: string): string {
+    const normalizedType = elementType.toLowerCase();
+
+    switch (normalizedType) {
+      case "link":
+        return this.ELEMENT_SELECTORS.LINK;
+      case "button":
+        return this.ELEMENT_SELECTORS.BUTTON;
+      case "input":
+        return this.ELEMENT_SELECTORS.INPUT;
+      default:
+        throw new Error(
+          `Unsupported element type for accessibility check: ${elementType}`
+        );
+    }
+  }
+
+  private validateKeyboardAccessibility(
+    checks: any,
+    elementType: string,
+    requirements: Requirement[]
+  ): void {
+    const requirementMap = new Map(
+      requirements.map((req) => [req.Requirement, true])
+    );
+
+    if (requirementMap.has("Be keyboard focusable")) {
       expect(
         checks.isFocusable,
         `${elementType}s must be keyboard focusable (tabindex > -1)`
       ).toBe(true);
     }
-    if (requirements.includes("Be keyboard operable")) {
+
+    if (requirementMap.has("Be keyboard operable")) {
       expect(
         checks.isOperable,
         `${elementType}s must be operable using keyboard (Enter/Space)`
       ).toBe(true);
     }
   }
-  
+
   @Then("links and buttons should have descriptive text:")
   async checkDescriptiveText() {
     const results =
@@ -138,7 +185,7 @@ export class AccessibilitySteps {
   async checkFocusIndicator() {
     const results =
       await this.humanSpaceflightPage.accessibility.checkKeyboardAccessibility(
-        "a:visible, button:visible"
+        this.ELEMENT_SELECTORS.INTERACTIVE
       );
     expect(
       results.hasFocusIndicator,
@@ -146,23 +193,34 @@ export class AccessibilitySteps {
     ).toBe(true);
   }
 
-  @Then("the color contrast ratio should be at least {float}:{int} for normal text")
-  async checkContrast(ratio: number) {
+  @Then(
+    "the color contrast ratio should be at least {float}:{int} for normal text"
+  )
+  async checkContrast(ratio: number, ratioValue: number) {
+    const fullRatio = `${ratio}:${ratioValue}`;
     const hasMinContrast =
       await this.humanSpaceflightPage.accessibility.checkMinimumColorContrast(
-        ratio
+        parseFloat(fullRatio)
       );
     expect(
       hasMinContrast,
-      `Color contrast should meet the minimum ratio of ${ratio}:1`
+      `Color contrast should meet the minimum ratio of ${fullRatio}`
     ).toBe(true);
   }
 
   @Then("all links should be distinguishable without relying on color alone")
   async checkLinkDistinguishability() {
-    const hasUnderlines = await this.page.locator('a:not(:has(img))').first().evaluate((el) => {
-        return window.getComputedStyle(el).textDecorationLine.includes('underline');
-    });
+    const hasUnderlines = await this.page
+      .locator(this.ELEMENT_SELECTORS.NON_IMAGE_LINKS)
+      .first()
+      .evaluate((el) => {
+        const style = window.getComputedStyle(el);
+        return (
+          style.textDecorationLine.includes("underline") ||
+          style.textDecoration.includes("underline")
+        );
+      })
+      .catch(() => false);
 
     expect(
       hasUnderlines,
@@ -172,47 +230,60 @@ export class AccessibilitySteps {
 
   @Then("images should have appropriate text alternatives:")
   async checkImageAlternatives(dataTable: DataTable) {
-    const results = await this.humanSpaceflightPage.accessibility.checkImageAccessibility();
-
+    const results =
+      await this.humanSpaceflightPage.accessibility.checkImageAccessibility();
     expect(
-        results.missingAltCount,
-        `Found ${results.missingAltCount} visible images missing an 'alt' attribute.`
+      results.missingAltCount,
+      `Found ${results.missingAltCount} visible images missing an 'alt' attribute.`
     ).toBe(0);
   }
 
   @Then("{word} content should be fully accessible:")
-  async checkMediaAccessiblity(mediaType: "video" | "audio", dataTable: DataTable) {
-    const results = await this.humanSpaceflightPage.accessibility.checkMediaFeatures(mediaType);
-    const requirements = dataTable.hashes().map((h) => h.Requirement);
+  async checkMediaAccessibility(
+    mediaType: "video" | "audio",
+    dataTable: DataTable
+  ) {
+    const results =
+      await this.humanSpaceflightPage.accessibility.checkMediaFeatures(
+        mediaType
+      );
+    const requirements = parseAccessibilityRequirements(dataTable.hashes());
+    const requirementMap = new Map(
+      requirements.map((req) => [req.Requirement, true])
+    );
 
-    if (requirements.includes("Controls available")) {
-        expect(
-            results.hasControls,
-            `${mediaType} element must have visible controls.`
-        ).toBe(true);
+    if (requirementMap.has("Controls available")) {
+      expect(
+        results.hasControls,
+        `${mediaType} element must have visible controls.`
+      ).toBe(true);
     }
-    
-    if (requirements.includes("Captions/Transcripts")) {
-        expect(
-            results.hasCaptions,
-            `${mediaType} must provide captions (for video) or a transcript (for audio).`
-        ).toBe(true);
+
+    if (requirementMap.has("Captions/Transcripts")) {
+      expect(
+        results.hasCaptions,
+        `${mediaType} must provide captions (for video) or a transcript (for audio).`
+      ).toBe(true);
     }
   }
-  
+
   @Then("motion and animation should be controlled:")
   async checkMotionControl(dataTable: DataTable) {
     const results =
       await this.humanSpaceflightPage.accessibility.checkMotionAccessibility();
-    const requirements = dataTable.hashes().map((h) => h.Requirement);
+    const requirements = parseAccessibilityRequirements(dataTable.hashes());
+    const requirementMap = new Map(
+      requirements.map((req) => [req.Requirement, true])
+    );
 
-    if (requirements.includes("No Auto-advance")) {
+    if (requirementMap.has("No Auto-advance")) {
       expect(
         results.noAutoAdvance,
         "Carousels/Sliders should not auto-advance."
       ).toBe(true);
     }
-    if (requirements.includes("Disabled")) {
+
+    if (requirementMap.has("Disabled")) {
       expect(
         results.noParallax,
         "Parallax scrolling should be disabled or absent."
@@ -221,12 +292,12 @@ export class AccessibilitySteps {
   }
 
   @Then("no content should flash more than {int} times/second")
-  async checkFlashingContent() {
+  async checkFlashingContent(maxFrequency: number) {
     const isSafe =
       await this.humanSpaceflightPage.accessibility.checkFlashingContent();
     expect(
       isSafe,
-      "Content should not flash/blink aggressively (WCAG 2.3.1)."
+      `Content should not flash/blink more than ${maxFrequency} times per second (WCAG 2.3.1).`
     ).toBe(true);
   }
 
@@ -239,9 +310,12 @@ export class AccessibilitySteps {
   async checkValidationAccessibility(dataTable: DataTable) {
     const results =
       await this.humanSpaceflightPage.accessibility.checkAccessibleFormValidation();
-    const requirements = dataTable.hashes().map((h) => h.Requirement);
+    const requirements = parseAccessibilityRequirements(dataTable.hashes());
+    const requirementMap = new Map(
+      requirements.map((req) => [req.Requirement, true])
+    );
 
-    if (requirements.includes("Error Messages")) {
+    if (requirementMap.has("Error Messages")) {
       expect(
         results.errorMessagesPresent,
         "Clear, descriptive error messages should be visible after invalid submission."
@@ -271,22 +345,36 @@ export class AccessibilitySteps {
 
   @Then("language attributes should be correctly set:")
   async checkLangAttribute(dataTable: DataTable) {
-    const expectedLang = dataTable.hashes().find((h) => h.Element === "HTML tag")?.Value;
-    if (expectedLang) {
-        const actualLang = await this.humanSpaceflightPage.accessibility.getHtmlLangAttribute();
-        expect(
-            actualLang,
-            `The <html> 'lang' attribute should be set to "${expectedLang}"`
-        ).toBe(expectedLang);
+    const data = dataTable.hashes();
+    const htmlLangRow = data.find(
+      (row: Record<string, string>) => row.Element === "HTML tag"
+    );
+
+    if (htmlLangRow?.Value) {
+      const actualLang =
+        await this.humanSpaceflightPage.accessibility.getHtmlLangAttribute();
+      expect(
+        actualLang,
+        `The <html> 'lang' attribute should be set to "${htmlLangRow.Value}"`
+      ).toBe(htmlLangRow.Value);
     }
   }
 
   @Then("screen readers should use correct pronunciation")
   async checkPronunciation() {
-    const lang = await this.humanSpaceflightPage.accessibility.getHtmlLangAttribute();
+    const lang =
+      await this.humanSpaceflightPage.accessibility.getHtmlLangAttribute();
     expect(
-        lang,
-        "Language must be set for screen readers to use correct pronunciation."
-    ).not.toBeNull();
+      lang,
+      "Language must be set for screen readers to use correct pronunciation."
+    ).toBeTruthy();
+  }
+
+  private async validateAccessibilityRequirement(
+    checkMethod: () => Promise<boolean>,
+    errorMessage: string
+  ): Promise<void> {
+    const result = await checkMethod();
+    expect(result, errorMessage).toBe(true);
   }
 }

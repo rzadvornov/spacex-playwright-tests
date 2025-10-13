@@ -1,5 +1,5 @@
 import { Page, Locator, ConsoleMessage } from "@playwright/test";
-import { PerformanceMetrics } from "../types/PerformanceMetrics";
+import { PerformanceMetrics } from "../types/Types";
 
 export abstract class BasePage {
   readonly page: Page;

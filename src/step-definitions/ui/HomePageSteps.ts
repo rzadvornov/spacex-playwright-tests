@@ -4,9 +4,31 @@ import { DataTable } from "playwright-bdd";
 import { HomePage } from "../../pages/ui/HomePage";
 import { CustomTestArgs } from "../../fixtures/BddFixtures";
 import { SharedPageSteps } from "./SharedPageSteps";
+import {
+  CoreRequirement,
+  CriticalContent,
+  MetadataItem,
+  NavigationLink,
+  SocialMediaTag,
+} from "../../pages/types/Types";
+import {
+  parseCoreRequirements,
+  parseCriticalContent,
+  parseNavigationLinks,
+  parseMetadataItems,
+  parseSocialMediaTags,
+  parseWcagStandards,
+  parseAssistiveTechRequirements,
+} from "../../pages/types/TypeGuards";
 
 @Fixture("homePageSteps")
 export class HomePageSteps {
+  private readonly MAX_LOAD_TIME = 5000;
+  private readonly SCROLL_DELAY = 300;
+  private readonly CTA_CLICK_DELAY = 500;
+  private readonly MOBILE_VIEWPORT = { width: 375, height: 812 };
+  private readonly MOBILE_BREAKPOINT = 768;
+
   constructor(
     private page: Page,
     private homePage: HomePage,
@@ -24,114 +46,169 @@ export class HomePageSteps {
   @Given("I am on the SpaceX HomePage viewed on mobile")
   async openHomePageMobile() {
     this.sharedContext.startTime = Date.now();
-    // Assuming this method handles setting the viewport and opening the page
-    await this.homePage.openWithMobileViewport(375, 812); 
+    await this.homePage.openWithMobileViewport(
+      this.MOBILE_VIEWPORT.width,
+      this.MOBILE_VIEWPORT.height
+    );
     await this.page.waitForLoadState("networkidle");
   }
 
-  // --- Initial Load Verification ---
-
   @Then("the page should meet core requirements:")
   async checkCoreRequirements(dataTable: DataTable) {
-    const requirements = dataTable.hashes();
-    
+    const requirements = parseCoreRequirements(dataTable.hashes());
+
     for (const req of requirements) {
-      switch (req.Element) {
-        case "Load Time":
-          const loadTime = Date.now() - this.sharedContext.startTime;
-          expect(
-            loadTime,
-            `Page load time (${loadTime}ms) should be within ${req.Requirement}`
-          ).toBeLessThanOrEqual(5000);
-          break;
-        case "Page Title":
-          const title = await this.page.title();
-          expect(title).toContain(req.Requirement);
-          break;
-        case "Hero Section":
-          const isVisible = await this.homePage.hero.isHeroSectionVisible();
-          expect(isVisible, `${req.Element} should be visible`).toBe(true);
-          break;
-        case "Navigation":
-          const isHeaderAccessible = await this.homePage.header.isHeaderVisible();
-          expect(isHeaderAccessible, "Header menu should be accessible").toBe(true);
-          break;
-        case "Layout":
-          // Placeholder for visual regression check
-          break;
-      }
+      await this.validateCoreRequirement(req);
     }
+  }
+
+  private async validateCoreRequirement(req: CoreRequirement): Promise<void> {
+    switch (req.Element) {
+      case "Load Time":
+        await this.validateLoadTime(req.Requirement);
+        break;
+      case "Page Title":
+        await this.validatePageTitle(req.Requirement);
+        break;
+      case "Hero Section":
+        await this.validateHeroSectionVisibility();
+        break;
+      case "Navigation":
+        await this.validateHeaderAccessibility();
+        break;
+      case "Layout":
+        break;
+      default:
+        console.warn(`Unknown core requirement element: ${req.Element}`);
+    }
+  }
+
+  private async validateLoadTime(requirement: string): Promise<void> {
+    const loadTime = Date.now() - this.sharedContext.startTime;
+    expect(
+      loadTime,
+      `Page load time (${loadTime}ms) should be within ${requirement}`
+    ).toBeLessThanOrEqual(this.MAX_LOAD_TIME);
+  }
+
+  private async validatePageTitle(expectedContent: string): Promise<void> {
+    const title = await this.page.title();
+    expect(title).toContain(expectedContent);
+  }
+
+  private async validateHeroSectionVisibility(): Promise<void> {
+    const isVisible = await this.homePage.hero.isHeroSectionVisible();
+    expect(isVisible, "Hero section should be visible").toBe(true);
+  }
+
+  private async validateHeaderAccessibility(): Promise<void> {
+    const isHeaderAccessible = await this.homePage.header.isHeaderVisible();
+    expect(isHeaderAccessible, "Header menu should be accessible").toBe(true);
   }
 
   @Then("critical content should be present:")
   async checkCriticalContent(dataTable: DataTable) {
-    const content = dataTable.hashes();
+    const content = parseCriticalContent(dataTable.hashes());
 
     for (const item of content) {
-      switch (item["Content Type"]) {
-        case "Mission Title":
-          const titleText = await this.homePage.hero.getHeroTitleText();
-          expect(titleText.length, "Mission Title should be displayed").toBeGreaterThan(0);
-          break;
-        case "Mission Status":
-          const isStatusVisible = await this.homePage.hero.isMissionStatusVisible();
-          expect(isStatusVisible, "Mission Status indicator should be visible").toBe(true);
-          break;
-        case "Call-to-Action":
-          // Renamed to match the existing POF method isCTAButtonVisible
-          const isCTAVisible = await this.homePage.hero.isCTAButtonVisible("VIEW MISSION");
-          expect(isCTAVisible, "Primary action button should be visible").toBe(true);
-          break;
-        case "Scroll Indicator":
-          // Renamed to match the existing POF method isScrollDownArrowVisible
-          const isScrollVisible = await this.homePage.hero.isScrollDownArrowVisible();
-          expect(isScrollVisible, "Scroll Indicator should be present").toBe(true);
-          break;
-      }
+      await this.validateCriticalContent(item);
     }
   }
 
-  // --- Header Navigation Steps ---
+  private async validateCriticalContent(item: CriticalContent): Promise<void> {
+    switch (item["Content Type"]) {
+      case "Mission Title":
+        await this.validateMissionTitle();
+        break;
+      case "Mission Status":
+        await this.validateMissionStatus();
+        break;
+      case "Call-to-Action":
+        await this.validateCallToAction();
+        break;
+      case "Scroll Indicator":
+        await this.validateScrollIndicator();
+        break;
+      default:
+        console.warn(`Unknown critical content type: ${item["Content Type"]}`);
+    }
+  }
+
+  private async validateMissionTitle(): Promise<void> {
+    const titleText = await this.homePage.hero.getHeroTitleText();
+    expect(
+      titleText.length,
+      "Mission Title should be displayed"
+    ).toBeGreaterThan(0);
+  }
+
+  private async validateMissionStatus(): Promise<void> {
+    const isStatusVisible = await this.homePage.hero.isMissionStatusVisible();
+    expect(isStatusVisible, "Mission Status indicator should be visible").toBe(
+      true
+    );
+  }
+
+  private async validateCallToAction(): Promise<void> {
+    const isCTAVisible = await this.homePage.hero.isCTAButtonVisible(
+      "VIEW MISSION"
+    );
+    expect(isCTAVisible, "Primary action button should be visible").toBe(true);
+  }
+
+  private async validateScrollIndicator(): Promise<void> {
+    const isScrollVisible = await this.homePage.hero.isScrollDownArrowVisible();
+    expect(isScrollVisible, "Scroll Indicator should be present").toBe(true);
+  }
 
   @Then("the navigation menu should contain:")
   async checkNavigationMenu(dataTable: DataTable) {
-    const links = dataTable.hashes();
-    
+    const links = parseNavigationLinks(dataTable.hashes());
+
     for (const link of links) {
-      const isPrimaryLinkVisible = await this.homePage.header.isNavLinkVisible(link["Primary Links"]);
-      expect(isPrimaryLinkVisible, `Primary link "${link["Primary Links"]}" should be visible`).toBe(true);
-      
-      if (link["Secondary Elements"] === "SpaceX Logo") {
-        const isLogoVisible = await this.homePage.header.isLogoVisible();
-        expect(isLogoVisible, "SpaceX Logo should be visible").toBe(true);
-      }
+      await this.validateNavigationLink(link);
+    }
+  }
+
+  private async validateNavigationLink(link: NavigationLink): Promise<void> {
+    const isPrimaryLinkVisible = await this.homePage.header.isNavLinkVisible(
+      link["Primary Links"]
+    );
+    expect(
+      isPrimaryLinkVisible,
+      `Primary link "${link["Primary Links"]}" should be visible`
+    ).toBe(true);
+
+    if (link["Secondary Elements"] === "SpaceX Logo") {
+      const isLogoVisible = await this.homePage.header.isLogoVisible();
+      expect(isLogoVisible, "SpaceX Logo should be visible").toBe(true);
     }
   }
 
   @Then("the SpaceX logo should be present and clickable")
   async checkLogoPresentAndClickable() {
-    const isLogoVisible = await this.homePage.header.isLogoVisible();
+    const [isLogoVisible, isLogoClickable] = await Promise.all([
+      this.homePage.header.isLogoVisible(),
+      this.homePage.header.isLogoClickable(),
+    ]);
+
     expect(isLogoVisible, "SpaceX logo should be present").toBe(true);
-    
-    const isLogoClickable = await this.homePage.header.isLogoClickable();
     expect(isLogoClickable, "SpaceX logo should be clickable").toBe(true);
   }
 
   @Then("the menu should be collapsed on mobile")
   async checkMenuCollapsedOnMobile() {
-    if (this.page.viewportSize() && this.page.viewportSize()!.width <= 768) {
+    const viewport = this.page.viewportSize();
+    if (viewport && viewport.width <= this.MOBILE_BREAKPOINT) {
       const isMenuCollapsed = await this.homePage.header.isMenuCollapsed();
       expect(isMenuCollapsed, "Menu should be collapsed on mobile").toBe(true);
     }
   }
 
-  // --- CTA Functionality Steps ---
-
   @When("I click the primary CTA button")
   async clickPrimaryCTAButton() {
-    // Calling the generic CTA method with the assumed button text
     await this.homePage.hero.clickCTAButton("VIEW MISSION");
-    await this.page.waitForTimeout(500); 
+    await this.page.waitForTimeout(this.CTA_CLICK_DELAY);
   }
 
   @Then("the page should scroll to the next content section")
@@ -146,90 +223,156 @@ export class HomePageSteps {
     expect(currentUrl.pathname, "URL path should remain '/'").toBe("/");
   }
 
-  // --- Header Behavior on Scroll Steps ---
-
   @When("I scroll past the hero section")
   async scrollPastHeroSection() {
     await this.homePage.hero.scrollToNextSection();
-    await this.page.waitForTimeout(300);
+    await this.page.waitForTimeout(this.SCROLL_DELAY);
   }
 
   @Then("the header should minimize in height")
   async checkHeaderMinimize() {
-    const initialHeight = await this.homePage.header.getInitialHeaderHeight();
-    const currentHeight = await this.homePage.header.getCurrentHeaderHeight();
-    
+    const [initialHeight, currentHeight] = await Promise.all([
+      this.homePage.header.getInitialHeaderHeight(),
+      this.homePage.header.getCurrentHeaderHeight(),
+    ]);
+
     expect(
-      currentHeight, 
+      currentHeight,
       "Header height should be smaller after scroll"
     ).toBeLessThan(initialHeight);
   }
 
   @Then("and the logo size should adjust")
   async checkLogoSizeAdjust() {
-    const initialSize = await this.homePage.header.getInitialLogoSize();
-    const currentSize = await this.homePage.header.getCurrentLogoSize();
-    
+    const [initialSize, currentSize] = await Promise.all([
+      this.homePage.header.getInitialLogoSize(),
+      this.homePage.header.getCurrentLogoSize(),
+    ]);
+
     expect(
-      currentSize, 
+      currentSize,
       "Logo size should be smaller after scroll"
     ).toBeLessThan(initialSize);
   }
 
-  // --- SEO and Metadata Steps ---
-
   @Then("the page should contain correct metadata:")
   async checkMetadata(dataTable: DataTable) {
-    const metadata = dataTable.hashes();
+    const metadata = parseMetadataItems(dataTable.hashes());
 
     for (const item of metadata) {
-      switch (item.Element) {
-        case "Title Tag":
-          const title = await this.page.title();
-          expect(title).toContain(item.Content);
-          break;
-        case "Description Meta":
-          const metaDescription = await this.page.getAttribute('meta[name="description"]', 'content');
-          expect(metaDescription).toContain(item.Content);
-          break;
-        case "Viewport":
-          const viewportMeta = await this.page.getAttribute('meta[name="viewport"]', 'content');
-          expect(viewportMeta).toContain(item.Content);
-          break;
-        case "Canonical URL":
-          const canonicalLink = await this.page.getAttribute('link[rel="canonical"]', 'href');
-          expect(canonicalLink).toBe(item.Content);
-          break;
-      }
+      await this.validateMetadataItem(item);
+    }
+  }
+
+  private async validateMetadataItem(item: MetadataItem): Promise<void> {
+    switch (item.Element) {
+      case "Title Tag":
+        const title = await this.page.title();
+        expect(title).toContain(item.Content);
+        break;
+      case "Description Meta":
+        const metaDescription = await this.page.getAttribute(
+          'meta[name="description"]',
+          "content"
+        );
+        expect(metaDescription).toContain(item.Content);
+        break;
+      case "Viewport":
+        const viewportMeta = await this.page.getAttribute(
+          'meta[name="viewport"]',
+          "content"
+        );
+        expect(viewportMeta).toContain(item.Content);
+        break;
+      case "Canonical URL":
+        const canonicalLink = await this.page.getAttribute(
+          'link[rel="canonical"]',
+          "href"
+        );
+        expect(canonicalLink).toBe(item.Content);
+        break;
+      default:
+        console.warn(`Unknown metadata element: ${item.Element}`);
     }
   }
 
   @Then("social media tags should be present:")
   async checkSocialMediaTags(dataTable: DataTable) {
-    const tags = dataTable.hashes();
-    
+    const tags = parseSocialMediaTags(dataTable.hashes());
+
     for (const tag of tags) {
-      if (tag.Platform === "Open Graph") {
-        const ogTitle = await this.page.getAttribute('meta[property="og:title"]', 'content');
-        expect(ogTitle, "Open Graph og:title should be present").not.toBeNull();
-      } else if (tag.Platform === "Twitter Card") {
-        const twitterCard = await this.page.getAttribute('meta[name="twitter:card"]', 'content');
-        expect(twitterCard, "Twitter Card tag should be present").not.toBeNull();
+      await this.validateSocialMediaTag(tag);
+    }
+  }
+
+  private async validateSocialMediaTag(tag: SocialMediaTag): Promise<void> {
+    if (tag.Platform === "Open Graph") {
+      const ogTitle = await this.page.getAttribute(
+        'meta[property="og:title"]',
+        "content"
+      );
+      expect(ogTitle, "Open Graph og:title should be present").not.toBeNull();
+    } else if (tag.Platform === "Twitter Card") {
+      const twitterCard = await this.page.getAttribute(
+        'meta[name="twitter:card"]',
+        "content"
+      );
+      expect(twitterCard, "Twitter Card tag should be present").not.toBeNull();
+    } else {
+      console.warn(`Unknown social media platform: ${tag.Platform}`);
+    }
+  }
+
+  @Then("the page should meet WCAG 2.1 AA standards:")
+  async checkWcagStandards(dataTable: DataTable) {
+    const requirements = parseWcagStandards(dataTable.hashes());
+
+    for (const req of requirements) {
+      if (req.Requirement.includes("H1 tag")) {
+        const h1Count = await this.page.locator("h1").count();
+        expect(h1Count, "Page must have exactly one H1 tag (WCAG)").toBe(1);
       }
     }
   }
 
-  // --- Accessibility Steps (Simplified for Homepage feature) ---
+  @Then("assistive technology support should be verified:")
+  async checkAssistiveTechSupport(dataTable: DataTable) {
+    const requirements = parseAssistiveTechRequirements(dataTable.hashes());
 
-  @Then("the page should meet WCAG 2.1 AA standards:")
-  async checkWcagStandards() {
-    const h1Count = await this.homePage.page.locator('h1').count();
-    expect(h1Count, "Page must have exactly one H1 tag (WCAG)").toBe(1);
+    for (const req of requirements) {
+      if (req["Support Type"].includes("language")) {
+        const lang = await this.page.getAttribute("html", "lang");
+        expect(
+          lang,
+          "HTML element must have a 'lang' attribute"
+        ).not.toBeNull();
+      }
+    }
   }
 
-  @Then("assistive technology support should be verified:")
-  async checkAssistiveTechSupport() {
-    const lang = await this.homePage.page.getAttribute('html', 'lang');
-    expect(lang, "HTML element must have a 'lang' attribute").not.toBeNull();
+  @Then("the homepage should load within performance benchmarks")
+  async checkPerformanceBenchmarks() {
+    const loadTime = Date.now() - this.sharedContext.startTime;
+    expect(
+      loadTime,
+      `Homepage should load within ${this.MAX_LOAD_TIME}ms`
+    ).toBeLessThanOrEqual(this.MAX_LOAD_TIME);
+
+    const timeToInteractive = await this.page.evaluate(() => {
+      const navigationEntry = performance.getEntriesByType(
+        "navigation"
+      )[0] as PerformanceNavigationTiming;
+      if (navigationEntry) {
+        return (
+          navigationEntry.domContentLoadedEventEnd - navigationEntry.fetchStart
+        );
+      }
+      return performance.now();
+    });
+
+    expect(
+      timeToInteractive,
+      "Time to interactive should be reasonable"
+    ).toBeLessThan(3000);
   }
 }

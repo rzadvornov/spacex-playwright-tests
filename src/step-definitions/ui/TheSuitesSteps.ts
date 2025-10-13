@@ -2,12 +2,30 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { expect, Page } from "@playwright/test";
 import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
+import {
+  CoreElement,
+  HotspotContent,
+  HotspotInteraction,
+  HotspotRequirement,
+  StateChange,
+  SuitInfo,
+  VisualStandard,
+} from "../../pages/types/Types";
 
 @Fixture("theSuitesSteps")
 export class TheSuitesSteps {
+  private readonly TEST_CONSTANTS = {
+    ANIMATION_DELAY: 500,
+    CALLOUT_DELAY: 300,
+    HOVER_DELAY: 200,
+    MIN_HOTSPOTS: 6,
+    SAMPLE_HOTSPOTS: 3,
+  } as const;
+
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage  ) {}
+    private humanSpaceflightPage: HumanSpaceflightPage
+  ) {}
 
   @Given("I view the Suits section")
   async viewSuitsSection() {
@@ -19,317 +37,551 @@ export class TheSuitesSteps {
 
   @Then("the section should display core elements:")
   async checkCoreElements(dataTable: DataTable) {
-    const elements = dataTable.hashes();
-    
+    const elements = this.parseDataTable<CoreElement>(dataTable);
+
     for (const element of elements) {
-      const { Element, Content, State } = element;
-      
-      switch (Element) {
-        case 'Heading':
-          await expect(this.humanSpaceflightPage.theSuites.suitHeading).toBeVisible();
-          await expect(this.humanSpaceflightPage.theSuites.suitHeading).toHaveText(Content);
-          break;
-          
-        case 'IVA Button':
-          await expect(this.humanSpaceflightPage.theSuites.ivaButton).toBeVisible();
-          await expect(this.humanSpaceflightPage.theSuites.ivaButton).toHaveText(Content);
-          if (State === 'Active by default') {
-            await expect(this.humanSpaceflightPage.theSuites.ivaButton).toHaveClass(/active/);
-          }
-          break;
-          
-        case 'EVA Button':
-          await expect(this.humanSpaceflightPage.theSuites.evaButton).toBeVisible();
-          await expect(this.humanSpaceflightPage.theSuites.evaButton).toHaveText(Content);
-          if (State === 'Inactive') {
-            await expect(this.humanSpaceflightPage.theSuites.evaButton).not.toHaveClass(/active/);
-          }
-          break;
-          
-        case 'Suit Image':
-          await expect(this.humanSpaceflightPage.theSuites.suitImage).toBeVisible();
-          if (State === 'Centered') {
-            const isCentered = await this.humanSpaceflightPage.theSuites.isSuitImageCentered();
-            expect(isCentered).toBe(true);
-          }
-          break;
-          
-        case 'Hotspots':
-          if (State === 'Visible') {
-            const areVisible = await this.humanSpaceflightPage.theSuites.areHotspotsVisible();
-            expect(areVisible).toBe(true);
-          }
-          break;
-          
-        case 'Background':
-          if (State === 'Visible') {
-            const isVisible = await this.humanSpaceflightPage.theSuites.isGradientVisible();
-            expect(isVisible).toBe(true);
-          }
-          break;
-      }
+      await this.validateCoreElement(element);
     }
   }
 
   @Given("I view the Suits section with the {string} suit displayed")
   async viewSuitType(suitType: string) {
     await this.viewSuitsSection();
-    
-    if (suitType === 'IVA') {
-      await expect(this.humanSpaceflightPage.theSuites.ivaButton).toHaveClass(/active/);
-    } else if (suitType === 'EVA') {
-      // If EVA is not active, click it
-      if (!(await this.humanSpaceflightPage.theSuites.evaButton.getAttribute('class'))?.includes('active')) {
-        await this.humanSpaceflightPage.theSuites.evaButton.click();
-      }
-      await expect(this.humanSpaceflightPage.theSuites.evaButton).toHaveClass(/active/);
-    }
+    await this.ensureSuitActive(suitType);
   }
 
   @When("I click on the {string} button")
   async clickSuitButton(buttonName: string) {
-    if (buttonName === 'IVA') {
-      await this.humanSpaceflightPage.theSuites.ivaButton.click();
-    } else if (buttonName === 'EVA') {
-      await this.humanSpaceflightPage.theSuites.evaButton.click();
-    }
+    const button = this.getSuitButton(buttonName);
+    await button.click();
   }
 
   @Then("the following state changes should occur:")
   async checkStateChanges(dataTable: DataTable) {
-    const changes = dataTable.hashes();
-    
+    const changes = this.parseDataTable<StateChange>(dataTable);
+
     for (const change of changes) {
-      const { 'Element': element, 'State Change': stateChange } = change;
-      
-      switch (element) {
-        case 'IVA Button':
-          if (stateChange === 'Becomes active') {
-            await expect(this.humanSpaceflightPage.theSuites.ivaButton).toHaveClass(/active/);
-          } else if (stateChange === 'Becomes inactive') {
-            await expect(this.humanSpaceflightPage.theSuites.ivaButton).not.toHaveClass(/active/);
-          }
-          break;
-          
-        case 'EVA Button':
-          if (stateChange === 'Becomes active') {
-            await expect(this.humanSpaceflightPage.theSuites.evaButton).toHaveClass(/active/);
-          } else if (stateChange === 'Becomes inactive') {
-            await expect(this.humanSpaceflightPage.theSuites.evaButton).not.toHaveClass(/active/);
-          }
-          break;
-          
-        case 'Suit Image':
-          if (stateChange.includes('Changes to')) {
-            const suitType = stateChange.replace('Changes to ', '').replace(' suit', '');
-            // Wait for animation and check if image has updated
-            await this.page.waitForTimeout(500);
-            const isLoaded = await this.humanSpaceflightPage.theSuites.isSuitImageLoaded();
-            expect(isLoaded).toBe(true);
-          }
-          break;
-          
-        case 'Hotspots':
-          if (stateChange === 'Update for new suit type') {
-            // Verify hotspots are still visible and functional
-            const areVisible = await this.humanSpaceflightPage.theSuites.areHotspotsVisible();
-            expect(areVisible).toBe(true);
-          }
-          break;
-      }
+      await this.validateStateChange(change);
     }
   }
 
   @Then("hotspots should be configured properly:")
   async checkHotspotConfiguration(dataTable: DataTable) {
-    const requirements = dataTable.hashes();
-    
+    const requirements = this.parseDataTable<HotspotRequirement>(dataTable);
+
     for (const requirement of requirements) {
-      const { Requirement, Specification } = requirement;
-      
-      switch (Requirement) {
-        case 'Quantity':
-          const minCount = parseInt(Specification.match(/\d+/)?.[0] || '6');
-          const count = await this.humanSpaceflightPage.theSuites.getHotspotCount();
-          expect(count, { message: `Should have at least ${minCount} hotspots` }).toBeGreaterThanOrEqual(minCount);
-          break;
-          
-        case 'Distribution':
-          const distribution = await this.humanSpaceflightPage.theSuites.getHotspotDistribution();
-          expect(distribution.upper, { message: 'Should have upper body hotspots' }).toBeGreaterThan(0);
-          expect(distribution.lower, { message: 'Should have lower body hotspots' }).toBeGreaterThan(0);
-          break;
-          
-        case 'Upper Body':
-          const upperCount = parseInt(Specification.match(/\d+/)?.[0] || '2');
-          const upperDistribution = await this.humanSpaceflightPage.theSuites.getHotspotDistribution();
-          expect(upperDistribution.upper, { message: 'Should have multiple upper body hotspots' }).toBeGreaterThanOrEqual(upperCount);
-          break;
-          
-        case 'Lower Body':
-          const lowerCount = parseInt(Specification.match(/\d+/)?.[0] || '2');
-          const lowerDistribution = await this.humanSpaceflightPage.theSuites.getHotspotDistribution();
-          expect(lowerDistribution.lower, { message: 'Should have multiple lower body hotspots' }).toBeGreaterThanOrEqual(lowerCount);
-          break;
-      }
+      await this.validateHotspotRequirement(requirement);
     }
   }
 
   @When("I interact with hotspots:")
   async interactWithHotspots(dataTable: DataTable) {
-    const interactions = dataTable.hashes();
-    
+    const interactions = this.parseDataTable<HotspotInteraction>(dataTable);
+
     for (const interaction of interactions) {
-      const { Action, 'Expected Result': expectedResult } = interaction;
-      
-      switch (Action) {
-        case 'Hover':
-          await this.humanSpaceflightPage.theSuites.hoverHotspot(0);
-          if (expectedResult.includes('after delay')) {
-            await this.page.waitForTimeout(300); // Wait for callout delay
-          }
-          await expect(this.humanSpaceflightPage.theSuites.suitCallout, { 
-            message: 'Callout should appear on hover' 
-          }).toBeVisible();
-          break;
-          
-        case 'Move Away':
-          // First hover to show callout, then move away
-          await this.humanSpaceflightPage.theSuites.hoverHotspot(0);
-          await this.page.waitForTimeout(200);
-          await this.humanSpaceflightPage.theSuites.suitsSection.hover({ position: { x: 0, y: 0 } });
-          await expect(this.humanSpaceflightPage.theSuites.suitCallout, {
-            message: 'Callout should disappear when moving away'
-          }).not.toBeVisible();
-          break;
-          
-        case 'Multiple Hover':
-          const count = await this.humanSpaceflightPage.theSuites.getHotspotCount();
-          const texts: string[] = [];
-          
-          for (let i = 0; i < Math.min(count, 3); i++) { // Test first 3 hotspots
-            await this.humanSpaceflightPage.theSuites.hoverHotspot(i);
-            await this.page.waitForTimeout(200);
-            const text = await this.humanSpaceflightPage.theSuites.getCalloutText();
-            texts.push(text);
-          }
-          
-          const uniqueTexts = new Set(texts);
-          expect(uniqueTexts.size, { 
-            message: 'Each hotspot should show unique information' 
-          }).toBe(texts.length);
-          break;
-      }
+      await this.performHotspotInteraction(interaction);
     }
   }
 
   @Then("the suit display should meet visual standards:")
   async checkVisualStandards(dataTable: DataTable) {
-    const standards = dataTable.hashes();
-    
+    const standards = this.parseDataTable<VisualStandard>(dataTable);
+
     for (const standard of standards) {
-      const { Element, Requirement, Details } = standard;
-      
-      switch (Element) {
-        case 'Suit Image':
-          if (Requirement === 'Properly loaded') {
-            const isLoaded = await this.humanSpaceflightPage.theSuites.isSuitImageLoaded();
-            expect(isLoaded, { message: 'Suit image should load properly' }).toBe(true);
-          }
-          break;
-          
-        case 'Image Position':
-          if (Requirement === 'Centered in viewport') {
-            const isCentered = await this.humanSpaceflightPage.theSuites.isSuitImageCentered();
-            expect(isCentered, { message: 'Suit image should be centered' }).toBe(true);
-          }
-          break;
-          
-        case 'Background':
-          if (Requirement === 'Gradient effect') {
-            const isVisible = await this.humanSpaceflightPage.theSuites.isGradientVisible();
-            expect(isVisible, { message: 'Background gradient should be visible' }).toBe(true);
-            const enhancesVisibility = await this.humanSpaceflightPage.theSuites.isGradientEnhancingSuitVisibility();
-            expect(enhancesVisibility, { message: 'Gradient should enhance visibility' }).toBe(true);
-          }
-          break;
-          
-        case 'Hotspot Markers':
-          if (Requirement === 'Clearly visible') {
-            const areVisible = await this.humanSpaceflightPage.theSuites.areHotspotsVisible();
-            expect(areVisible, { message: 'Hotspot markers should be visible' }).toBe(true);
-          }
-          break;
-          
-        case 'Callouts':
-          if (Requirement === 'Position adapts') {
-            const count = await this.humanSpaceflightPage.theSuites.getHotspotCount();
-            for (let i = 0; i < Math.min(count, 3); i++) {
-              const isPositioned = await this.humanSpaceflightPage.theSuites.isCalloutPositionedCorrectly(i);
-              expect(isPositioned, { message: `Callout should adapt position for hotspot ${i + 1}` }).toBe(true);
-            }
-          }
-          break;
-      }
+      await this.validateVisualStandard(standard);
     }
   }
 
   @Then("each suit type should display complete information:")
   async checkSuitInformation(dataTable: DataTable) {
-    const suitInfo = dataTable.hashes();
-    
+    const suitInfo = this.parseDataTable<SuitInfo>(dataTable);
+
     for (const suit of suitInfo) {
-      const { 'Suit Type': suitType, 'Required Information': requiredInfo } = suit;
-      
-      // Switch to the suit type if not already active
-      if (suitType === 'EVA') {
-        await this.humanSpaceflightPage.theSuites.evaButton.click();
-        await expect(this.humanSpaceflightPage.theSuites.evaButton).toHaveClass(/active/);
-      } else {
-        await this.humanSpaceflightPage.theSuites.ivaButton.click();
-        await expect(this.humanSpaceflightPage.theSuites.ivaButton).toHaveClass(/active/);
-      }
-      
-      // Verify suit image is loaded and hotspots provide information
-      const isLoaded = await this.humanSpaceflightPage.theSuites.isSuitImageLoaded();
-      expect(isLoaded, { message: `${suitType} suit image should load` }).toBe(true);
-      
-      const hotspotCount = await this.humanSpaceflightPage.theSuites.getHotspotCount();
-      expect(hotspotCount, { message: `${suitType} suit should have hotspots` }).toBeGreaterThan(0);
+      await this.validateSuitInformation(suit);
     }
   }
 
   @Then("each hotspot should provide:")
   async checkHotspotContent(dataTable: DataTable) {
-    const contentTypes = dataTable.hashes();
+    const contentTypes = this.parseDataTable<HotspotContent>(dataTable);
+    await this.validateHotspotContent(contentTypes);
+  }
+
+  private parseDataTable<T>(dataTable: DataTable): T[] {
+    return dataTable.hashes().map((row) => row as T);
+  }
+
+  private async validateCoreElement(element: CoreElement): Promise<void> {
+    const { Element, Content, State } = element;
+
+    switch (Element) {
+      case "Heading":
+        await this.validateHeading(Content);
+        break;
+      case "IVA Button":
+        await this.validateIvaButton(Content, State);
+        break;
+      case "EVA Button":
+        await this.validateEvaButton(Content, State);
+        break;
+      case "Suit Image":
+        await this.validateSuitImage(State);
+        break;
+      case "Hotspots":
+        await this.validateHotspotsVisibility(State);
+        break;
+      case "Background":
+        await this.validateBackgroundVisibility(State);
+        break;
+      default:
+        throw new Error(`Unknown core element: ${Element}`);
+    }
+  }
+
+  private async validateHeading(expectedContent?: string): Promise<void> {
+    await expect(this.humanSpaceflightPage.theSuites.suitHeading).toBeVisible();
+    if (expectedContent) {
+      await expect(this.humanSpaceflightPage.theSuites.suitHeading).toHaveText(
+        expectedContent
+      );
+    }
+  }
+
+  private async validateIvaButton(
+    expectedContent?: string,
+    state?: string
+  ): Promise<void> {
+    await expect(this.humanSpaceflightPage.theSuites.ivaButton).toBeVisible();
+    if (expectedContent) {
+      await expect(this.humanSpaceflightPage.theSuites.ivaButton).toHaveText(
+        expectedContent
+      );
+    }
+    if (state === "Active by default") {
+      await expect(this.humanSpaceflightPage.theSuites.ivaButton).toHaveClass(
+        /active/
+      );
+    }
+  }
+
+  private async validateEvaButton(
+    expectedContent?: string,
+    state?: string
+  ): Promise<void> {
+    await expect(this.humanSpaceflightPage.theSuites.evaButton).toBeVisible();
+    if (expectedContent) {
+      await expect(this.humanSpaceflightPage.theSuites.evaButton).toHaveText(
+        expectedContent
+      );
+    }
+    if (state === "Inactive") {
+      await expect(
+        this.humanSpaceflightPage.theSuites.evaButton
+      ).not.toHaveClass(/active/);
+    }
+  }
+
+  private async validateSuitImage(state?: string): Promise<void> {
+    await expect(this.humanSpaceflightPage.theSuites.suitImage).toBeVisible();
+    if (state === "Centered") {
+      const isCentered =
+        await this.humanSpaceflightPage.theSuites.isSuitImageCentered();
+      expect(isCentered).toBe(true);
+    }
+  }
+
+  private async validateHotspotsVisibility(state?: string): Promise<void> {
+    if (state === "Visible") {
+      const areVisible =
+        await this.humanSpaceflightPage.theSuites.areHotspotsVisible();
+      expect(areVisible).toBe(true);
+    }
+  }
+
+  private async validateBackgroundVisibility(state?: string): Promise<void> {
+    if (state === "Visible") {
+      const isVisible =
+        await this.humanSpaceflightPage.theSuites.isGradientVisible();
+      expect(isVisible).toBe(true);
+    }
+  }
+
+  private async ensureSuitActive(suitType: string): Promise<void> {
+    if (suitType === "IVA") {
+      await expect(this.humanSpaceflightPage.theSuites.ivaButton).toHaveClass(
+        /active/
+      );
+    } else if (suitType === "EVA") {
+      const isActive = await this.humanSpaceflightPage.theSuites.evaButton
+        .getAttribute("class")
+        .then((className) => className?.includes("active"));
+
+      if (!isActive) {
+        await this.humanSpaceflightPage.theSuites.evaButton.click();
+      }
+      await expect(this.humanSpaceflightPage.theSuites.evaButton).toHaveClass(
+        /active/
+      );
+    }
+  }
+
+  private getSuitButton(buttonName: string) {
+    switch (buttonName) {
+      case "IVA":
+        return this.humanSpaceflightPage.theSuites.ivaButton;
+      case "EVA":
+        return this.humanSpaceflightPage.theSuites.evaButton;
+      default:
+        throw new Error(`Unknown suit button: ${buttonName}`);
+    }
+  }
+
+  private async validateStateChange(change: StateChange): Promise<void> {
+    const { Element, "State Change": stateChange } = change;
+
+    switch (Element) {
+      case "IVA Button":
+        await this.validateButtonState(
+          this.humanSpaceflightPage.theSuites.ivaButton,
+          stateChange
+        );
+        break;
+      case "EVA Button":
+        await this.validateButtonState(
+          this.humanSpaceflightPage.theSuites.evaButton,
+          stateChange
+        );
+        break;
+      case "Suit Image":
+        await this.validateSuitImageChange(stateChange);
+        break;
+      case "Hotspots":
+        await this.validateHotspotsUpdate(stateChange);
+        break;
+      default:
+        throw new Error(`Unknown state change element: ${Element}`);
+    }
+  }
+
+  private async validateButtonState(
+    button: any,
+    stateChange: string
+  ): Promise<void> {
+    if (stateChange === "Becomes active") {
+      await expect(button).toHaveClass(/active/);
+    } else if (stateChange === "Becomes inactive") {
+      await expect(button).not.toHaveClass(/active/);
+    }
+  }
+
+  private async validateSuitImageChange(stateChange: string): Promise<void> {
+    if (stateChange.includes("Changes to")) {
+      await this.page.waitForTimeout(this.TEST_CONSTANTS.ANIMATION_DELAY);
+      const isLoaded =
+        await this.humanSpaceflightPage.theSuites.isSuitImageLoaded();
+      expect(isLoaded).toBe(true);
+    }
+  }
+
+  private async validateHotspotsUpdate(stateChange: string): Promise<void> {
+    if (stateChange === "Update for new suit type") {
+      const areVisible =
+        await this.humanSpaceflightPage.theSuites.areHotspotsVisible();
+      expect(areVisible).toBe(true);
+    }
+  }
+
+  private async validateHotspotRequirement(
+    requirement: HotspotRequirement
+  ): Promise<void> {
+    const { Requirement, Specification } = requirement;
+
+    switch (Requirement) {
+      case "Quantity":
+        await this.validateHotspotQuantity(Specification);
+        break;
+      case "Distribution":
+        await this.validateHotspotDistribution();
+        break;
+      case "Upper Body":
+        await this.validateUpperBodyHotspots(Specification);
+        break;
+      case "Lower Body":
+        await this.validateLowerBodyHotspots(Specification);
+        break;
+      default:
+        throw new Error(`Unknown hotspot requirement: ${Requirement}`);
+    }
+  }
+
+  private async validateHotspotQuantity(specification: string): Promise<void> {
+    const minCount = this.extractNumber(
+      specification,
+      this.TEST_CONSTANTS.MIN_HOTSPOTS
+    );
     const count = await this.humanSpaceflightPage.theSuites.getHotspotCount();
-    
-    // Test a sample of hotspots
-    for (let i = 0; i < Math.min(count, 3); i++) {
+    expect(count, {
+      message: `Should have at least ${minCount} hotspots`,
+    }).toBeGreaterThanOrEqual(minCount);
+  }
+
+  private async validateHotspotDistribution(): Promise<void> {
+    const distribution =
+      await this.humanSpaceflightPage.theSuites.getHotspotDistribution();
+    expect(distribution.upper, {
+      message: "Should have upper body hotspots",
+    }).toBeGreaterThan(0);
+    expect(distribution.lower, {
+      message: "Should have lower body hotspots",
+    }).toBeGreaterThan(0);
+  }
+
+  private async validateUpperBodyHotspots(
+    specification: string
+  ): Promise<void> {
+    const minCount = this.extractNumber(specification, 2);
+    const distribution =
+      await this.humanSpaceflightPage.theSuites.getHotspotDistribution();
+    expect(distribution.upper, {
+      message: "Should have multiple upper body hotspots",
+    }).toBeGreaterThanOrEqual(minCount);
+  }
+
+  private async validateLowerBodyHotspots(
+    specification: string
+  ): Promise<void> {
+    const minCount = this.extractNumber(specification, 2);
+    const distribution =
+      await this.humanSpaceflightPage.theSuites.getHotspotDistribution();
+    expect(distribution.lower, {
+      message: "Should have multiple lower body hotspots",
+    }).toBeGreaterThanOrEqual(minCount);
+  }
+
+  private async performHotspotInteraction(
+    interaction: HotspotInteraction
+  ): Promise<void> {
+    const { Action, "Expected Result": expectedResult } = interaction;
+
+    switch (Action) {
+      case "Hover":
+        await this.performHoverInteraction(expectedResult);
+        break;
+      case "Move Away":
+        await this.performMoveAwayInteraction();
+        break;
+      case "Multiple Hover":
+        await this.performMultipleHoverInteraction();
+        break;
+      default:
+        throw new Error(`Unknown hotspot interaction: ${Action}`);
+    }
+  }
+
+  private async performHoverInteraction(expectedResult: string): Promise<void> {
+    await this.humanSpaceflightPage.theSuites.hoverHotspot(0);
+
+    if (expectedResult.includes("after delay")) {
+      await this.page.waitForTimeout(this.TEST_CONSTANTS.CALLOUT_DELAY);
+    }
+
+    await expect(this.humanSpaceflightPage.theSuites.suitCallout, {
+      message: "Callout should appear on hover",
+    }).toBeVisible();
+  }
+
+  private async performMoveAwayInteraction(): Promise<void> {
+    await this.humanSpaceflightPage.theSuites.hoverHotspot(0);
+    await this.page.waitForTimeout(this.TEST_CONSTANTS.HOVER_DELAY);
+    await this.humanSpaceflightPage.theSuites.suitsSection.hover({
+      position: { x: 0, y: 0 },
+    });
+
+    await expect(this.humanSpaceflightPage.theSuites.suitCallout, {
+      message: "Callout should disappear when moving away",
+    }).not.toBeVisible();
+  }
+
+  private async performMultipleHoverInteraction(): Promise<void> {
+    const count = await this.humanSpaceflightPage.theSuites.getHotspotCount();
+    const texts: string[] = [];
+
+    for (
+      let i = 0;
+      i < Math.min(count, this.TEST_CONSTANTS.SAMPLE_HOTSPOTS);
+      i++
+    ) {
       await this.humanSpaceflightPage.theSuites.hoverHotspot(i);
-      await this.page.waitForTimeout(200);
-      const calloutText = await this.humanSpaceflightPage.theSuites.getCalloutText();
-      
-      for (const contentType of contentTypes) {
-        const { 'Content Type': type, Requirement } = contentType;
-        
-        switch (type) {
-          case 'Component':
-            expect(calloutText.length, { message: 'Should have component description' }).toBeGreaterThan(0);
-            break;
-          case 'Function':
-            expect(calloutText.length, { message: 'Should have function explanation' }).toBeGreaterThan(0);
-            break;
-          case 'Technical':
-            expect(calloutText.length, { message: 'Should have technical specifications' }).toBeGreaterThan(0);
-            break;
-        }
+      await this.page.waitForTimeout(this.TEST_CONSTANTS.HOVER_DELAY);
+      const text = await this.humanSpaceflightPage.theSuites.getCalloutText();
+      texts.push(text);
+    }
+
+    const uniqueTexts = new Set(texts);
+    expect(uniqueTexts.size, {
+      message: "Each hotspot should show unique information",
+    }).toBe(texts.length);
+  }
+
+  private async validateVisualStandard(
+    standard: VisualStandard
+  ): Promise<void> {
+    const { Element, Requirement, Details } = standard;
+
+    switch (Element) {
+      case "Suit Image":
+        await this.validateSuitImageStandard(Requirement);
+        break;
+      case "Image Position":
+        await this.validateImagePositionStandard(Requirement);
+        break;
+      case "Background":
+        await this.validateBackgroundStandard(Requirement);
+        break;
+      case "Hotspot Markers":
+        await this.validateHotspotMarkersStandard(Requirement);
+        break;
+      case "Callouts":
+        await this.validateCalloutsStandard(Requirement);
+        break;
+      default:
+        throw new Error(`Unknown visual standard element: ${Element}`);
+    }
+  }
+
+  private async validateSuitImageStandard(requirement: string): Promise<void> {
+    if (requirement === "Properly loaded") {
+      const isLoaded =
+        await this.humanSpaceflightPage.theSuites.isSuitImageLoaded();
+      expect(isLoaded, { message: "Suit image should load properly" }).toBe(
+        true
+      );
+    }
+  }
+
+  private async validateImagePositionStandard(
+    requirement: string
+  ): Promise<void> {
+    if (requirement === "Centered in viewport") {
+      const isCentered =
+        await this.humanSpaceflightPage.theSuites.isSuitImageCentered();
+      expect(isCentered, { message: "Suit image should be centered" }).toBe(
+        true
+      );
+    }
+  }
+
+  private async validateBackgroundStandard(requirement: string): Promise<void> {
+    if (requirement === "Gradient effect") {
+      const isVisible =
+        await this.humanSpaceflightPage.theSuites.isGradientVisible();
+      expect(isVisible, {
+        message: "Background gradient should be visible",
+      }).toBe(true);
+
+      const enhancesVisibility =
+        await this.humanSpaceflightPage.theSuites.isGradientEnhancingSuitVisibility();
+      expect(enhancesVisibility, {
+        message: "Gradient should enhance visibility",
+      }).toBe(true);
+    }
+  }
+
+  private async validateHotspotMarkersStandard(
+    requirement: string
+  ): Promise<void> {
+    if (requirement === "Clearly visible") {
+      const areVisible =
+        await this.humanSpaceflightPage.theSuites.areHotspotsVisible();
+      expect(areVisible, { message: "Hotspot markers should be visible" }).toBe(
+        true
+      );
+    }
+  }
+
+  private async validateCalloutsStandard(requirement: string): Promise<void> {
+    if (requirement === "Position adapts") {
+      const count = await this.humanSpaceflightPage.theSuites.getHotspotCount();
+      for (
+        let i = 0;
+        i < Math.min(count, this.TEST_CONSTANTS.SAMPLE_HOTSPOTS);
+        i++
+      ) {
+        const isPositioned =
+          await this.humanSpaceflightPage.theSuites.isCalloutPositionedCorrectly(
+            i
+          );
+        expect(isPositioned, {
+          message: `Callout should adapt position for hotspot ${i + 1}`,
+        }).toBe(true);
       }
     }
-    
-    // Verify uniqueness across hotspots
-    const allTexts = await this.humanSpaceflightPage.theSuites.getAllHotspotTexts();
+  }
+
+  private async validateSuitInformation(suit: SuitInfo): Promise<void> {
+    const { "Suit Type": suitType, "Required Information": requiredInfo } =
+      suit;
+
+    await this.ensureSuitActive(suitType);
+
+    const isLoaded =
+      await this.humanSpaceflightPage.theSuites.isSuitImageLoaded();
+    expect(isLoaded, { message: `${suitType} suit image should load` }).toBe(
+      true
+    );
+
+    const hotspotCount =
+      await this.humanSpaceflightPage.theSuites.getHotspotCount();
+    expect(hotspotCount, {
+      message: `${suitType} suit should have hotspots`,
+    }).toBeGreaterThan(0);
+  }
+
+  private async validateHotspotContent(
+    contentTypes: HotspotContent[]
+  ): Promise<void> {
+    const count = await this.humanSpaceflightPage.theSuites.getHotspotCount();
+
+    for (
+      let i = 0;
+      i < Math.min(count, this.TEST_CONSTANTS.SAMPLE_HOTSPOTS);
+      i++
+    ) {
+      await this.humanSpaceflightPage.theSuites.hoverHotspot(i);
+      await this.page.waitForTimeout(this.TEST_CONSTANTS.HOVER_DELAY);
+      const calloutText =
+        await this.humanSpaceflightPage.theSuites.getCalloutText();
+
+      for (const contentType of contentTypes) {
+        this.validateContentType(calloutText, contentType);
+      }
+    }
+
+    await this.validateHotspotUniqueness();
+  }
+
+  private validateContentType(
+    calloutText: string,
+    contentType: HotspotContent
+  ): void {
+    const { "Content Type": type } = contentType;
+
+    expect(calloutText.length, {
+      message: `Should have ${type.toLowerCase()} description`,
+    }).toBeGreaterThan(0);
+  }
+
+  private async validateHotspotUniqueness(): Promise<void> {
+    const allTexts =
+      await this.humanSpaceflightPage.theSuites.getAllHotspotTexts();
     const uniqueTexts = new Set(allTexts);
-    expect(uniqueTexts.size, { message: 'Each hotspot should have unique information' }).toBe(allTexts.length);
+    expect(uniqueTexts.size, {
+      message: "Each hotspot should have unique information",
+    }).toBe(allTexts.length);
+  }
+
+  private extractNumber(text: string, defaultValue: number): number {
+    const match = text.match(/\d+/);
+    return match ? parseInt(match[0]) : defaultValue;
   }
 }
