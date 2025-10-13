@@ -1,4 +1,4 @@
-import { TestType, PlaywrightTestArgs, Page, Locator } from "@playwright/test";
+import { TestType, PlaywrightTestArgs } from "@playwright/test";
 import { test as base } from "playwright-bdd";
 import { HomePage } from "../pages/ui/HomePage";
 import { HumanSpaceflightPage } from "../pages/ui/HumanSpaceflightPage";
@@ -7,51 +7,15 @@ import { FooterSteps } from "../step-definitions/ui/FooterSteps";
 import { HomePageSteps } from "../step-definitions/ui/HomePageSteps";
 import { HumanSpaceflightSteps } from "../step-definitions/ui/HumanSpaceflightSteps";
 import { SharedPageSteps } from "../step-definitions/ui/SharedPageSteps";
-
-
-export type ConsoleErrorFixture = {
-  consoleErrors: string[];
-};
-
-export type SharedContext = {
-  startTime: number;
-  apiData: any;
-  performanceMetrics?: any;
-  newTabPromise?: Promise<Page>;
-  mediaType?: string;
-  newPage?: Page;
-  currentFocusedElement?: Locator | null; 
-  initialViewport?: { width: number; height: number };
-};
-
-export type BddFixtures = {
-  sharedContext: SharedContext;
-  sharedPageSteps: SharedPageSteps;
-  homePage: HomePage;
-  homePageSteps: HomePageSteps;
-  humanSpaceflightPage: HumanSpaceflightPage;
-  humanSpaceflightSteps: HumanSpaceflightSteps;
-  footerSteps: FooterSteps;
-  destinationsSteps: DestinationsSteps;
-};
-
-interface CustomTestArgs
-  extends PlaywrightTestArgs,
-    BddFixtures,
-    ConsoleErrorFixture {}
+import { ConsoleErrorFixture } from "../pages/types/ConsoleErrorFixture";
+import { SharedContext } from "../pages/types/SharedContext";
+import { BddFixtures } from "../pages/types/BddFixtures";
+import { CustomTestArgs } from "../pages/types/CustomTestArgs";
 
 export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   sharedPageSteps: [
-    async ({ page, sharedContext }, use) => {
-      // These are placeholders to satisfy the constructor's type requirements
-      const headerPOF = {} as any; 
-      const heroPOF = {} as any;   
-      const footerPOF = {} as any; 
-      const currentPage = {} as any; 
-
-      const sharedSteps = new SharedPageSteps(
-          page
-      );
+    async ({ page }, use) => {
+      const sharedSteps = new SharedPageSteps(page);
       await use(sharedSteps);
     },
     { scope: "test" },
@@ -77,9 +41,7 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   },
   homePageSteps: [
     async ({ page, homePage, sharedContext }, use) => {
-      const homeSharedPageSteps = new SharedPageSteps(
-        page
-      );
+      const homeSharedPageSteps = new SharedPageSteps(page);
       const homePageSteps = new HomePageSteps(
         page,
         homePage,
@@ -96,9 +58,7 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   },
   humanSpaceflightSteps: [
     async ({ page, humanSpaceflightPage, sharedContext }, use) => {
-      const humanSharedPageSteps = new SharedPageSteps(
-        page
-      );
+      const humanSharedPageSteps = new SharedPageSteps(page);
       const humanSpaceflightSteps = new HumanSpaceflightSteps(
         page,
         humanSpaceflightPage,

@@ -2,14 +2,12 @@ import { Page, expect } from "@playwright/test";
 import { When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
-import { CustomTestArgs } from "../../fixtures/BddFixtures";
 
 @Fixture("responsiveDesignSteps")
 export class ResponsiveDesignSteps {
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage,
-    private sharedContext: CustomTestArgs["sharedContext"]
+    private humanSpaceflightPage: HumanSpaceflightPage
   ) {}
 
   @Then("the page should maintain responsive integrity:")

@@ -2,15 +2,12 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { expect, Page } from "@playwright/test";
 import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
-import { BddFixtures } from "../../fixtures/BddFixtures";
 
 @Fixture("theSuitesSteps")
 export class TheSuitesSteps {
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage,
-    private sharedContext: BddFixtures["sharedContext"]
-  ) {}
+    private humanSpaceflightPage: HumanSpaceflightPage  ) {}
 
   @Given("I view the Suits section")
   async viewSuitsSection() {

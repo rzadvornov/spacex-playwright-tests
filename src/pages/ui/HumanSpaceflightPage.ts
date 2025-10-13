@@ -97,7 +97,6 @@ export class HumanSpaceflightPage extends BasePage {
     return isHorizontalBetween || isCenteredEnough;
   }
 
-  // Media Carousel Methods
   async isMediaCarouselVisible(): Promise<boolean> {
     return await this.mediaCarousel.isVisible();
   }

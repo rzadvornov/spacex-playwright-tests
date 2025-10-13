@@ -1,15 +1,13 @@
 import { Page, expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { CustomTestArgs } from "../../fixtures/BddFixtures";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
 
 @Fixture("mediaCarouselSteps")
 export class MediaCarouselSteps {
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage,
-    private sharedContext: CustomTestArgs["sharedContext"]
+    private humanSpaceflightPage: HumanSpaceflightPage
   ) {}
 
   @When("I view the media carousel section")

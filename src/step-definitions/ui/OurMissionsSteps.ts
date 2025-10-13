@@ -2,7 +2,6 @@ import { Page, expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
-import { CustomTestArgs } from "../../fixtures/BddFixtures";
 import { OurMissionsPOF } from "../../pages/fragments/OurMissionsPOF";
 
 @Fixture("ourMissionsSteps")
@@ -11,8 +10,7 @@ export class OurMissionsSteps {
 
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage,
-    private sharedContext: CustomTestArgs["sharedContext"]
+    private humanSpaceflightPage: HumanSpaceflightPage
   ) {}
 
   @Given("I view the Our Missions section")
@@ -172,7 +170,9 @@ export class OurMissionsSteps {
           expect(isGrid).toBe(true);
           break;
         case "Tab Content":
-          const isVisible = await (await ourMissionsPOF.getTabByName(check['Default Tab'])).isVisible();
+          const isVisible = await (
+            await ourMissionsPOF.getTabByName(check["Default Tab"])
+          ).isVisible();
           expect(isVisible).toBe(true);
           break;
         case "CTA Button":
