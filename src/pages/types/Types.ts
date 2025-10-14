@@ -18,6 +18,8 @@ import { AssertionHelper } from "../../utils/AssertionHelper";
 import { ViewportUtility } from "../../utils/ViewportUtility";
 import { AboutPageSteps } from "../../step-definitions/ui/AboutPageSteps";
 import { AboutPage } from "../ui/AboutPage";
+import { CareersPage } from "../ui/CareersPage";
+import { CareersSteps } from "../../step-definitions/ui/CareersSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -443,7 +445,9 @@ export interface VisualStandard extends CoreRequirement {
 export interface BddFixtures {
   aboutPage: AboutPage;
   aboutPageSteps: AboutPageSteps;
-  accessubilitySteps: AccessibilitySteps
+  accessubilitySteps: AccessibilitySteps;
+  careersPage: CareersPage;
+  careersSteps: CareersSteps;
   destinationsSteps: DestinationsSteps;
   footerSteps: FooterSteps;
   homePage: HomePage;

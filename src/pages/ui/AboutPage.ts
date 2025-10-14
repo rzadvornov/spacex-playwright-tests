@@ -1,7 +1,7 @@
 import { Locator, Page } from "@playwright/test";
-import { BasePage } from "../base/BasePage";
+import { SpaceXPage } from "../base/SpaceXPage";
 
-export class AboutPage extends BasePage {
+export class AboutPage extends SpaceXPage {
   readonly missionSection: Locator;
   readonly historySection: Locator;
   readonly leadershipSection: Locator;
@@ -88,14 +88,14 @@ export class AboutPage extends BasePage {
   readonly resourceLink: (resourceName: string) => Locator = (resourceName) =>
     this.resourcesSection.locator(`a:has-text("${resourceName}")`);
 
-  async openAboutPage(): Promise<void> {
-    await this.open("/about");
-    await this.waitForLoadState("domcontentloaded");
+  async open(urlPath: string = "/about"): Promise<void> {
+    this.setupErrorListeners();
+    await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
+    await this.waitForAppContentLoad();
   }
 
   async isPageLoadedSuccessfully(): Promise<boolean> {
-    const title = await this.getPageTitle();
-    return title.includes("SpaceX");
+    return this.verifyPageTitle("SpaceX");
   }
 
   async checkMissionStatement(): Promise<boolean> {

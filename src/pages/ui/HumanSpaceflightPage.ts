@@ -1,9 +1,6 @@
 import { Page } from "@playwright/test";
-import { BasePage } from "../base/BasePage";
 import { AccessibilityPOF } from "../fragments/AccessibilityPOF";
 import { DestinationsPOF } from "../fragments/DestinationsPOF";
-import { FooterPOF } from "../fragments/FooterPOF";
-import { HeaderPOF } from "../fragments/HeaderPOF";
 import { HeroPOF } from "../fragments/HeroPOF";
 import { MediaCarouselPOF } from "../fragments/MediaCarouselPOF";
 import { OurMissionsPOF } from "../fragments/OurMissionsPOF";
@@ -12,12 +9,11 @@ import { ResponsiveDesignPOF } from "../fragments/ResponsiveDesignPOF";
 import { TheSuitesPOF } from "../fragments/TheSuitesPOF";
 import { TimelinePOF } from "../fragments/TimelinePOF";
 import { VehiclesPOF } from "../fragments/VehiclesPOF";
+import { SpaceXPage } from "../base/SpaceXPage";
 
-export class HumanSpaceflightPage extends BasePage {
-  readonly header: HeaderPOF;
+export class HumanSpaceflightPage extends SpaceXPage {
   readonly hero: HeroPOF;
   readonly destinations: DestinationsPOF;
-  readonly footer: FooterPOF;
   readonly accessibility: AccessibilityPOF;
   readonly mediaCarousel: MediaCarouselPOF;
   readonly ourMissions: OurMissionsPOF;
@@ -33,10 +29,8 @@ export class HumanSpaceflightPage extends BasePage {
     super(page);
     this.page = page;
 
-    this.header = new HeaderPOF(page);
     this.hero = new HeroPOF(page);
     this.destinations = new DestinationsPOF(page);
-    this.footer = new FooterPOF(page);
     this.accessibility = new AccessibilityPOF(page);
     this.mediaCarousel = new MediaCarouselPOF(page);
     this.ourMissions = new OurMissionsPOF(page);
@@ -50,6 +44,7 @@ export class HumanSpaceflightPage extends BasePage {
   async open(urlPath: string = "/humanspaceflight") {
     this.setupErrorListeners();
     await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
+    await this.waitForAppContentLoad();
   }
 
   async openWithMobileViewport(

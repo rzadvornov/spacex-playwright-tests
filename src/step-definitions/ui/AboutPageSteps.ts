@@ -30,7 +30,7 @@ export class AboutPageSteps {
 
   @Given("a user navigates to the About page")
   async aUserNavigatesToTheAboutPage() {
-    await this.aboutPage.openAboutPage();
+    await this.aboutPage.open();
   }
 
   @When("the page loads successfully")

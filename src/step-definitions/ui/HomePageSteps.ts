@@ -20,6 +20,7 @@ import {
   parseWcagStandards,
   parseAssistiveTechRequirements,
 } from "../../pages/types/TypeGuards";
+import { AssertionHelper } from "../../utils/AssertionHelper";
 
 @Fixture("homePageSteps")
 export class HomePageSteps {
@@ -33,7 +34,8 @@ export class HomePageSteps {
     private page: Page,
     private homePage: HomePage,
     private sharedContext: CustomTestArgs["sharedContext"],
-    private sharedPageSteps: SharedPageSteps
+    private sharedPageSteps: SharedPageSteps,
+    private assertionHelper: AssertionHelper
   ) {}
 
   @Given("I am on the SpaceX HomePage")
@@ -92,8 +94,10 @@ export class HomePageSteps {
   }
 
   private async validatePageTitle(expectedContent: string): Promise<void> {
-    const title = await this.page.title();
-    expect(title).toContain(expectedContent);
+    await this.assertionHelper.validateBooleanCheck(
+      () => this.homePage.verifyPageTitle(expectedContent),
+      `Page title should contain "${expectedContent}"`
+    );
   }
 
   private async validateHeroSectionVisibility(): Promise<void> {

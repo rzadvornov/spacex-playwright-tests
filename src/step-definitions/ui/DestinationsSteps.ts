@@ -9,6 +9,7 @@ import {
   parseInteractiveStates,
 } from "../../pages/types/TypeGuards";
 import { ViewportUtility } from "../../utils/ViewportUtility";
+import { AssertionHelper } from "../../utils/AssertionHelper";
 
 @Fixture("destinationsSteps")
 export class DestinationsSteps {
@@ -27,7 +28,8 @@ export class DestinationsSteps {
   constructor(
     private page: Page,
     private humanSpaceflightPage: HumanSpaceflightPage,
-    private viewportUtility: ViewportUtility
+    private viewportUtility: ViewportUtility,
+    private assertionHelper: AssertionHelper
   ) {}
 
   @Given("I view the Destinations section")
@@ -106,8 +108,10 @@ export class DestinationsSteps {
 
   @Then("the page title should contain {string}")
   async checkPageTitle(expectedTitle: string) {
-    const title = await this.page.title();
-    expect(title).toContain(expectedTitle);
+    await this.assertionHelper.validateBooleanCheck(
+      () => this.humanSpaceflightPage.verifyPageTitle(expectedTitle),
+      `Page title should contain "${expectedTitle}"`
+    );
   }
 
   @Then("each destination should have proper visual elements:")

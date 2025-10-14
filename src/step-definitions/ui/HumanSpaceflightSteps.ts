@@ -20,6 +20,7 @@ import {
   parseMetadataItems,
 } from "../../pages/types/TypeGuards";
 import { ViewportUtility } from "../../utils/ViewportUtility";
+import { AssertionHelper } from "../../utils/AssertionHelper";
 
 @Fixture("humanSpaceflightSteps")
 export class HumanSpaceflightSteps {
@@ -40,7 +41,8 @@ export class HumanSpaceflightSteps {
     private humanSpaceflightPage: HumanSpaceflightPage,
     private sharedContext: CustomTestArgs["sharedContext"],
     private sharedPageSteps: SharedPageSteps,
-    private viewportUtility: ViewportUtility
+    private viewportUtility: ViewportUtility,
+    private assertionHelper: AssertionHelper
   ) {}
 
   @Given("I am on the SpaceX Human Spaceflight page")
@@ -104,8 +106,10 @@ export class HumanSpaceflightSteps {
   }
 
   private async validatePageTitle(expectedContent: string): Promise<void> {
-    const title = await this.page.title();
-    expect(title).toContain(expectedContent);
+    await this.assertionHelper.validateBooleanCheck(
+      () => this.humanSpaceflightPage.verifyPageTitle(expectedContent),
+      `Page title should contain "${expectedContent}"`
+    );
   }
 
   private async validateHeroTitle(expectedValue: string): Promise<void> {

@@ -1,16 +1,16 @@
 import { defineConfig, devices } from "@playwright/test";
 import { cucumberReporter, defineBddConfig } from "playwright-bdd";
 
-const bddConfig = defineBddConfig({
+defineBddConfig({
   // Specify the paths to your Gherkin Feature files (.feature)
-  paths: ["features/**/*.feature", "features/**/**/*.feature"],
+  paths: ["src/features/**/*.feature", "src/features/**/**/*.feature"],
 
   // Specify the paths to your Step Definition files (.ts)
   require: ["step-definitions/**/*.ts"],
 
   // The directory where Playwright-BDD will generate the runnable .spec.ts files.
   // This MUST match the 'testDir' in your Playwright configuration.
-  outputDir: "./tests",
+  outputDir: "/tests",
 });
 
 /**
@@ -18,6 +18,7 @@ const bddConfig = defineBddConfig({
  */
 export default defineConfig({
   testDir: "./tests",
+  testMatch: /.*\.spec\.ts$/,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -29,7 +30,7 @@ export default defineConfig({
     }),
   ],
   use: {
-    baseURL: "https://www.spacex.com",
+    baseURL: process.env.UI_BASE_URL || "https://www.spacex.com",
 
     trace: "on-first-retry",
     screenshot: "only-on-failure",
