@@ -5,7 +5,6 @@ import { SpaceXPage } from "../base/SpaceXPage";
 export class Falcon9Page extends SpaceXPage {
   readonly hero: HeroPOF;
 
-  static readonly PATH = "/falcon9";
   static readonly SPECIFICATIONS_SECTION_SELECTOR =
     '[data-section="specifications"], #technical-specs';
   static readonly ENGINE_SPEC_SELECTOR =

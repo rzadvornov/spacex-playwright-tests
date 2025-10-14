@@ -9,7 +9,7 @@ Feature: Learn About Falcon Heavy Super Heavy-Lift Launch Vehicle
 
   @falcon-heavy @overview @value-prop
   Scenario: View Falcon Heavy Overview and Core Value
-    When the page successfully loads
+    When the Falcon Heavy page successfully loads
     Then the user should see the headline "Over 5 Million Lbs of Thrust"
     And a description explaining that Falcon Heavy is composed of three Falcon 9 cores
     And the total thrust at liftoff should be highlighted as **5 million pounds** (or its metric equivalent)

@@ -24,6 +24,8 @@ import { DragonPage } from "../ui/DragonPage";
 import { DragonPageSteps } from "../../step-definitions/ui/DragonPageSteps";
 import { Falcon9Page } from "../ui/Falcon9Page";
 import { Falcon9PageSteps } from "../../step-definitions/ui/Falcon9PageSteps";
+import { FalconHeavyPage } from "../ui/FalconHeavyPage";
+import { FalconHeavyPageSteps } from "../../step-definitions/ui/FalconHeavyPageSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -454,10 +456,19 @@ export type AchievementTable = {
   "Achievement Metric": string;
   "Value Format": string;
 }[];
-export type FacilityTable = { "Facility Name": string; "Location/Purpose": string }[];
+export type FacilityTable = {
+  "Facility Name": string;
+  "Location/Purpose": string;
+}[];
 export type InitiativeTable = { "Initiative Focus": string; Detail: string }[];
-export type PartnershipTable = { "Partner Type": string; "Example Detail": string }[];
-export type DivisionTable = { "Division Name": string; "Primary Focus": string }[];
+export type PartnershipTable = {
+  "Partner Type": string;
+  "Example Detail": string;
+}[];
+export type DivisionTable = {
+  "Division Name": string;
+  "Primary Focus": string;
+}[];
 export type ResourceTable = { "Resource Name": string; Availability: string }[];
 export type ValueTable = { "Core Value": string; Status: string }[];
 export type BenefitTable = { "Benefit Category": string; Status: string }[];
@@ -469,9 +480,48 @@ export type DracoSpecTable = {
   "Specification Field": string;
   "Value Detail": string;
 }[];
-export type MerlinSpecTable = { "Specification Field": string; "Value Detail": string }[];
+export type MerlinSpecTable = {
+  "Specification Field": string;
+  "Value Detail": string;
+}[];
 export type ResponsiveRequirements = Record<string, string>;
 export type AnyObject = Record<string, any>;
+export type TechnicalSpecTable = {
+  Attribute: string;
+  "Metric Value": string;
+  "Imperial Value": string;
+}[];
+
+export type AttributeDetailTable = {
+  Attribute: string;
+  Detail: string;
+}[];
+
+export type RedirectionTable = {
+  "Link Text": string;
+  "Expected Path": string;
+}[];
+
+export type PerformanceTable = {
+  Metric: string;
+  "Max Value (ms)": string;
+}[];
+
+export type TechnicalRequirementsTable = {
+  "Requirement Name": string;
+  Status: string;
+}[];
+
+export type MetadataTable = {
+  "Meta Name/Property": string;
+  "Value Contains": string;
+  Purpose: string;
+}[];
+
+export type MobileMenuTable = {
+  "Behavior Check": string;
+  "Expected Outcome": string;
+}[];
 
 export interface BddFixtures {
   aboutPage: AboutPage;
@@ -487,8 +537,10 @@ export interface BddFixtures {
   homePageSteps: HomePageSteps;
   humanSpaceflightPage: HumanSpaceflightPage;
   humanSpaceflightSteps: HumanSpaceflightSteps;
-  falcon9Page: Falcon9Page; 
+  falcon9Page: Falcon9Page;
   falcon9PageSteps: Falcon9PageSteps;
+  falconHeavyPage: FalconHeavyPage;
+  falconHeavyPageSteps: FalconHeavyPageSteps;
   mediaCarouselSteps: MediaCarouselSteps;
   ourMissionsSteps: OurMissionsSteps;
   performanceSeoSteps: PerformanceSeoSteps;

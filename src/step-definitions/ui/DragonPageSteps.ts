@@ -19,7 +19,7 @@ export class DragonPageSteps {
     await this.dragonPage.open();
   }
 
-  @When("the page successfully loads")
+  @When("the Dragon page successfully loads")
   async pageSuccessfullyLoads() {
     await this.dragonPage.waitForAppContentLoad();
   }

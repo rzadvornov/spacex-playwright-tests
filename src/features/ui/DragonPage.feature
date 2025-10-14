@@ -9,7 +9,7 @@ Feature: Explore Dragon Spacecraft Capabilities
 
   @dragon @overview @value-prop
   Scenario: View Dragon Overview and Core Value
-    When the page successfully loads
+    When the Dragon page successfully loads
     Then the user should see the Dragon page headline "Sending Humans and Cargo Into Space"
     And a description of Dragon's full capabilities should be displayed
     And the text should confirm Dragon can carry up to 7 passengers

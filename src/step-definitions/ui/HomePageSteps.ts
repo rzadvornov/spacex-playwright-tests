@@ -8,8 +8,13 @@ import {
   CoreRequirement,
   CriticalContent,
   MetadataItem,
+  MetadataTable,
+  MobileMenuTable,
   NavigationLink,
+  PerformanceTable,
+  RedirectionTable,
   SocialMediaTag,
+  TechnicalRequirementsTable,
 } from "../../pages/types/Types";
 import {
   parseCoreRequirements,
@@ -378,5 +383,134 @@ export class HomePageSteps {
       timeToInteractive,
       "Time to interactive should be reasonable"
     ).toBeLessThan(3000);
+  }
+
+  @When("I click on the {string} navigation item")
+  async clickNavigationItem(itemName: string) {
+    await this.homePage.clickNavigationItem(itemName);
+  }
+
+  @Then("I should be redirected to the corresponding page:")
+  async checkRedirectionToCorrespondingPage(dataTable: DataTable) {
+    const links = dataTable.hashes() as RedirectionTable;
+    const expectedPath = links[0]["Expected Path"];
+
+    await expect(this.page).toHaveURL(new RegExp(expectedPath));
+  }
+
+  @When("I interact with the {string} button")
+  async interactWithCtaButton(buttonText: string) {
+    await this.homePage.interactWithButton(buttonText);
+  }
+
+  @Then("the result should match {string}")
+  async checkCtaInteractionResult(expectedOutcome: string) {
+    if (expectedOutcome.startsWith("URL contains")) {
+      const expectedPath = expectedOutcome.split("URL contains ")[1].trim();
+      await expect(this.page).toHaveURL(new RegExp(expectedPath));
+    } else if (expectedOutcome.startsWith("Modal is visible")) {
+      const modalLocator = this.page
+        .locator('[role="dialog"], .modal-overlay')
+        .first();
+      await expect(modalLocator).toBeVisible();
+    } else {
+      await this.assertionHelper.validateBooleanCheck(
+        () => this.page.locator(`text=/${expectedOutcome}/i`).isVisible(),
+        `Expected result '${expectedOutcome}' is not visible on the page.`
+      );
+    }
+  }
+
+  @When("viewing on {string} with width {string}")
+  async setViewingViewport(deviceType: string, widthString: string) {
+    const width = parseInt(widthString, 10);
+    if (isNaN(width)) {
+      throw new Error(`Invalid width value: ${widthString}`);
+    }
+    await this.homePage.setViewportSize(width);
+  }
+
+  @Then("the mobile menu should function appropriately:")
+  async checkMobileMenuFunctionality(dataTable: DataTable) {
+    const checks = dataTable.hashes() as MobileMenuTable;
+    for (const check of checks) {
+      const behavior = check["Behavior Check"].toLowerCase().trim();
+      const expected = check["Expected Outcome"].toLowerCase().trim();
+
+      const isSatisfied = await this.homePage.checkMobileMenuBehavior(behavior);
+
+      await this.assertionHelper.validateBooleanCheck(
+        async () => isSatisfied,
+        `Mobile menu behavior check failed: '${behavior}' was not satisfied. Expected: '${expected}'`
+      );
+    }
+  }
+
+  @Then("the page should meet performance standards:")
+  async checkPerformanceStandards(dataTable: DataTable) {
+    const metrics = dataTable.hashes() as PerformanceTable;
+    for (const metric of metrics) {
+      const name = metric.Metric;
+      const maxValue = parseInt(metric["Max Value (ms)"], 10);
+      const actualValue = await this.homePage.getPerformanceMetric(name);
+
+      expect(
+        actualValue,
+        `${name} should be less than or equal to ${maxValue}ms`
+      ).toBeLessThanOrEqual(maxValue);
+    }
+  }
+
+  @Then("technical requirements should be met:")
+  async checkTechnicalRequirements(dataTable: DataTable) {
+    const requirements = dataTable.hashes() as TechnicalRequirementsTable;
+    for (const req of requirements) {
+      if (req["Requirement Name"].toLowerCase().includes("single h1")) {
+        const h1Count = await this.page.locator("h1").count();
+        expect(
+          h1Count,
+          "Technical Requirement Failed: Page must have exactly one H1 tag"
+        ).toBe(1);
+      } else if (
+        req["Requirement Name"].toLowerCase().includes("lang attribute")
+      ) {
+        const lang = await this.page.getAttribute("html", "lang");
+        expect(
+          lang,
+          "Technical Requirement Failed: HTML element must have a 'lang' attribute"
+        ).not.toBeNull();
+        expect(
+          lang?.toLowerCase(),
+          "Technical Requirement Failed: 'lang' attribute should be 'en'"
+        ).toBe("en");
+      }
+    }
+  }
+
+  @Then("the page metadata should be properly configured:")
+  async checkPageMetadata(dataTable: DataTable) {
+    const metas = dataTable.hashes() as MetadataTable;
+    for (const meta of metas) {
+      const metaNameOrProp = meta["Meta Name/Property"];
+      const expectedContent = meta["Value Contains"];
+
+      let actualContent: string | null = null;
+
+      if (metaNameOrProp.includes(":")) {
+        actualContent = await this.homePage.getPageProperty(metaNameOrProp);
+      } else {
+        actualContent = await this.homePage.getMetaTagContent(metaNameOrProp);
+      }
+
+      expect(
+        actualContent,
+        `Metadata tag '${metaNameOrProp}' not found or is empty.`
+      ).not.toBeNull();
+
+      expect(
+        actualContent?.toLowerCase(),
+        `Metadata tag '${metaNameOrProp}' content '${actualContent}' does not contain expected value: '${expectedContent}'`
+      ).toContain(expectedContent.toLowerCase());
+    }
   }
 }
