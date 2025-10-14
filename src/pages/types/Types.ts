@@ -446,6 +446,33 @@ export interface VisualStandard extends CoreRequirement {
   Details?: string;
 }
 
+export type TwoColumnTable =
+  | any[]
+  | { Role: string; Detail: string }[]
+  | { MilestoneCategory: string; Detail: string }[];
+export type AchievementTable = {
+  "Achievement Metric": string;
+  "Value Format": string;
+}[];
+export type FacilityTable = { "Facility Name": string; "Location/Purpose": string }[];
+export type InitiativeTable = { "Initiative Focus": string; Detail: string }[];
+export type PartnershipTable = { "Partner Type": string; "Example Detail": string }[];
+export type DivisionTable = { "Division Name": string; "Primary Focus": string }[];
+export type ResourceTable = { "Resource Name": string; Availability: string }[];
+export type ValueTable = { "Core Value": string; Status: string }[];
+export type BenefitTable = { "Benefit Category": string; Status: string }[];
+export type CategoryTable = { "Job Category": string; Status: string }[];
+export type OptionTable = { "Work Option": string; Status: string }[];
+export type DevTable = { "Development Opportunity": string; Status: string }[];
+export type FAQTable = { "FAQ Topic": string; Status: string }[];
+export type DracoSpecTable = {
+  "Specification Field": string;
+  "Value Detail": string;
+}[];
+export type MerlinSpecTable = { "Specification Field": string; "Value Detail": string }[];
+export type ResponsiveRequirements = Record<string, string>;
+export type AnyObject = Record<string, any>;
+
 export interface BddFixtures {
   aboutPage: AboutPage;
   aboutPageSteps: AboutPageSteps;

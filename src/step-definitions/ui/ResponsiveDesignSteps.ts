@@ -3,9 +3,7 @@ import { When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
-
-type ResponsiveRequirements = Record<string, string>;
-type AnyObject = Record<string, any>;
+import { ResponsiveRequirements, AnyObject } from "../../pages/types/Types";
 
 @Fixture("responsiveDesignSteps")
 export class ResponsiveDesignSteps {

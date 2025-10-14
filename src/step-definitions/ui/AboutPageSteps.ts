@@ -4,20 +4,7 @@ import { AboutPage } from "../../pages/ui/AboutPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { DataTable } from "playwright-bdd";
 import { SharedPageSteps } from "./SharedPageSteps";
-
-type TwoColumnTable =
-  | any[]
-  | { Role: string; Detail: string }[]
-  | { MilestoneCategory: string; Detail: string }[];
-type AchievementTable = {
-  "Achievement Metric": string;
-  "Value Format": string;
-}[];
-type FacilityTable = { "Facility Name": string; "Location/Purpose": string }[];
-type InitiativeTable = { "Initiative Focus": string; Detail: string }[];
-type PartnershipTable = { "Partner Type": string; "Example Detail": string }[];
-type DivisionTable = { "Division Name": string; "Primary Focus": string }[];
-type ResourceTable = { "Resource Name": string; Availability: string }[];
+import { TwoColumnTable, AchievementTable, FacilityTable, InitiativeTable, PartnershipTable, DivisionTable, ResourceTable } from "../../pages/types/Types";
 
 @Fixture("aboutPageSteps")
 export class AboutPageSteps {

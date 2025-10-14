@@ -4,8 +4,7 @@ import { DataTable } from "playwright-bdd";
 import { Falcon9Page } from "../../pages/ui/Falcon9Page";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { SharedPageSteps } from "./SharedPageSteps";
-
-type MerlinSpecTable = { "Specification Field": string; "Value Detail": string }[];
+import { MerlinSpecTable } from "../../pages/types/Types";
 
 @Fixture("falcon9PageSteps")
 export class Falcon9PageSteps {

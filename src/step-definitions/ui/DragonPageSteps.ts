@@ -4,11 +4,7 @@ import { DataTable } from "playwright-bdd";
 import { DragonPage } from "../../pages/ui/DragonPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { SharedPageSteps } from "./SharedPageSteps";
-
-type DracoSpecTable = {
-  "Specification Field": string;
-  "Value Detail": string;
-}[];
+import { DracoSpecTable } from "../../pages/types/Types";
 
 @Fixture("dragonPageSteps")
 export class DragonPageSteps {

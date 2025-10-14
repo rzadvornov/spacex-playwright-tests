@@ -1,5 +1,6 @@
 import { Page, expect } from "@playwright/test";
 import { Then, Fixture } from "playwright-bdd/decorators";
+
 @Fixture("sharedPageSteps")
 export class SharedPageSteps {
   constructor(

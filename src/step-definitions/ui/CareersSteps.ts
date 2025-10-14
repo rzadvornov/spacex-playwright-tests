@@ -2,16 +2,9 @@ import { expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { CareersPage } from "../../pages/ui/CareersPage";
-import { SharedContext } from "../../pages/types/Types";
+import { BenefitTable, CategoryTable, DevTable, FAQTable, OptionTable, SharedContext, ValueTable } from "../../pages/types/Types";
 import { SharedPageSteps } from "./SharedPageSteps";
 import { AssertionHelper } from "../../utils/AssertionHelper";
-
-type ValueTable = { "Core Value": string; Status: string }[];
-type BenefitTable = { "Benefit Category": string; Status: string }[];
-type CategoryTable = { "Job Category": string; Status: string }[];
-type OptionTable = { "Work Option": string; Status: string }[];
-type DevTable = { "Development Opportunity": string; Status: string }[];
-type FAQTable = { "FAQ Topic": string; Status: string }[];
 
 @Fixture("careersSteps")
 export class CareersSteps {
