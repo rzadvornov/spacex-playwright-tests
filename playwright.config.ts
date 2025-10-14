@@ -3,7 +3,7 @@ import { cucumberReporter, defineBddConfig } from "playwright-bdd";
 
 const bddConfig = defineBddConfig({
   // Specify the paths to your Gherkin Feature files (.feature)
-  paths: ["features/**/*.feature"],
+  paths: ["features/**/*.feature", "features/**/**/*.feature"],
 
   // Specify the paths to your Step Definition files (.ts)
   require: ["step-definitions/**/*.ts"],

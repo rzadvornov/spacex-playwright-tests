@@ -16,6 +16,8 @@ import { TimelineSteps } from "../../step-definitions/ui/TimelineSteps";
 import { VehiclesSteps } from "../../step-definitions/ui/VehiclesSteps";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { ViewportUtility } from "../../utils/ViewportUtility";
+import { AboutPageSteps } from "../../step-definitions/ui/AboutPageSteps";
+import { AboutPage } from "../ui/AboutPage";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -439,6 +441,8 @@ export interface VisualStandard extends CoreRequirement {
 }
 
 export interface BddFixtures {
+  aboutPage: AboutPage;
+  aboutPageSteps: AboutPageSteps;
   accessubilitySteps: AccessibilitySteps
   destinationsSteps: DestinationsSteps;
   footerSteps: FooterSteps;

@@ -23,6 +23,8 @@ import { TimelineSteps } from "../step-definitions/ui/TimelineSteps";
 import { VehiclesSteps } from "../step-definitions/ui/VehiclesSteps";
 import { AssertionHelper } from "../utils/AssertionHelper";
 import { ViewportUtility } from "../utils/ViewportUtility";
+import { AboutPage } from "../pages/ui/AboutPage";
+import { AboutPageSteps } from "../step-definitions/ui/AboutPageSteps";
 
 export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   sharedPageSteps: [
@@ -61,6 +63,23 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
     },
     { scope: "test" },
   ],
+  aboutPage: async ({ page }, use) => {
+    const aboutPage = new AboutPage(page);
+    await use(aboutPage);
+  },
+  aboutPageSteps: [
+    async ({ page, aboutPage, assertionHelper }, use) => {
+      const aboutSharedPageSteps = new SharedPageSteps(page);
+      const aboutPageSteps = new AboutPageSteps(
+        page,
+        aboutPage,
+        aboutSharedPageSteps,
+        assertionHelper
+      );
+      await use(aboutPageSteps);
+    },
+    { scope: "test" },
+  ],
   homePage: async ({ page }, use) => {
     const homePage = new HomePage(page);
     await use(homePage);
@@ -84,14 +103,15 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   },
   humanSpaceflightSteps: [
     async (
-      { page, humanSpaceflightPage, sharedContext, sharedPageSteps, viewportUtility },
+      { page, humanSpaceflightPage, sharedContext, viewportUtility },
       use
     ) => {
+      const humanSpaceflightSharedPageSteps = new SharedPageSteps(page);
       const humanSpaceflightSteps = new HumanSpaceflightSteps(
         page,
         humanSpaceflightPage,
         sharedContext,
-        sharedPageSteps,
+        humanSpaceflightSharedPageSteps,
         viewportUtility
       );
       await use(humanSpaceflightSteps);
