@@ -122,6 +122,10 @@ export class AboutPage extends SpaceXPage {
     return false;
   }
 
+  async isPageContentVisible(): Promise<boolean> {
+    return await this.missionSection.isVisible();
+  }
+
   async isMilestoneDetailDisplayed(detail: string): Promise<boolean> {
     return await this.milestoneDetail(detail).isVisible();
   }

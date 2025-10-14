@@ -10,7 +10,7 @@ Feature: SpaceX Human Spaceflight Timeline Section
 
   @smoke @content
   Scenario: Timeline section displays essential content
-    Then the section should display core elements:
+    Then the Timeline section should display core elements:
       | Element       | Content                                    |
       | Heading       | The road to making humanity multiplanetary |
       | Carousel      | Interactive milestone cards                |
@@ -43,7 +43,7 @@ Feature: SpaceX Human Spaceflight Timeline Section
     When I view the Timeline section with the "<Start>" milestone active
     And I click the "<Direction>" arrow
     Then the carousel should navigate to the "<Target>" milestone
-    And the pagination dot for "<Target>" should be active
+    And the pagination dot on behalf of "<Target>" should be active
 
     Examples:
       | Start | Direction | Target |

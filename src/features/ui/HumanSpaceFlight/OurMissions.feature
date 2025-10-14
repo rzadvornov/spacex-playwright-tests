@@ -10,7 +10,7 @@ Feature: SpaceX Human Spaceflight Our Missions Section
 
   @smoke @content
   Scenario: Our Missions section displays essential content
-    Then the section should display core elements:
+    Then the Our Missions section should display core elements:
       | Element     | Content                                  |
       | Title       | Our Missions                             |
       | Description | Scientific research and global awareness |

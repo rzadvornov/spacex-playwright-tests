@@ -10,7 +10,7 @@ Feature: SpaceX Human Spaceflight The Suits Section
 
   @smoke @content
   Scenario: Essential suits section content display
-    Then the section should display core elements:
+    Then the Suits section should display core elements:
       | Element    | Content                       | State             |
       | Heading    | "The Suits"                   | Visible           |
       | IVA Button | INTRAVEHICULAR ACTIVITY (IVA) | Active by default |

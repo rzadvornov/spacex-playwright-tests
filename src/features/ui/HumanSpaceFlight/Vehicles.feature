@@ -10,7 +10,7 @@ Feature: SpaceX Human Spaceflight - Vehicle Information
 
   @smoke @content
   Scenario: Vehicle section displays essential components
-    Then the section should display core elements:
+    Then the Vehicle section should display core elements:
       | Element         | Content                        |
       | Section Title   | Our Vehicles                   |
       | Vehicle Cards   | Dragon, Starship               |

@@ -13,7 +13,7 @@ import {
   ResearchEmphasis,
 } from "../../pages/types/Types";
 
-@Fixture("vehicleSteps")
+@Fixture("vehiclesSteps")
 export class VehiclesSteps {
   private readonly TEST_CONSTANTS = {
     MIN_TOUCH_TARGET: 44,
@@ -31,7 +31,7 @@ export class VehiclesSteps {
     await this.humanSpaceflightPage.vehicles.scrollToVehiclesSection();
   }
 
-  @Then("the section should display core elements:")
+  @Then("the Vehicle section should display core elements:")
   async checkCoreElements(dataTable: DataTable) {
     const elements = this.parseDataTable<CoreElement>(dataTable);
 

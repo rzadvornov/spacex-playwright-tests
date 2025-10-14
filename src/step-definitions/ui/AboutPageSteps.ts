@@ -1,5 +1,5 @@
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
-import { Page } from "@playwright/test";
+import { Page, expect } from "@playwright/test";
 import { AboutPage } from "../../pages/ui/AboutPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { DataTable } from "playwright-bdd";
@@ -31,42 +31,43 @@ export class AboutPageSteps {
   @Given("a user navigates to the About page")
   async aUserNavigatesToTheAboutPage() {
     await this.aboutPage.open();
+    await this.aboutPage.waitForAppContentLoad();
   }
 
-  @When("the page loads successfully")
+  @When("the About page loads successfully")
   async thePageLoadsSuccessfully() {
     await this.assertionHelper.validateBooleanCheck(
-      () => this.aboutPage.isPageLoadedSuccessfully(),
-      "The About page did not load successfully (Title check failed)."
+      () => this.aboutPage.isPageContentVisible(),
+      "The main content of the About page is not visible."
     );
   }
 
   @Then("the user should see SpaceX's **mission statement** and core vision")
-  async theUserShouldSeeSpaceXSMissionStatementAndCoreVision() {
-    await this.assertionHelper.validateBooleanCheck(
-      () => this.aboutPage.missionStatementText.isVisible(),
-      "The mission statement text is not visible on the page."
-    );
+  async theUserShouldSeeMissionStatement() {
+    await expect(
+      this.aboutPage.missionStatementText,
+      "Mission statement and core vision text should be visible"
+    ).toBeVisible();
   }
 
   @Then(
     "the mission to make **humanity multiplanetary** should be prominently featured"
   )
   async theMissionToMakeHumanityMultiplanetaryShouldBeProminentlyFeatured() {
-    await this.assertionHelper.validateBooleanCheck(
-      () => this.aboutPage.humanityMultiplanetaryText.isVisible(),
-      "The multiplanetary mission statement is not prominently featured."
-    );
+    await expect(
+      this.aboutPage.humanityMultiplanetaryText,
+      "Humanity Multiplanetary vision should be featured"
+    ).toBeVisible();
   }
 
   @Then(
     "the page should highlight the company's core values and long-term objectives"
   )
-  async thePageShouldHighlightTheCoreValuesAndLongTermObjectives() {
-    await this.assertionHelper.validateBooleanCheck(
-      () => this.aboutPage.missionStatementText.isVisible(),
-      "Core values/objectives section is not highlighted."
-    );
+  async thePageShouldHighlightTheCompanysCoreValues() {
+    await expect(
+      this.aboutPage.missionSection,
+      "Mission/Core Values section should be visible"
+    ).toBeVisible();
   }
 
   @When("the user reviews the company history section")
@@ -89,68 +90,64 @@ export class AboutPageSteps {
   }
 
   @Then(
-    "the company's **approach to reusability** should be emphasized throughout the history"
+    "the company's **approach to reusability** should be emphasized throughout the history."
   )
   async theCompanysApproachToReusabilityShouldBeEmphasized() {
     await this.assertionHelper.validateBooleanCheck(
       () => this.aboutPage.isReusabilityEmphasized(),
-      "The reusability emphasis text is not displayed."
+      "Reusability emphasis is not visible in the history section."
     );
   }
 
-  @When("the user scrolls to the leadership team section")
+  @When("the user scrolls to the leadership section")
   async theUserScrollsToTheLeadershipTeamSection() {
     await this.aboutPage.leadershipSection.scrollIntoViewIfNeeded();
   }
 
-  @Then("the leadership team photos and short biographies should be present")
-  async theLeadershipTeamPhotosAndShortBiographiesShouldBePresent() {
+  @Then("photos and biographies for the core leaders should be available")
+  async photosAndBiographiesForTheCoreLeadersShouldBeAvailable() {
     await this.assertionHelper.validateBooleanCheck(
       () => this.aboutPage.checkLeaderPhotosAndBiographies(),
-      "The leadership team section does not contain a sufficient number of photos/bios."
+      "Fewer than 4 leader photos/bios were found."
     );
   }
 
-  @Then("key executive roles should be accurately listed:")
-  async keyExecutiveRolesShouldBeAccuratelyListed(dataTable: any) {
-    const roles = dataTable.hashes() as TwoColumnTable;
-    for (const role of roles) {
-      const roleName = role["Role"];
-      await this.assertionHelper.validateBooleanCheck(
-        () => this.aboutPage.isKeyExecutiveRoleListed(roleName),
-        `Key executive role "${roleName}" is not accurately listed.`
-      );
-    }
-  }
-
-  @When("the user examines the achievements section")
-  async theUserExaminesTheAchievementsSection() {
+  @When("the user reviews the major achievements and metrics section")
+  async theUserReviewsTheMajorAchievementsAndMetricsSection() {
     await this.aboutPage.achievementsSection.scrollIntoViewIfNeeded();
   }
 
-  @Then(
-    "the page should display an overview of major achievements and their **metrics**:"
-  )
-  async thePageShouldDisplayAnOverviewOfMajorAchievements(dataTable: any) {
-    const metrics = dataTable.hashes() as AchievementTable;
-    for (const metric of metrics) {
-      const metricName = metric["Achievement Metric"];
+  @Then("the page should display up-to-date metrics for:")
+  async thePageShouldDisplayUpToDateMetricsFor(dataTable: DataTable) {
+    const achievements = dataTable.hashes() as AchievementTable;
+    for (const achievement of achievements) {
+      const metric = achievement["Achievement Metric"];
       await this.assertionHelper.validateBooleanCheck(
-        () => this.aboutPage.isAchievementMetricDisplayed(metricName),
-        `Achievement metric "${metricName}" is not displayed or correct.`
+        () => this.aboutPage.isAchievementMetricDisplayed(metric),
+        `Achievement metric "${metric}" is not displayed.`
       );
     }
   }
 
-  @When("the user looks at the operational facilities section")
-  async theUserLooksAtTheOperationalFacilitiesSection() {
+  @Then(
+    "the displayed values should be presented with a **clear value format**"
+  )
+  async theDisplayedValuesShouldBePresentedWithAClearValueFormat() {
+    await expect(
+      this.aboutPage.achievementsSection,
+      "Achievements section is not visible to check value formats."
+    ).toBeVisible();
+  }
+
+  @When("the user looks for information on key facilities")
+  async theUserLooksForInformationOnKeyFacilities() {
     await this.aboutPage.facilitiesSection.scrollIntoViewIfNeeded();
   }
 
-  @Then(
-    "key operational locations and facilities should be described, including:"
-  )
-  async keyOperationalLocationsAndFacilitiesShouldBeDescribed(dataTable: any) {
+  @Then("the following operational facilities should be clearly listed:")
+  async theFollowingOperationalFacilitiesShouldBeClearlyListed(
+    dataTable: DataTable
+  ) {
     const facilities = dataTable.hashes() as FacilityTable;
     for (const facility of facilities) {
       const facilityName = facility["Facility Name"];
@@ -161,19 +158,21 @@ export class AboutPageSteps {
     }
   }
 
-  @When("the user reviews the sustainability section")
-  async theUserReviewsTheSustainabilitySection() {
+  @When("the user reviews the company's sustainability initiatives")
+  async theUserReviewsTheCompanysSustainabilityInitiatives() {
     await this.aboutPage.sustainabilitySection.scrollIntoViewIfNeeded();
   }
 
-  @Then("the company should detail its sustainability initiatives and goals:")
-  async theCompanyShouldDetailItsSustainabilityInitiatives(dataTable: any) {
+  @Then("the section should clearly describe initiatives focused on:")
+  async theSectionShouldClearlyDescribeInitiativesFocusedOn(
+    dataTable: DataTable
+  ) {
     const initiatives = dataTable.hashes() as InitiativeTable;
     for (const initiative of initiatives) {
-      const detail = initiative["Detail"];
+      const focus = initiative["Initiative Focus"];
       await this.assertionHelper.validateBooleanCheck(
-        () => this.aboutPage.isSustainabilityDetailDescribed(detail),
-        `Sustainability initiative detail "${detail}" is not described.`
+        () => this.aboutPage.isSustainabilityDetailDescribed(focus),
+        `Sustainability initiative focus "${focus}" is not clearly described.`
       );
     }
   }
@@ -184,7 +183,7 @@ export class AboutPageSteps {
   }
 
   @Then("major long-standing partnerships should be listed, including:")
-  async majorLongStandingPartnershipsShouldBeListed(dataTable: any) {
+  async majorLongStandingPartnershipsShouldBeListed(dataTable: DataTable) {
     const partnerships = dataTable.hashes() as PartnershipTable;
     for (const partnership of partnerships) {
       const detail = partnership["Example Detail"];
@@ -233,6 +232,89 @@ export class AboutPageSteps {
       await this.assertionHelper.validateBooleanCheck(
         () => this.aboutPage.isResourceLinked(resourceName),
         `Resource link for "${resourceName}" is not clearly labeled or available.`
+      );
+    }
+  }
+
+  @Then(
+    "the following key executive roles should be listed with associated names:"
+  )
+  async theFollowingKeyExecutiveRolesShouldBeListedWithAssociatedNames(
+    dataTable: DataTable
+  ) {
+    const roles = dataTable.hashes() as TwoColumnTable;
+    for (const role of roles) {
+      const roleName = role["Role"];
+      await this.assertionHelper.validateBooleanCheck(
+        () => this.aboutPage.isKeyExecutiveRoleListed(roleName),
+        `Key executive role "${roleName}" is not listed.`
+      );
+    }
+  }
+
+  @Then(
+    "**photos and brief biographies** should be provided for the primary leaders."
+  )
+  async photosAndBriefBiographiesShouldBeProvidedForThePrimaryLeaders() {
+    await this.assertionHelper.validateBooleanCheck(
+      () => this.aboutPage.checkLeaderPhotosAndBiographies(),
+      "Fewer than 4 leader photos/bios were found."
+    );
+  }
+
+  @When("the user reviews the company accomplishments summary")
+  async theUserReviewsTheCompanyAccomplishmentsSummary() {
+    await this.aboutPage.achievementsSection.scrollIntoViewIfNeeded();
+  }
+
+  @Then("the page should display verifiable, major achievements:")
+  async thePageShouldDisplayVerifiableMajorAchievements(dataTable: DataTable) {
+    const achievements = dataTable.hashes() as AchievementTable;
+    for (const achievement of achievements) {
+      const metric = achievement["Achievement Metric"];
+      await this.assertionHelper.validateBooleanCheck(
+        () => this.aboutPage.isAchievementMetricDisplayed(metric),
+        `Achievement metric "${metric}" is not displayed.`
+      );
+    }
+  }
+
+  @When("the user reads about operations and facilities")
+  async theUserReadsAboutOperationsAndFacilities() {
+    await this.aboutPage.facilitiesSection.scrollIntoViewIfNeeded();
+  }
+
+  @Then("information about key SpaceX locations should be clearly displayed:")
+  async informationAboutKeySpaceXLocationsShouldBeClearlyDisplayed(
+    dataTable: DataTable
+  ) {
+    const facilities = dataTable.hashes() as FacilityTable;
+    for (const facility of facilities) {
+      const facilityName = facility["Facility Name"];
+      await this.assertionHelper.validateBooleanCheck(
+        () => this.aboutPage.isFacilityInfoDisplayed(facilityName),
+        `Facility info for "${facilityName}" is not displayed.`
+      );
+    }
+  }
+
+  @When("the user looks for environmental information")
+  async theUserLooksForEnvironmentalInformation() {
+    await this.aboutPage.sustainabilitySection.scrollIntoViewIfNeeded();
+  }
+
+  @Then(
+    "the page should describe SpaceX's commitment to sustainability, including:"
+  )
+  async thePageShouldDescribeSpaceXsCommitmentToSustainabilityIncluding(
+    dataTable: DataTable
+  ) {
+    const initiatives = dataTable.hashes() as InitiativeTable;
+    for (const initiative of initiatives) {
+      const focus = initiative["Initiative Focus"];
+      await this.assertionHelper.validateBooleanCheck(
+        () => this.aboutPage.isSustainabilityDetailDescribed(focus),
+        `Sustainability initiative focus "${focus}" is not clearly described.`
       );
     }
   }

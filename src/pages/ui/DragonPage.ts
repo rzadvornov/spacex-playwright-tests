@@ -19,6 +19,16 @@ export class DragonPage extends SpaceXPage {
   readonly videoSection: Locator;
   readonly commercialApplicationsSection: Locator;
   readonly specsTable: Locator;
+  readonly capabilitiesSection: Locator;
+  readonly propulsionSection: Locator;
+  readonly superDracoSection: Locator;
+  readonly crewLaunchRestoreText: Locator;
+  readonly inspiration4Highlight: Locator;
+  readonly dracoSpecsSection: Locator;
+  readonly videoPlayerContent: Locator;
+  readonly fullMissionDescription: Locator;
+  readonly beyondLEOText: Locator;
+  readonly issCapabilityText: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -68,12 +78,103 @@ export class DragonPage extends SpaceXPage {
         'p:has-text("serve commercial astronauts and private customers")'
       )
       .first();
+    this.capabilitiesSection = this.page.locator(
+      '#capabilities, main:has-text("Dragon Capabilities")'
+    );
+    this.propulsionSection = this.page.locator(
+      '#propulsion-system, main:has-text("Draco Thrusters")'
+    );
+    this.superDracoSection = this.page.locator(
+      '#superdraco-system, main:has-text("SuperDraco")'
+    );
+    this.dracoSpecsSection = this.propulsionSection.locator(
+      "table, dl, text=/Thrust.*Isp/i"
+    );
+
+    this.crewLaunchRestoreText = this.capabilitiesSection.locator(
+      "text=/restored.*American ability to launch astronauts/i"
+    );
+    this.inspiration4Highlight = this.capabilitiesSection.locator(
+      "text=/first private spaceflight/i"
+    );
+
+    this.videoPlayerContent = page.locator(
+      'iframe[title*="video player"], .video-modal'
+    );
+    this.fullMissionDescription = page.locator(
+      '#mission-description, main:has-text("Mission Capabilities")'
+    );
+
+    this.beyondLEOText = this.fullMissionDescription.locator(
+      'text=/"missions beyond Low Earth Orbit"|/LEO and beyond/i'
+    );
+    this.issCapabilityText = this.fullMissionDescription.locator(
+      "text=/Earth orbit missions, including the ISS/i"
+    );
   }
+
+  readonly parachuteExplanation: (text: string) => Locator = (text) =>
+    this.landingSystemSection.locator(
+      `p:has-text("${text}"), h3:has-text("${text}")`
+    );
+
+  readonly dracoSpecRow: (fieldName: string) => Locator = (fieldName) =>
+    this.dracoSpecsSection.locator("tr, div", {
+      has: this.page.locator(`text=/^${fieldName}:/i`),
+    });
+
+  readonly superDracoDetail: (detail: string) => Locator = (detail) =>
+    this.superDracoSection.locator(`text=/${detail}/i`);
 
   async open(urlPath: string = "/dragon"): Promise<void> {
     this.setupErrorListeners();
     await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
     await this.waitForAppContentLoad();
+  }
+
+  async isFullCapabilitiesDisplayed(): Promise<boolean> {
+    return (
+      (await this.passengerCapacityText.isVisible()) &&
+      (await this.cargoReturnHighlight.isVisible()) &&
+      (await this.capabilitiesSection.isVisible())
+    );
+  }
+
+  async isAmericanLaunchRestoredMentioned(
+    year1: number,
+    year2: number
+  ): Promise<boolean> {
+    const text = await this.crewLaunchRestoreText.textContent();
+    return (
+      (await this.crewLaunchRestoreText.isVisible()) &&
+      (text || "").includes(year1.toString()) &&
+      (text || "").includes(year2.toString())
+    );
+  }
+
+  async isInspiration4Highlighted(): Promise<boolean> {
+    return await this.inspiration4Highlight.isVisible();
+  }
+
+  async scrollToPropulsionSection(): Promise<void> {
+    await this.propulsionSection.scrollIntoViewIfNeeded();
+  }
+
+  async isDracoSpecDetailDisplayed(
+    fieldName: string,
+    detail: string
+  ): Promise<boolean> {
+    const rowLocator = this.dracoSpecRow(fieldName);
+    return await rowLocator.locator(`text=/${detail}/i`).isVisible();
+  }
+
+  async isSuperDracoLaunchEscapeDetailDisplayed(
+    detail: string
+  ): Promise<boolean> {
+    return (
+      (await this.superDracoSection.isVisible()) &&
+      (await this.superDracoDetail(detail).isVisible())
+    );
   }
 
   async scrollToSpecificationsSection(): Promise<void> {
@@ -113,5 +214,39 @@ export class DragonPage extends SpaceXPage {
       .locator('iframe[title*="video player"], .video-modal')
       .first();
     return await videoPlayer.isVisible();
+  }
+
+  async isMultiStageLandingMechanismExplained(): Promise<boolean> {
+    return await this.parachuteExplanation(
+      "multi-stage parachute landing mechanism"
+    ).isVisible();
+  }
+
+  async isVideoContentShowcased(
+    text1: string,
+    text2: string
+  ): Promise<boolean> {
+    return (
+      (await this.videoPlayerContent.isVisible()) &&
+      (await this.videoPlayerContent
+        .or(this.page.locator("#video-caption"))
+        .locator(`text=/${text1}.*${text2}/i`)
+        .isVisible())
+    );
+  }
+
+  async isVideoContentHighlightingCrewOps(): Promise<boolean> {
+    return await this.videoPlayerContent
+      .or(this.page.locator("#video-caption"))
+      .locator("text=/crew operations|inside the capsule/i")
+      .isVisible();
+  }
+
+  async isISSCapabilityMentioned(): Promise<boolean> {
+    return await this.issCapabilityText.isVisible();
+  }
+
+  async isBeyondLEOMissionDescribed(): Promise<boolean> {
+    return await this.beyondLEOText.isVisible();
   }
 }

@@ -2,7 +2,6 @@ import { Page, expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
-import { CustomTestArgs } from "../../fixtures/BddFixtures";
 import {
   parseLayoutRequirements,
   parseSpacingRequirements,
@@ -10,6 +9,7 @@ import {
 } from "../../pages/types/TypeGuards";
 import {
   BoundingBox,
+  CustomTestArgs,
   LayoutRequirement,
   SpacingRequirement,
   StyleRequirement,

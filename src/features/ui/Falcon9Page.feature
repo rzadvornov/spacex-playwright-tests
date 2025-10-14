@@ -9,15 +9,15 @@ Feature: View and Learn About Falcon 9 Rocket
 
   @falcon9 @overview @reusability
   Scenario: View Falcon 9 Overview and Core Value Proposition
-    When the page loads successfully
-    Then the user should see the headline "First Orbital Class Rocket Capable of Reflight"
+    When the Falcon 9 page loads successfully
+    Then the user should see the Falcon 9 page headline "First Orbital Class Rocket Capable of Reflight"
     And a brief description explaining that Falcon 9 is a **fully reusable** two-stage rocket
     And the cost and reliability benefits of reusability should be prominently highlighted
     And the page should match the snapshot "falcon9_initial_load"
 
   @falcon9 @specifications @technical
   Scenario: Review Key Vehicle Specifications
-    When the user scrolls to the specifications section
+    When the user scrolls to the specifications section of the Falcon 9 page
     Then the page should display the following key technical specifications in a structured format:
       | Attribute         | Metric Value        | Imperial Value                  |
       | Height            | Must be displayed   | Must be displayed               |
@@ -47,7 +47,7 @@ Feature: View and Learn About Falcon 9 Rocket
 
   @falcon9 @media @video
   Scenario: Watch Falcon 9 Launch and Landing Video
-    When the user clicks on the featured video section
+    When the user clicks on the featured video section of the Falcon 9 page
     Then an embedded video player should successfully appear
     And the video should visually demonstrate the Falcon 9 launch and successful **first-stage recovery**
     And the video player should include accessible sound controls

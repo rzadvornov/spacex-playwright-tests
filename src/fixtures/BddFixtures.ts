@@ -1,4 +1,3 @@
-import { TestType, PlaywrightTestArgs } from "@playwright/test";
 import { test as base } from "playwright-bdd";
 import { HomePage } from "../pages/ui/HomePage";
 import { HumanSpaceflightPage } from "../pages/ui/HumanSpaceflightPage";
@@ -29,6 +28,8 @@ import { CareersPage } from "../pages/ui/CareersPage";
 import { CareersSteps } from "../step-definitions/ui/CareersSteps";
 import { DragonPage } from "../pages/ui/DragonPage";
 import { DragonPageSteps } from "../step-definitions/ui/DragonPageSteps";
+import { Falcon9Page } from "../pages/ui/Falcon9Page";
+import { Falcon9PageSteps } from "../step-definitions/ui/Falcon9PageSteps";
 
 export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   sharedPageSteps: [
@@ -89,12 +90,13 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
     await use(careersPage);
   },
   careersSteps: [
-    async ({ page, careersPage, sharedContext }, use) => {
+    async ({ page, careersPage, sharedContext, assertionHelper }, use) => {
       const careersSharedPageSteps = new SharedPageSteps(page);
       const careersSteps = new CareersSteps(
         careersPage,
         sharedContext,
-        careersSharedPageSteps
+        careersSharedPageSteps,
+        assertionHelper
       );
       await use(careersSteps);
     },
@@ -113,6 +115,22 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
         dragonSharedPageSteps
       );
       await use(dragonPageSteps);
+    },
+    { scope: "test" },
+  ],
+  falcon9Page: async ({ page }, use) => {
+    const falcon9Page = new Falcon9Page(page);
+    await use(falcon9Page);
+  },
+  falcon9PageSteps: [
+    async ({ page, falcon9Page, assertionHelper }, use) => {
+      const falcon9SharedPageSteps = new SharedPageSteps(page);
+      const falcon9PageSteps = new Falcon9PageSteps(
+        falcon9Page,
+        assertionHelper,
+        falcon9SharedPageSteps
+      );
+      await use(falcon9PageSteps);
     },
     { scope: "test" },
   ],
@@ -140,7 +158,13 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   },
   humanSpaceflightSteps: [
     async (
-      { page, humanSpaceflightPage, sharedContext, viewportUtility, assertionHelper },
+      {
+        page,
+        humanSpaceflightPage,
+        sharedContext,
+        viewportUtility,
+        assertionHelper,
+      },
       use
     ) => {
       const humanSpaceflightSharedPageSteps = new SharedPageSteps(page);
@@ -172,7 +196,10 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
     { scope: "test" },
   ],
   destinationsSteps: [
-    async ({ page, humanSpaceflightPage, viewportUtility, assertionHelper }, use) => {
+    async (
+      { page, humanSpaceflightPage, viewportUtility, assertionHelper },
+      use
+    ) => {
       const destinationsSteps = new DestinationsSteps(
         page,
         humanSpaceflightPage,
@@ -183,7 +210,7 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
     },
     { scope: "test" },
   ],
-  accessubilitySteps: [
+  accessibilitySteps: [
     async ({ page, humanSpaceflightPage, assertionHelper }, use) => {
       const accessibilitySteps = new AccessibilitySteps(
         page,
@@ -205,14 +232,14 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
     },
     { scope: "test" },
   ],
-  ourMissionSteps: [
+  ourMissionsSteps: [
     async ({ page, humanSpaceflightPage, viewportUtility }, use) => {
-      const ourMissionSteps = new OurMissionsSteps(
+      const ourMissionsSteps = new OurMissionsSteps(
         page,
         humanSpaceflightPage,
         viewportUtility
       );
-      await use(ourMissionSteps);
+      await use(ourMissionsSteps);
     },
     { scope: "test" },
   ],
@@ -277,6 +304,6 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
     },
     { scope: "test", auto: true },
   ],
-}) as TestType<PlaywrightTestArgs & BddFixtures & ConsoleErrorFixture, {}>;
+});
 
 export type { CustomTestArgs };

@@ -35,7 +35,7 @@ export class TheSuitesSteps {
     ).toBeVisible();
   }
 
-  @Then("the section should display core elements:")
+  @Then("the Suits section should display core elements:")
   async checkCoreElements(dataTable: DataTable) {
     const elements = this.parseDataTable<CoreElement>(dataTable);
 

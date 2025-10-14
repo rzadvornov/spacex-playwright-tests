@@ -9,7 +9,7 @@ Feature: Learn About SpaceX Company
 
   @about @overview @mission
   Scenario: View Company Mission and Core Vision
-    When the page loads successfully
+    When the About page loads successfully
     Then the user should see SpaceX's **mission statement** and core vision
     And the mission to make **humanity multiplanetary** should be prominently featured
     And the page should highlight the company's core values and long-term objectives

@@ -22,6 +22,8 @@ import { CareersPage } from "../ui/CareersPage";
 import { CareersSteps } from "../../step-definitions/ui/CareersSteps";
 import { DragonPage } from "../ui/DragonPage";
 import { DragonPageSteps } from "../../step-definitions/ui/DragonPageSteps";
+import { Falcon9Page } from "../ui/Falcon9Page";
+import { Falcon9PageSteps } from "../../step-definitions/ui/Falcon9PageSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -447,7 +449,7 @@ export interface VisualStandard extends CoreRequirement {
 export interface BddFixtures {
   aboutPage: AboutPage;
   aboutPageSteps: AboutPageSteps;
-  accessubilitySteps: AccessibilitySteps;
+  accessibilitySteps: AccessibilitySteps;
   careersPage: CareersPage;
   careersSteps: CareersSteps;
   destinationsSteps: DestinationsSteps;
@@ -458,8 +460,10 @@ export interface BddFixtures {
   homePageSteps: HomePageSteps;
   humanSpaceflightPage: HumanSpaceflightPage;
   humanSpaceflightSteps: HumanSpaceflightSteps;
+  falcon9Page: Falcon9Page; 
+  falcon9PageSteps: Falcon9PageSteps;
   mediaCarouselSteps: MediaCarouselSteps;
-  ourMissionSteps: OurMissionsSteps;
+  ourMissionsSteps: OurMissionsSteps;
   performanceSeoSteps: PerformanceSeoSteps;
   responsiveDesignSteps: ResponsiveDesignSteps;
   theSuitesSteps: TheSuitesSteps;

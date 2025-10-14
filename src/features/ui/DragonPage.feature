@@ -10,7 +10,7 @@ Feature: Explore Dragon Spacecraft Capabilities
   @dragon @overview @value-prop
   Scenario: View Dragon Overview and Core Value
     When the page successfully loads
-    Then the user should see the headline "Sending Humans and Cargo Into Space"
+    Then the user should see the Dragon page headline "Sending Humans and Cargo Into Space"
     And a description of Dragon's full capabilities should be displayed
     And the text should confirm Dragon can carry up to 7 passengers
     And Dragon's unique capability for **cargo return** should be highlighted
@@ -19,7 +19,7 @@ Feature: Explore Dragon Spacecraft Capabilities
 
   @dragon @specifications @technical
   Scenario: Review Key Dragon Technical Specifications
-    When the user scrolls to the specifications section
+    When the user scrolls to the specifications section of the Dragon page
     Then the page should display key technical specifications, including:
       | Specification Field          | Detail         |
       | Passenger capacity           | up to 7        |
@@ -67,7 +67,7 @@ Feature: Explore Dragon Spacecraft Capabilities
 
   @dragon @media @video
   Scenario: Watch Dragon Spacecraft Operations Video
-    When the user clicks on the featured video section
+    When the user clicks on the featured video section of the Dragon page
     Then an embedded video player should successfully load and display the content
     And the video should visually showcase Dragon's **launch, docking, and ocean landing operations**
     And the video should highlight **crew operations** inside the capsule

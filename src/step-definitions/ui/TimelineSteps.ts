@@ -40,7 +40,7 @@ export class TimelineSteps {
     ).toBeVisible();
   }
 
-  @Then("the section should display core elements:")
+  @Then("the Timeline section should display core elements:")
   async checkCoreElements(dataTable: DataTable) {
     const elements = this.parseDataTable<CoreElement>(dataTable);
 
@@ -99,7 +99,7 @@ export class TimelineSteps {
     }).toBe(true);
   }
 
-  @Then("the pagination dot for {string} should be active")
+  @Then("the pagination dot on behalf of {string} should be active")
   async checkPaginationDotActive() {
     const activeIndex =
       await this.humanSpaceflightPage.timeline.getActivePaginationDotIndex();

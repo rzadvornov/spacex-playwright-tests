@@ -287,7 +287,7 @@ export class OurMissionsSteps {
     await this.humanSpaceflightPage.ourMissions.clickJoinMissionButton();
   }
 
-  @Then("the section should display core elements:")
+  @Then("the Our Missions section should display core elements:")
   async checkCoreElements(dataTable: DataTable) {
     const coreElements = parseCoreElements(dataTable.hashes());
     const ourMissionsPOF = this.humanSpaceflightPage
