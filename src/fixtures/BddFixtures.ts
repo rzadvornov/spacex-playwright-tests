@@ -27,6 +27,8 @@ import { AboutPage } from "../pages/ui/AboutPage";
 import { AboutPageSteps } from "../step-definitions/ui/AboutPageSteps";
 import { CareersPage } from "../pages/ui/CareersPage";
 import { CareersSteps } from "../step-definitions/ui/CareersSteps";
+import { DragonPage } from "../pages/ui/DragonPage";
+import { DragonPageSteps } from "../step-definitions/ui/DragonPageSteps";
 
 export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   sharedPageSteps: [
@@ -95,6 +97,22 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
         careersSharedPageSteps
       );
       await use(careersSteps);
+    },
+    { scope: "test" },
+  ],
+  dragonPage: async ({ page }, use) => {
+    const dragonPage = new DragonPage(page);
+    await use(dragonPage);
+  },
+  dragonPageSteps: [
+    async ({ page, dragonPage, assertionHelper }, use) => {
+      const dragonSharedPageSteps = new SharedPageSteps(page);
+      const dragonPageSteps = new DragonPageSteps(
+        dragonPage,
+        assertionHelper,
+        dragonSharedPageSteps
+      );
+      await use(dragonPageSteps);
     },
     { scope: "test" },
   ],

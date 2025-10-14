@@ -20,6 +20,8 @@ import { AboutPageSteps } from "../../step-definitions/ui/AboutPageSteps";
 import { AboutPage } from "../ui/AboutPage";
 import { CareersPage } from "../ui/CareersPage";
 import { CareersSteps } from "../../step-definitions/ui/CareersSteps";
+import { DragonPage } from "../ui/DragonPage";
+import { DragonPageSteps } from "../../step-definitions/ui/DragonPageSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -449,6 +451,8 @@ export interface BddFixtures {
   careersPage: CareersPage;
   careersSteps: CareersSteps;
   destinationsSteps: DestinationsSteps;
+  dragonPage: DragonPage;
+  dragonPageSteps: DragonPageSteps;
   footerSteps: FooterSteps;
   homePage: HomePage;
   homePageSteps: HomePageSteps;
