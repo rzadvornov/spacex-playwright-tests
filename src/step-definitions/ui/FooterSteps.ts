@@ -14,6 +14,7 @@ import {
   SpacingRequirement,
   StyleRequirement,
 } from "../../pages/types/Types";
+import { ViewportUtility } from "../../utils/ViewportUtility";
 
 @Fixture("footerSteps")
 export class FooterSteps {
@@ -23,7 +24,8 @@ export class FooterSteps {
   constructor(
     private page: Page,
     private humanSpaceflightPage: HumanSpaceflightPage,
-    private sharedContext: CustomTestArgs["sharedContext"]
+    private sharedContext: CustomTestArgs["sharedContext"],
+    private viewportUtility: ViewportUtility
   ) {}
 
   @Given("I view the footer")
@@ -331,36 +333,16 @@ export class FooterSteps {
 
   @Then("the footer should be responsive across different screen sizes")
   async checkFooterResponsiveness() {
-    const viewportSizes: BoundingBox[] = [
-      { x: 0, y: 0, width: 375, height: 667 }, // Mobile
-      { x: 0, y: 0, width: 768, height: 1024 }, // Tablet
-      { x: 0, y: 0, width: 1920, height: 1080 }, // Desktop
-    ];
+    await this.viewportUtility.checkAllViewports(async (size: BoundingBox) => {
+      const [socialVisible, linksExist] = await Promise.all([
+        this.humanSpaceflightPage.footer.isSocialMediaSectionVisible(),
+        this.humanSpaceflightPage.footer.checkFooterLinksExist(["Careers"]),
+      ]);
 
-    const originalViewport = this.page.viewportSize();
-
-    try {
-      for (const size of viewportSizes) {
-        await this.page.setViewportSize({
-          width: size.width,
-          height: size.height,
-        });
-        await this.page.waitForTimeout(100);
-
-        const [socialVisible, linksExist] = await Promise.all([
-          this.humanSpaceflightPage.footer.isSocialMediaSectionVisible(),
-          this.humanSpaceflightPage.footer.checkFooterLinksExist(["Careers"]),
-        ]);
-
-        expect(
-          socialVisible && linksExist,
-          `Footer elements should be visible at ${size.width}x${size.height}`
-        ).toBe(true);
-      }
-    } finally {
-      if (originalViewport) {
-        await this.page.setViewportSize(originalViewport);
-      }
-    }
+      expect(
+        socialVisible && linksExist,
+        `Footer elements should be visible at ${size.width}x${size.height}`
+      ).toBe(true);
+    });
   }
 }

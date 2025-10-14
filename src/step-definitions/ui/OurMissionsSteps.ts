@@ -19,16 +19,17 @@ import {
   parseNavigationRequirements,
   parseStructureChecks,
 } from "../../pages/types/TypeGuards";
+import { ViewportUtility } from "../../utils/ViewportUtility";
 
 @Fixture("ourMissionsSteps")
 export class OurMissionsSteps {
   private previousMetrics: Array<MissionMetric> = [];
-  private readonly MIN_CARGO_SCIENCE_ITEMS = 3;
   private readonly OPACITY_RANGE = { min: 0.1, max: 1 };
 
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage
+    private humanSpaceflightPage: HumanSpaceflightPage,
+    private viewportUtility: ViewportUtility
   ) {}
 
   @Given("I view the Our Missions section")
@@ -443,29 +444,12 @@ export class OurMissionsSteps {
 
   @Then("the Our Missions section should be responsive across screen sizes")
   async checkOurMissionsResponsiveness() {
-    const viewportSizes: BoundingBox[] = [
-      { width: 375, height: 667, x: 0, y: 0 }, // Mobile
-      { width: 768, height: 1024, x: 0, y: 0 }, // Tablet
-      { width: 1920, height: 1080, x: 0, y: 0 }, // Desktop
-    ];
+    await this.viewportUtility.checkAllViewports(async (size: BoundingBox) => {
+      const sectionBox =
+        await this.humanSpaceflightPage.ourMissions.ourMissionsSection.boundingBox();
 
-    const originalViewport = this.page.viewportSize();
-
-    try {
-      for (const viewport of viewportSizes) {
-        await this.page.setViewportSize(viewport);
-        await this.page.waitForTimeout(150);
-
-        const sectionBox =
-          await this.humanSpaceflightPage.ourMissions.ourMissionsSection.boundingBox();
-
-        await this.validateResponsiveLayout(viewport, sectionBox);
-      }
-    } finally {
-      if (originalViewport) {
-        await this.page.setViewportSize(originalViewport);
-      }
-    }
+      await this.validateResponsiveLayout(size, sectionBox);
+    });
   }
 
   private async validateResponsiveLayout(

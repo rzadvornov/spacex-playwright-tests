@@ -2,6 +2,7 @@ import { Page, expect } from "@playwright/test";
 import { When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
+import { AssertionHelper } from "../../utils/AssertionHelper";
 
 type ResponsiveRequirements = Record<string, string>;
 type AnyObject = Record<string, any>;
@@ -22,7 +23,8 @@ export class ResponsiveDesignSteps {
 
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage
+    private humanSpaceflightPage: HumanSpaceflightPage,
+    private assertionHelper: AssertionHelper
   ) {}
 
   @Then("the page should maintain responsive integrity:")
@@ -45,29 +47,30 @@ export class ResponsiveDesignSteps {
       gridImplemented,
     ] = checks;
 
-    this.assertResponsiveCheck(
-      viewportMeta,
-      requirements.Viewport,
-      "Viewport meta tag should be properly configured"
-    );
-    this.assertResponsiveCheck(
+    if (requirements.Viewport) {
+      this.assertionHelper.assertValuePresent(
+        viewportMeta,
+        "Viewport meta tag should be properly configured"
+      );
+    }
+
+    this.assertionHelper.assertValuePresent(
       mediaQueriesActive,
-      requirements["Media Queries"],
-      "Media queries should be active"
+      requirements["Media Queries"] || "Media queries should be active"
     );
-    this.assertResponsiveCheck(
+
+    this.assertionHelper.assertValuePresent(
       usesRelativeUnits,
-      requirements["Base Font"],
-      "Font units should be relative (rem/em)"
+      requirements["Base Font"] || "Font units should be relative (rem/em)"
     );
-    this.assertResponsiveCheck(
+
+    this.assertionHelper.assertValuePresent(
       containerFluid,
-      undefined,
       "Container should be fluid with max-width limits"
     );
-    this.assertResponsiveCheck(
+
+    this.assertionHelper.assertValuePresent(
       gridImplemented,
-      undefined,
       "Grid system should be implemented"
     );
   }
@@ -809,12 +812,4 @@ export class ResponsiveDesignSteps {
     );
   }
 
-  private assertResponsiveCheck(
-    actual: any,
-    expected: string | undefined,
-    defaultMessage: string
-  ): void {
-    const message = expected || defaultMessage;
-    expect(actual, message).toBeTruthy();
-  }
 }

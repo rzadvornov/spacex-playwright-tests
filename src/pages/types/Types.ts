@@ -14,6 +14,8 @@ import { ResponsiveDesignSteps } from "../../step-definitions/ui/ResponsiveDesig
 import { TheSuitesSteps } from "../../step-definitions/ui/TheSuitesSteps";
 import { TimelineSteps } from "../../step-definitions/ui/TimelineSteps";
 import { VehiclesSteps } from "../../step-definitions/ui/VehiclesSteps";
+import { AssertionHelper } from "../../utils/AssertionHelper";
+import { ViewportUtility } from "../../utils/ViewportUtility";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -453,4 +455,6 @@ export interface BddFixtures {
   vehiclesSteps: VehiclesSteps;
   sharedContext: SharedContext;
   sharedPageSteps: SharedPageSteps;
+  assertionHelper: AssertionHelper;
+  viewportUtility: ViewportUtility;
 }

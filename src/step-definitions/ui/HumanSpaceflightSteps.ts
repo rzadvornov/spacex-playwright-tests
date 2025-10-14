@@ -19,6 +19,7 @@ import {
   parsePerformanceMetrics,
   parseMetadataItems,
 } from "../../pages/types/TypeGuards";
+import { ViewportUtility } from "../../utils/ViewportUtility";
 
 @Fixture("humanSpaceflightSteps")
 export class HumanSpaceflightSteps {
@@ -38,7 +39,8 @@ export class HumanSpaceflightSteps {
     private page: Page,
     private humanSpaceflightPage: HumanSpaceflightPage,
     private sharedContext: CustomTestArgs["sharedContext"],
-    private sharedPageSteps: SharedPageSteps
+    private sharedPageSteps: SharedPageSteps,
+    private viewportUtility: ViewportUtility
   ) {}
 
   @Given("I am on the SpaceX Human Spaceflight page")
@@ -414,37 +416,16 @@ export class HumanSpaceflightSteps {
 
   @Then("the page should be responsive across different screen sizes")
   async checkPageResponsiveness() {
-    const viewportSizes: BoundingBox[] = [
-      { x: 0, y: 0, width: 375, height: 667 }, // Mobile
-      { x: 0, y: 0, width: 768, height: 1024 }, // Tablet
-      { x: 0, y: 0, width: 1920, height: 1080 }, // Desktop
-    ];
+    await this.viewportUtility.checkAllViewports(async (size: BoundingBox) => {
+      const [heroVisible, headerVisible] = await Promise.all([
+        this.humanSpaceflightPage.hero.isHeroSectionVisible(),
+        this.humanSpaceflightPage.header.isHeaderVisible(),
+      ]);
 
-    const originalViewport = this.page.viewportSize();
-
-    try {
-      for (const size of viewportSizes) {
-        // Extract just width and height for setViewportSize
-        await this.page.setViewportSize({
-          width: size.width,
-          height: size.height,
-        });
-        await this.page.waitForTimeout(100);
-
-        const [heroVisible, headerVisible] = await Promise.all([
-          this.humanSpaceflightPage.hero.isHeroSectionVisible(),
-          this.humanSpaceflightPage.header.isHeaderVisible(),
-        ]);
-
-        expect(
-          heroVisible && headerVisible,
-          `Page should be responsive at ${size.width}x${size.height}`
-        ).toBe(true);
-      }
-    } finally {
-      if (originalViewport) {
-        await this.page.setViewportSize(originalViewport);
-      }
-    }
+      expect(
+        heroVisible && headerVisible,
+        `Page should be responsive at ${size.width}x${size.height}`
+      ).toBe(true);
+    });
   }
 }

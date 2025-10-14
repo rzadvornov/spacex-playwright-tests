@@ -21,6 +21,8 @@ import { ResponsiveDesignSteps } from "../step-definitions/ui/ResponsiveDesignSt
 import { TheSuitesSteps } from "../step-definitions/ui/TheSuitesSteps";
 import { TimelineSteps } from "../step-definitions/ui/TimelineSteps";
 import { VehiclesSteps } from "../step-definitions/ui/VehiclesSteps";
+import { AssertionHelper } from "../utils/AssertionHelper";
+import { ViewportUtility } from "../utils/ViewportUtility";
 
 export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   sharedPageSteps: [
@@ -42,6 +44,20 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
         initialViewport: undefined,
       };
       await use(context);
+    },
+    { scope: "test" },
+  ],
+  assertionHelper: [
+    async ({ page }, use) => {
+      const helper = new AssertionHelper(page);
+      await use(helper);
+    },
+    { scope: "test" },
+  ],
+  viewportUtility: [
+    async ({ page }, use) => {
+      const utility = new ViewportUtility(page);
+      await use(utility);
     },
     { scope: "test" },
   ],
@@ -67,82 +83,101 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
     await use(humanSpaceflightPage);
   },
   humanSpaceflightSteps: [
-    async ({ page, humanSpaceflightPage, sharedContext }, use) => {
-      const humanSharedPageSteps = new SharedPageSteps(page);
+    async (
+      { page, humanSpaceflightPage, sharedContext, sharedPageSteps, viewportUtility },
+      use
+    ) => {
       const humanSpaceflightSteps = new HumanSpaceflightSteps(
         page,
         humanSpaceflightPage,
         sharedContext,
-        humanSharedPageSteps
+        sharedPageSteps,
+        viewportUtility
       );
       await use(humanSpaceflightSteps);
     },
     { scope: "test" },
   ],
   footerSteps: [
-    async ({ page, humanSpaceflightPage, sharedContext }, use) => {
+    async (
+      { page, humanSpaceflightPage, sharedContext, viewportUtility },
+      use
+    ) => {
       const footerSteps = new FooterSteps(
         page,
         humanSpaceflightPage,
-        sharedContext
+        sharedContext,
+        viewportUtility
       );
       await use(footerSteps);
     },
     { scope: "test" },
   ],
   destinationsSteps: [
-    async ({ page, humanSpaceflightPage }, use) => {
+    async ({ page, humanSpaceflightPage, viewportUtility }, use) => {
       const destinationsSteps = new DestinationsSteps(
         page,
-        humanSpaceflightPage
+        humanSpaceflightPage,
+        viewportUtility
       );
       await use(destinationsSteps);
     },
     { scope: "test" },
   ],
   accessubilitySteps: [
-    async ({ page, humanSpaceflightPage }, use) => {
+    async ({ page, humanSpaceflightPage, assertionHelper }, use) => {
       const accessibilitySteps = new AccessibilitySteps(
         page,
-        humanSpaceflightPage
+        humanSpaceflightPage,
+        assertionHelper
       );
       await use(accessibilitySteps);
     },
     { scope: "test" },
   ],
   mediaCarouselSteps: [
-    async ({ page, humanSpaceflightPage }, use) => {
+    async ({ page, humanSpaceflightPage, viewportUtility }, use) => {
       const mediaCarouselSteps = new MediaCarouselSteps(
         page,
-        humanSpaceflightPage
+        humanSpaceflightPage,
+        viewportUtility
       );
       await use(mediaCarouselSteps);
     },
     { scope: "test" },
   ],
   ourMissionSteps: [
-    async ({ page, humanSpaceflightPage }, use) => {
-      const ourMissionSteps = new OurMissionsSteps(page, humanSpaceflightPage);
+    async ({ page, humanSpaceflightPage, viewportUtility }, use) => {
+      const ourMissionSteps = new OurMissionsSteps(
+        page,
+        humanSpaceflightPage,
+        viewportUtility
+      );
       await use(ourMissionSteps);
     },
     { scope: "test" },
   ],
   performanceSeoSteps: [
-    async ({ page, humanSpaceflightPage, sharedContext }, use) => {
+    async (
+      { page, humanSpaceflightPage, sharedContext, assertionHelper },
+      use
+    ) => {
       const performanceSeoSteps = new PerformanceSeoSteps(
         page,
         humanSpaceflightPage,
-        sharedContext
+        sharedContext,
+        assertionHelper
       );
       await use(performanceSeoSteps);
     },
     { scope: "test" },
   ],
   responsiveDesignSteps: [
-    async ({ page, humanSpaceflightPage }, use) => {
+    async ({ page, humanSpaceflightPage, assertionHelper }, use) => {
       const responsiveDesignSteps = new ResponsiveDesignSteps(
         page,
-        humanSpaceflightPage
+        humanSpaceflightPage,
+        assertionHelper
       );
       await use(responsiveDesignSteps);
     },

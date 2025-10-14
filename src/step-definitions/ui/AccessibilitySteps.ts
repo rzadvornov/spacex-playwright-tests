@@ -8,6 +8,7 @@ import {
   parseHeadingExpectations,
   parseLandmarkExpectations,
 } from "../../pages/types/TypeGuards";
+import { AssertionHelper } from "../../utils/AssertionHelper";
 
 @Fixture("accessibilitySteps")
 export class AccessibilitySteps {
@@ -21,7 +22,8 @@ export class AccessibilitySteps {
 
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage
+    private humanSpaceflightPage: HumanSpaceflightPage,
+    private assertionHelper: AssertionHelper
   ) {}
 
   @Then("the page heading structure should be correct:")
@@ -70,22 +72,18 @@ export class AccessibilitySteps {
 
   @Then("all headings should be properly nested")
   async checkHeadingNesting() {
-    const isNested =
-      await this.humanSpaceflightPage.accessibility.checkHeadingHierarchy();
-    expect(
-      isNested,
+    await this.assertionHelper.validateBooleanCheck(
+      () => this.humanSpaceflightPage.accessibility.checkHeadingHierarchy(),
       "Heading hierarchy is not properly nested (e.g., skipped a level: H1 -> H3)"
-    ).toBe(true);
+    );
   }
 
   @Then("each major section should have a descriptive heading")
   async checkSectionHeadings() {
-    const hasHeadings =
-      await this.humanSpaceflightPage.accessibility.hasSectionHeadings();
-    expect(
-      hasHeadings,
+    await this.assertionHelper.validateBooleanCheck(
+      () => this.humanSpaceflightPage.accessibility.hasSectionHeadings(),
       "The page should have a sufficient number of H2/H3 tags for sections"
-    ).toBe(true);
+    );
   }
 
   @Then("the page should have the following landmarks:")
@@ -183,14 +181,13 @@ export class AccessibilitySteps {
 
   @Then("all links should have a consistent visual focus indicator")
   async checkFocusIndicator() {
-    const results =
-      await this.humanSpaceflightPage.accessibility.checkKeyboardAccessibility(
-        this.ELEMENT_SELECTORS.INTERACTIVE
-      );
-    expect(
-      results.hasFocusIndicator,
+    await this.assertionHelper.validateBooleanCheck(
+      () =>
+        this.humanSpaceflightPage.accessibility
+          .checkKeyboardAccessibility(this.ELEMENT_SELECTORS.INTERACTIVE)
+          .then((results) => results.hasFocusIndicator),
       "Interactive elements must show a visible focus indicator"
-    ).toBe(true);
+    );
   }
 
   @Then(
@@ -198,14 +195,13 @@ export class AccessibilitySteps {
   )
   async checkContrast(ratio: number, ratioValue: number) {
     const fullRatio = `${ratio}:${ratioValue}`;
-    const hasMinContrast =
-      await this.humanSpaceflightPage.accessibility.checkMinimumColorContrast(
-        parseFloat(fullRatio)
-      );
-    expect(
-      hasMinContrast,
+    await this.assertionHelper.validateBooleanCheck(
+      () =>
+        this.humanSpaceflightPage.accessibility.checkMinimumColorContrast(
+          parseFloat(fullRatio)
+        ),
       `Color contrast should meet the minimum ratio of ${fullRatio}`
-    ).toBe(true);
+    );
   }
 
   @Then("all links should be distinguishable without relying on color alone")
@@ -325,22 +321,18 @@ export class AccessibilitySteps {
 
   @Then("updates should be properly announced")
   async checkUpdatesAnnounced() {
-    const isAriaLiveUsed =
-      await this.humanSpaceflightPage.accessibility.isAriaLiveRegionUsed();
-    expect(
-      isAriaLiveUsed,
+    await this.assertionHelper.validateBooleanCheck(
+      () => this.humanSpaceflightPage.accessibility.isAriaLiveRegionUsed(),
       "Dynamic content updates must be in an aria-live region to be announced"
-    ).toBe(true);
+    );
   }
 
   @Then("ARIA live regions should be appropriately used")
   async checkAriaLiveRegionUsage() {
-    const isAriaLiveUsed =
-      await this.humanSpaceflightPage.accessibility.isAriaLiveRegionUsed();
-    expect(
-      isAriaLiveUsed,
+    await this.assertionHelper.validateBooleanCheck(
+      () => this.humanSpaceflightPage.accessibility.isAriaLiveRegionUsed(),
       "ARIA live regions (polite/assertive) must be used for dynamic content"
-    ).toBe(true);
+    );
   }
 
   @Then("language attributes should be correctly set:")
@@ -368,13 +360,5 @@ export class AccessibilitySteps {
       lang,
       "Language must be set for screen readers to use correct pronunciation."
     ).toBeTruthy();
-  }
-
-  private async validateAccessibilityRequirement(
-    checkMethod: () => Promise<boolean>,
-    errorMessage: string
-  ): Promise<void> {
-    const result = await checkMethod();
-    expect(result, errorMessage).toBe(true);
   }
 }

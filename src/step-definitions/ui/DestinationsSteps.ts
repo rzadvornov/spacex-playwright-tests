@@ -2,25 +2,16 @@ import { Page, expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
-import {
-  BoundingBox,
-  DestinationInfo,
-  InteractiveState,
-} from "../../pages/types/Types";
+import { DestinationInfo, InteractiveState } from "../../pages/types/Types";
 import {
   parseDestinationInfo,
   parseBackgroundCharacteristics,
   parseInteractiveStates,
 } from "../../pages/types/TypeGuards";
+import { ViewportUtility } from "../../utils/ViewportUtility";
 
 @Fixture("destinationsSteps")
 export class DestinationsSteps {
-  private readonly VIEWPORT_SIZES: BoundingBox[] = [
-    { x: 0, y: 0, width: 375, height: 667 }, // Mobile
-    { x: 0, y: 0, width: 768, height: 1024 }, // Tablet
-    { x: 0, y: 0, width: 1920, height: 1080 }, // Desktop
-  ];
-
   private readonly INTERACTION_ELEMENTS: Record<string, string> = {
     "destination card": "Earth Orbit",
     "interactive overlay": "Space Station",
@@ -35,7 +26,8 @@ export class DestinationsSteps {
 
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage
+    private humanSpaceflightPage: HumanSpaceflightPage,
+    private viewportUtility: ViewportUtility
   ) {}
 
   @Given("I view the Destinations section")
@@ -149,28 +141,15 @@ export class DestinationsSteps {
 
   @Then("visual elements should maintain quality across screen sizes")
   async checkVisualQualityAcrossScreenSizes() {
-    const originalViewport = this.page.viewportSize();
+    await this.viewportUtility.checkAllViewports(async (size) => {
+      const allMediaVisible =
+        await this.humanSpaceflightPage.destinations.areAllDestinationMediaVisible();
 
-    try {
-      for (const size of this.VIEWPORT_SIZES) {
-        await this.page.setViewportSize({
-          width: size.width,
-          height: size.height,
-        });
-        await this.page.waitForTimeout(100);
-
-        const allMediaVisible =
-          await this.humanSpaceflightPage.destinations.areAllDestinationMediaVisible();
-        expect(
-          allMediaVisible,
-          `Visual elements should be visible at ${size.width}x${size.height}`
-        ).toBe(true);
-      }
-    } finally {
-      if (originalViewport) {
-        await this.page.setViewportSize(originalViewport);
-      }
-    }
+      expect(
+        allMediaVisible,
+        `Visual elements should be visible at ${size.width}x${size.height}`
+      ).toBe(true);
+    });
   }
 
   @Then("the background should have these characteristics:")

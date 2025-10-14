@@ -4,6 +4,7 @@ import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
 import { parseMediaTiles } from "../../pages/types/TypeGuards";
 import { BoundingBox, MediaTile } from "../../pages/types/Types";
+import { ViewportUtility } from "../../utils/ViewportUtility";
 
 @Fixture("mediaCarouselSteps")
 export class MediaCarouselSteps {
@@ -11,7 +12,8 @@ export class MediaCarouselSteps {
 
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage
+    private humanSpaceflightPage: HumanSpaceflightPage,
+    private viewportUtility: ViewportUtility
   ) {}
 
   @When("I view the media carousel section")
@@ -281,36 +283,16 @@ export class MediaCarouselSteps {
 
   @Then("the media carousel should be responsive across screen sizes")
   async checkCarouselResponsiveness() {
-    const viewportSizes: BoundingBox[] = [
-      { x: 0, y: 0, width: 375, height: 667 }, // Mobile
-      { x: 0, y: 0, width: 768, height: 1024 }, // Tablet
-      { x: 0, y: 0, width: 1920, height: 1080 }, // Desktop
-    ];
+    await this.viewportUtility.checkAllViewports(async (size: BoundingBox) => {
+      const [carouselVisible, navigationVisible] = await Promise.all([
+        this.humanSpaceflightPage.mediaCarousel.isVisible(),
+        this.humanSpaceflightPage.mediaCarousel.areNavigationArrowsVisible(),
+      ]);
 
-    const originalViewport = this.page.viewportSize();
-
-    try {
-      for (const size of viewportSizes) {
-        await this.page.setViewportSize({
-          width: size.width,
-          height: size.height,
-        });
-        await this.page.waitForTimeout(100);
-
-        const [carouselVisible, navigationVisible] = await Promise.all([
-          this.humanSpaceflightPage.mediaCarousel.isVisible(),
-          this.humanSpaceflightPage.mediaCarousel.areNavigationArrowsVisible(),
-        ]);
-
-        expect(
-          carouselVisible && navigationVisible,
-          `Media carousel should be responsive at ${size.width}x${size.height}`
-        ).toBe(true);
-      }
-    } finally {
-      if (originalViewport) {
-        await this.page.setViewportSize(originalViewport);
-      }
-    }
+      expect(
+        carouselVisible && navigationVisible,
+        `Media carousel should be responsive at ${size.width}x${size.height}`
+      ).toBe(true);
+    });
   }
 }

@@ -3,11 +3,12 @@ import { When, Then, Fixture } from "playwright-bdd/decorators";
 import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
 import { CustomTestArgs } from "../../fixtures/BddFixtures";
 import type { ImageInfo, PerformanceMetrics } from "../../pages/types/Types";
+import { AssertionHelper } from "../../utils/AssertionHelper";
 
 @Fixture("performanceSeoSteps")
 export class PerformanceSeoSteps {
   private readonly PERFORMANCE_THRESHOLDS = {
-    MAX_IMAGE_SIZE: 1_000_000, // 1MB
+    MAX_IMAGE_SIZE: 1_000_000,
     MIN_COMPRESSION_RATIO: 0.8,
     MAX_LCP_STD_DEV: 1000,
     MAX_HEADING_LEVEL_SKIP: 1,
@@ -16,13 +17,14 @@ export class PerformanceSeoSteps {
   constructor(
     private page: Page,
     private humanSpaceflightPage: HumanSpaceflightPage,
-    private sharedContext: CustomTestArgs["sharedContext"]
+    private sharedContext: CustomTestArgs["sharedContext"],
+    private assertionHelper: AssertionHelper
   ) {}
 
   @Then("the Largest Contentful Paint should be less than {int} ms")
   async checkLCP(maxLCP: number) {
     const metrics = await this.getPerformanceMetrics();
-    this.assertMetric(
+    this.assertionHelper.assertMetric(
       metrics.lcp,
       maxLCP,
       `LCP should be less than ${maxLCP}ms`
@@ -32,7 +34,7 @@ export class PerformanceSeoSteps {
   @Then("the First Input Delay should be less than {int} ms")
   async checkFID(maxFID: number) {
     const metrics = await this.getPerformanceMetrics();
-    this.assertMetric(
+    this.assertionHelper.assertMetric(
       metrics.fid,
       maxFID,
       `FID should be less than ${maxFID}ms`
@@ -42,7 +44,11 @@ export class PerformanceSeoSteps {
   @Then("the Cumulative Layout Shift should be less than {float}")
   async checkCLS(maxCLS: number) {
     const metrics = await this.getPerformanceMetrics();
-    this.assertMetric(metrics.cls, maxCLS, `CLS should be less than ${maxCLS}`);
+    this.assertionHelper.assertMetric(
+      metrics.cls,
+      maxCLS,
+      `CLS should be less than ${maxCLS}`
+    );
   }
 
   @Then("the page should score at least {int} on Lighthouse performance")
@@ -66,7 +72,7 @@ export class PerformanceSeoSteps {
   @Then("the Time to First Byte should be less than {int} ms")
   async checkTTFB(maxTTFB: number) {
     const metrics = await this.getPerformanceMetrics();
-    this.assertMetric(
+    this.assertionHelper.assertMetric(
       metrics.ttfb,
       maxTTFB,
       `TTFB should be less than ${maxTTFB}ms`
@@ -76,7 +82,7 @@ export class PerformanceSeoSteps {
   @Then("the First Contentful Paint should be less than {int} ms")
   async checkFCP(maxFCP: number) {
     const metrics = await this.getPerformanceMetrics();
-    this.assertMetric(
+    this.assertionHelper.assertMetric(
       metrics.fcp,
       maxFCP,
       `FCP should be less than ${maxFCP}ms`
@@ -324,16 +330,6 @@ export class PerformanceSeoSteps {
 
   private async getImageOptimizationInfo(): Promise<ImageInfo[]> {
     return await this.humanSpaceflightPage.performanceSEO.getImageOptimizationInfo();
-  }
-
-  private assertMetric(
-    actual: number | undefined,
-    maxAllowed: number,
-    message: string
-  ): void {
-    expect(actual, {
-      message: `${message}. Actual value: ${actual}`,
-    }).toBeLessThan(maxAllowed);
   }
 
   private calculateStandardDeviation(values: number[]): number {
