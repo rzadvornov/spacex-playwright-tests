@@ -28,6 +28,8 @@ import { FalconHeavyPage } from "../ui/FalconHeavyPage";
 import { FalconHeavyPageSteps } from "../../step-definitions/ui/FalconHeavyPageSteps";
 import { MissionsPage } from "../ui/MissionsPage";
 import { MissionsSteps } from "../../step-definitions/ui/MissionsPageSteps";
+import { RidesharePage } from "../ui/RidesharePage";
+import { RidesharePageSteps } from "../../step-definitions/ui/RidesharePageSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -525,6 +527,22 @@ export type MobileMenuTable = {
   "Expected Outcome": string;
 }[];
 
+export type RideshareSpecTable = {
+  "Plate Configuration": string;
+  "Bolt Pattern": string;
+  "Included Mass": string;
+}[];
+
+export type DocumentationTable = {
+  "Documentation Name": string;
+  Status: string;
+}[];
+
+export type FalconSpecTable = {
+  Attribute: string;
+  Detail: string;
+}[];
+
 export interface BddFixtures {
   aboutPage: AboutPage;
   aboutPageSteps: AboutPageSteps;
@@ -549,6 +567,8 @@ export interface BddFixtures {
   ourMissionsSteps: OurMissionsSteps;
   performanceSeoSteps: PerformanceSeoSteps;
   responsiveDesignSteps: ResponsiveDesignSteps;
+  ridesharePage: RidesharePage;
+  ridesharePageSteps: RidesharePageSteps;
   theSuitesSteps: TheSuitesSteps;
   timelineSteps: TimelineSteps;
   vehiclesSteps: VehiclesSteps;

@@ -9,7 +9,7 @@ Feature: Explore Career Opportunities at SpaceX
 
   @careers @overview @mission
   Scenario: View Careers Overview and Mission Alignment
-    When the page loads initially
+    When the Careers page loads initially
     Then the user should see the headline mentioning **"world-class talent" and "challenging projects"**
     And a description of SpaceX's mission and culture should be displayed
     And the content should emphasize **direct contribution to making humanity multiplanetary**

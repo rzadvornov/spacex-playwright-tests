@@ -9,7 +9,7 @@ Feature: Explore Starlink Satellite Internet Service
 
   @starlink @overview @benefits
   Scenario: View Starlink Overview and Key Service Benefits
-    When the page loads initially
+    When the Starlink page loads initially
     Then the user should see information about Starlink satellite internet
     And the mission to provide **global connectivity** should be highlighted
     And the service should clearly describe its core value propositions:

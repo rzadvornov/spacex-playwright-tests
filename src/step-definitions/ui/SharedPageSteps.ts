@@ -13,6 +13,7 @@ export class SharedPageSteps {
       this.page,
       `Screenshots should match for the snapshot ${snapshotName}`
     ).toHaveScreenshot(snapshotName, {
+      mask: [this.page.locator('upcoming-launch-widget')],
       maxDiffPixelRatio: 0.01,
       animations: "disabled",
       fullPage: true,

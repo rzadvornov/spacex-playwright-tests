@@ -20,11 +20,15 @@ export class MissionsSteps {
   }
 
   @Given("the list of all available missions is successfully loaded")
-  @When("the page loads initially")
   async missionListLoadsSuccessfully() {
     await this.missionsPage.waitForAppContentLoad();
     await expect(this.missionsPage.missionList).toBeVisible();
     await expect(this.missionsPage.missionCard.first()).toBeVisible();
+  }
+
+  @When("the Mission page loads initially")
+  async missionPageLoadsInitially() {
+    await this.missionListLoadsSuccessfully();
   }
 
   @Then("the user should see a list of completed and upcoming SpaceX missions")
@@ -206,10 +210,13 @@ export class MissionsSteps {
     await this.missionsPage.selectSortOption(sortOption);
   }
 
-  @Then('if the user enters a search term like {string} \\(which has no matches)')
+  @Then(
+    "if the user enters a search term like {string} \\(which has no matches)"
+  )
   async conditionalSearchPreamble(noMatchTerm: string) {
-      // No functional code is required here.
-      console.log(`Precondition met: The user has searched for a term ('${noMatchTerm}') that yields no results.`);
+    console.log(
+      `Precondition met: The user has searched for a term ('${noMatchTerm}') that yields no results.`
+    );
   }
 
   @Then(

@@ -10,7 +10,7 @@ Feature: Browse and Filter SpaceX Missions
 
   @missions @list @display
   Scenario: View Mission List with Core Details and Chronological Order
-    When the page loads initially
+    When the Mission page loads initially
     Then the user should see a list of completed and upcoming SpaceX missions
     And each mission card should accurately display the **launch date, mission name, and vehicle type**
     And the mission list should be ordered **chronologically from most recent to oldest**
@@ -45,7 +45,7 @@ Feature: Browse and Filter SpaceX Missions
 
   @missions @statistics @data-integrity
   Scenario: View Top-Level Mission Statistics
-    When the page loads initially
+    When the Mission page loads initially
     Then a statistics panel should be displayed
     And the panel should show key metrics, including total missions, successful launches, and total payload deployed
     And the displayed statistics should update automatically when a new mission is marked as completed

@@ -9,7 +9,7 @@ Feature: Utilize SpaceX Rideshare Payload Service
 
   @rideshare @overview @pricing
   Scenario: View Rideshare Program Overview and Anchor Pricing
-    When the page loads initially
+    When the Rideshare page loads initially
     Then the user should see a headline referencing **dedicated Rideshare Missions**
     And the anchor price should be highlighted as "as Low as $325k"
     And a brief overview of the high-level program value should be displayed

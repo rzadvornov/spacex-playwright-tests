@@ -9,7 +9,7 @@ Feature: Browse and Purchase SpaceX Merchandise
 
   @shop @browsing @navigation
   Scenario: View Shop Homepage and Navigation Elements
-    When the page loads initially
+    When the Shop page loads initially
     Then the user should see featured merchandise products prominently displayed
     And all major **product categories** should be clearly visible and accessible
     And a **search functionality** (search bar) should be available

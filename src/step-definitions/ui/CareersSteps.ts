@@ -52,7 +52,7 @@ export class CareersSteps {
     await this.careersPage.waitForAppContentLoad();
   }
 
-  @When("the page loads initially")
+  @When("the Careers page loads initially")
   async thePageLoadsInitially() {
     await this.assertionHelper.validateBooleanCheck(
       () => this.careersPage.careersHeading.isVisible(),

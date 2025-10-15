@@ -10,7 +10,7 @@ Feature: View SpaceX News and Mission Updates
 
   @updates @display @ordering
   Scenario: View Latest Updates in Reverse Chronological Order
-    When the page loads initially
+    When the Updates page loads initially
     Then the user should see the most recent SpaceX news and updates prominently displayed
     And the displayed updates should be ordered in **reverse chronological order** (newest first)
     And each update card should clearly show the **date, title, and a summary/excerpt**
