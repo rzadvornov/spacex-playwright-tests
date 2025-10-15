@@ -32,6 +32,8 @@ import { Falcon9Page } from "../pages/ui/Falcon9Page";
 import { Falcon9PageSteps } from "../step-definitions/ui/Falcon9PageSteps";
 import { FalconHeavyPage } from "../pages/ui/FalconHeavyPage";
 import { FalconHeavyPageSteps } from "../step-definitions/ui/FalconHeavyPageSteps";
+import { MissionsPage } from "../pages/ui/MissionsPage";
+import { MissionsSteps } from "../step-definitions/ui/MissionsPageSteps";
 
 export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   sharedPageSteps: [
@@ -167,6 +169,23 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
         assertionHelper
       );
       await use(homePageSteps);
+    },
+    { scope: "test" },
+  ],
+  missionsPage: async ({ page }, use) => {
+    const missionsPage = new MissionsPage(page);
+    await use(missionsPage);
+  },
+  missionsSteps: [
+    async ({ page, missionsPage, assertionHelper }, use) => {
+      const missionsSharedPageSteps = new SharedPageSteps(page);
+      const missionsSteps = new MissionsSteps(
+        page,
+        missionsPage,
+        missionsSharedPageSteps,
+        assertionHelper
+      );
+      await use(missionsSteps);
     },
     { scope: "test" },
   ],

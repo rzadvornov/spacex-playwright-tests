@@ -26,6 +26,8 @@ import { Falcon9Page } from "../ui/Falcon9Page";
 import { Falcon9PageSteps } from "../../step-definitions/ui/Falcon9PageSteps";
 import { FalconHeavyPage } from "../ui/FalconHeavyPage";
 import { FalconHeavyPageSteps } from "../../step-definitions/ui/FalconHeavyPageSteps";
+import { MissionsPage } from "../ui/MissionsPage";
+import { MissionsSteps } from "../../step-definitions/ui/MissionsPageSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -542,6 +544,8 @@ export interface BddFixtures {
   falconHeavyPage: FalconHeavyPage;
   falconHeavyPageSteps: FalconHeavyPageSteps;
   mediaCarouselSteps: MediaCarouselSteps;
+  missionsPage: MissionsPage
+  missionsSteps: MissionsSteps;
   ourMissionsSteps: OurMissionsSteps;
   performanceSeoSteps: PerformanceSeoSteps;
   responsiveDesignSteps: ResponsiveDesignSteps;

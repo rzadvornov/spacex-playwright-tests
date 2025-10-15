@@ -19,7 +19,7 @@ Feature: Browse and Filter SpaceX Missions
   @missions @filter @vehicle
   Scenario: Filter Missions by Vehicle Type
     When the user selects the vehicle filter with the value "Falcon Heavy"
-    Then the mission list should update to show **only** missions launched by Falcon Heavy
+    Then the mission list should update to show **only** missions launched by "Falcon Heavy"
     And the total count of filtered missions should be displayed prominently (e.g., "Showing 7 of 150 Missions")
     And the vehicle filter should allow multiple selections (e.g., "Falcon 9, Dragon")
 
@@ -33,7 +33,7 @@ Feature: Browse and Filter SpaceX Missions
   @missions @filter @status
   Scenario: Filter Missions by Status
     When the user selects the status filter with the value "Upcoming"
-    Then the mission list should display **only** missions with the Upcoming status
+    Then the mission list should display **only** missions with the "Upcoming" status
     And for each upcoming mission, a **scheduled launch date and time** should be clearly visible
 
   @missions @search @data-integrity
@@ -45,7 +45,7 @@ Feature: Browse and Filter SpaceX Missions
 
   @missions @statistics @data-integrity
   Scenario: View Top-Level Mission Statistics
-    When the page loads
+    When the page loads initially
     Then a statistics panel should be displayed
     And the panel should show key metrics, including total missions, successful launches, and total payload deployed
     And the displayed statistics should update automatically when a new mission is marked as completed
@@ -55,7 +55,7 @@ Feature: Browse and Filter SpaceX Missions
     When the user selects the sorting option "Vehicle Type"
     Then the mission list should reorder to group missions by their vehicle type
     And the user interface should visually indicate that "Vehicle Type" is the active sort criteria
-    And when the user selects the sorting option "Success Rate"
+    And the user selects the sorting option "Success Rate"
     Then missions should be ordered based on the success rate of the vehicle used
 
   @missions @livestream @timing
