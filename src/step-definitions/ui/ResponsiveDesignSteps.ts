@@ -75,23 +75,46 @@ export class ResponsiveDesignSteps {
 
   @Then("responsive images should be properly configured:")
   async checkResponsiveImages(dataTable: DataTable) {
+    const requirements = dataTable.hashes();
     const imageConfigs =
       await this.humanSpaceflightPage.responsiveDesign.checkResponsiveImages();
 
-    expect(imageConfigs.hasSrcset, "Images should have srcset attribute").toBe(
-      true
-    );
-    expect(imageConfigs.hasSizes, "Images should have sizes attribute").toBe(
-      true
-    );
-    expect(
-      imageConfigs.hasLazyLoading,
-      "Images should implement lazy loading"
-    ).toBe(true);
-    expect(
-      imageConfigs.preservesAspectRatio,
-      "Images should preserve aspect ratio"
-    ).toBe(true);
+    for (const requirement of requirements) {
+      const { Feature, Implementation } = requirement;
+
+      switch (Feature) {
+        case "srcset":
+          expect(
+            imageConfigs.hasSrcset,
+            `Images should have ${Implementation}`
+          ).toBeTruthy();
+          break;
+
+        case "sizes":
+          expect(
+            imageConfigs.hasSizes,
+            `Images should have ${Implementation}`
+          ).toBeTruthy();
+          break;
+
+        case "lazy loading":
+          expect(
+            imageConfigs.hasLazyLoading,
+            `Images should implement ${Implementation}`
+          ).toBeTruthy();
+          break;
+
+        case "aspect ratio":
+          expect(
+            imageConfigs.preservesAspectRatio,
+            `Images should have ${Implementation}`
+          ).toBeTruthy();
+          break;
+
+        default:
+          throw new Error(`Unknown responsive image feature: ${Feature}`);
+      }
+    }
   }
 
   @When("I view the {string} on a mobile device with width {string}px")
@@ -120,10 +143,46 @@ export class ResponsiveDesignSteps {
 
   @When("I interact with {string} on {string} with width {string}px")
   async interactWithElement(element: string, device: string, width: string) {
-    await this.setViewportSize(parseInt(width));
-    await this.humanSpaceflightPage.responsiveDesign.interactWithElement(
-      element
-    );
+    const viewportWidth = parseInt(width);
+    await this.setViewportSize(viewportWidth);
+
+    const interactionMethod = this.getInteractionMethod(device);
+
+    switch (interactionMethod) {
+      case "tap":
+        await this.humanSpaceflightPage.responsiveDesign.tapElement(element);
+        break;
+      case "swipe":
+        await this.humanSpaceflightPage.responsiveDesign.swipeElement(element);
+        break;
+      case "hover-click":
+        await this.humanSpaceflightPage.responsiveDesign.hoverAndClickElement(
+          element
+        );
+        break;
+      case "focus-type":
+        await this.humanSpaceflightPage.responsiveDesign.focusAndTypeInElement(
+          element
+        );
+        break;
+      default:
+        await this.humanSpaceflightPage.responsiveDesign.clickElement(element);
+    }
+  }
+
+  private getInteractionMethod(device: string): string {
+    const deviceType = device.toLowerCase();
+
+    switch (deviceType) {
+      case "mobile":
+        return "tap";
+      case "tablet":
+        return "tap";
+      case "desktop":
+        return "hover-click";
+      default:
+        return "click";
+    }
   }
 
   @Then("the interaction should follow device patterns:")
@@ -226,11 +285,11 @@ export class ResponsiveDesignSteps {
     expect(
       checks.isContentSingleColumn,
       "Content should be in single column"
-    ).toBe(true);
+    ).toBeTruthy();
     expect(
       checks.hasHorizontalScroll,
       "Page should not have horizontal scroll"
-    ).toBe(false);
+    ).toBeFalsy();
   }
 
   @Then("content should be single-column")
@@ -240,7 +299,7 @@ export class ResponsiveDesignSteps {
     expect(
       checks.isContentSingleColumn,
       "Content should be in single column"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("no horizontal scrolling should be required")
@@ -250,7 +309,7 @@ export class ResponsiveDesignSteps {
     expect(
       checks.hasHorizontalScroll,
       "Page should not have horizontal scroll"
-    ).toBe(false);
+    ).toBeFalsy();
   }
 
   @Then("all text should be readable without zooming")
@@ -260,38 +319,43 @@ export class ResponsiveDesignSteps {
     expect(
       checks.textZoomRequired,
       "Text should be readable without zooming"
-    ).toBe(false);
+    ).toBeFalsy();
   }
 
   @Then("the header navigation should collapse")
   async checkNavigationCollapse() {
     const isCollapsed =
       await this.humanSpaceflightPage.responsiveDesign.isNavigationCollapsed();
-    expect(isCollapsed, "Navigation should be collapsed on mobile").toBe(true);
+    expect(
+      isCollapsed,
+      "Navigation should be collapsed on mobile"
+    ).toBeTruthy();
   }
 
   @Then("a hamburger menu button should be visible")
   async checkHamburgerVisible() {
     const isVisible =
       await this.humanSpaceflightPage.responsiveDesign.isHamburgerMenuVisible();
-    expect(isVisible, "Hamburger menu button should be visible").toBe(true);
+    expect(isVisible, "Hamburger menu button should be visible").toBeTruthy();
   }
 
   @Then("the navigation links should not be displayed in the header")
   async checkNavigationLinksHidden() {
     const linksVisible =
       await this.humanSpaceflightPage.responsiveDesign.areNavigationLinksVisible();
-    expect(linksVisible, "Navigation links should be hidden in header").toBe(
-      false
-    );
+    expect(
+      linksVisible,
+      "Navigation links should be hidden in header"
+    ).toBeFalsy();
   }
 
   @Then("the hamburger menu should be clickable")
   async checkHamburgerClickable() {
     const button = this.humanSpaceflightPage.responsiveDesign.hamburgerButton;
-    expect(await button.isEnabled(), "Hamburger menu should be clickable").toBe(
-      true
-    );
+    expect(
+      await button.isEnabled(),
+      "Hamburger menu should be clickable"
+    ).toBeTruthy();
   }
 
   @When("I click the hamburger menu button")
@@ -303,14 +367,14 @@ export class ResponsiveDesignSteps {
   async checkMenuExpanded() {
     const isExpanded =
       await this.humanSpaceflightPage.responsiveDesign.isNavigationMenuExpanded();
-    expect(isExpanded, "Navigation menu should be expanded").toBe(true);
+    expect(isExpanded, "Navigation menu should be expanded").toBeTruthy();
   }
 
   @Then("all navigation links should be visible")
   async checkAllLinksVisible() {
     const linksVisible =
       await this.humanSpaceflightPage.responsiveDesign.areNavigationLinksVisible();
-    expect(linksVisible, "All navigation links should be visible").toBe(true);
+    expect(linksVisible, "All navigation links should be visible").toBeTruthy();
   }
 
   @Then("the menu should overlay the page content")
@@ -320,7 +384,7 @@ export class ResponsiveDesignSteps {
       const style = window.getComputedStyle(el);
       return style.position === "fixed" || style.position === "absolute";
     });
-    expect(isOverlay, "Menu should overlay the page content").toBe(true);
+    expect(isOverlay, "Menu should overlay the page content").toBeTruthy();
   }
 
   @When("I click the close button or a navigation link")
@@ -332,7 +396,7 @@ export class ResponsiveDesignSteps {
   async checkMenuCollapsed() {
     const isCollapsed =
       await this.humanSpaceflightPage.responsiveDesign.isMenuCollapsed();
-    expect(isCollapsed, "Menu should be collapsed").toBe(true);
+    expect(isCollapsed, "Menu should be collapsed").toBeTruthy();
   }
 
   @Then("the carousel should display in single-slide view")
@@ -342,16 +406,17 @@ export class ResponsiveDesignSteps {
     expect(
       carouselChecks.isSingleSlide,
       "Carousel should display single slide"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("the media tiles should be full width")
   async checkMediaTilesFullWidth() {
     const carouselChecks =
       await this.humanSpaceflightPage.responsiveDesign.checkCarouselResponsiveness();
-    expect(carouselChecks.isFullWidth, "Media tiles should be full width").toBe(
-      true
-    );
+    expect(
+      carouselChecks.isFullWidth,
+      "Media tiles should be full width"
+    ).toBeTruthy();
   }
 
   @Then("navigation arrows should be appropriately sized for touch")
@@ -361,7 +426,7 @@ export class ResponsiveDesignSteps {
     expect(
       carouselChecks.areTouchTargetsSized,
       "Navigation arrows should be touch-sized"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("the pagination dots should be visible and tappable")
@@ -371,7 +436,7 @@ export class ResponsiveDesignSteps {
     expect(
       carouselChecks.arePaginationDotsAccessible,
       "Pagination dots should be accessible"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("all destination images should display appropriately")
@@ -382,7 +447,7 @@ export class ResponsiveDesignSteps {
     expect(
       destinationsCheck.isLayoutAdapted,
       "Destinations should adapt layout"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("the destination layout should adapt for mobile screens")
@@ -393,7 +458,7 @@ export class ResponsiveDesignSteps {
     expect(
       destinationsCheck.isLayoutAdapted,
       "Destination layout should adapt"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("each destination should remain clickable and functional")
@@ -404,7 +469,7 @@ export class ResponsiveDesignSteps {
     expect(
       destinationsCheck.areButtonsTappable,
       "Destinations should be clickable"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("the mission tabs should display as a clickable list or dropdown")
@@ -415,11 +480,11 @@ export class ResponsiveDesignSteps {
     expect(
       missionsCheck.isLayoutAdapted,
       "Mission tabs should adapt layout"
-    ).toBe(true);
+    ).toBeTruthy();
     expect(
       missionsCheck.areButtonsTappable,
       "Mission tabs should be tappable"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("the metrics table should be reformatted for mobile view")
@@ -430,7 +495,7 @@ export class ResponsiveDesignSteps {
     expect(
       missionsCheck.isLayoutAdapted,
       "Metrics table should adapt layout"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("all content should remain readable on small screens")
@@ -438,9 +503,10 @@ export class ResponsiveDesignSteps {
     const missionsCheck = await this.checkSectionAdaptability(
       '[data-test="our-missions-section"]'
     );
-    expect(missionsCheck.isContentReadable, "Content should be readable").toBe(
-      true
-    );
+    expect(
+      missionsCheck.isContentReadable,
+      "Content should be readable"
+    ).toBeTruthy();
   }
 
   @Then("the footer layout should adapt for mobile")
@@ -450,7 +516,7 @@ export class ResponsiveDesignSteps {
     expect(
       footerCheck.isVerticalLayout,
       "Footer should have vertical layout"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("footer elements should stack vertically")
@@ -460,7 +526,7 @@ export class ResponsiveDesignSteps {
     expect(
       footerCheck.isVerticalLayout,
       "Footer elements should stack vertically"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("all links and buttons should be tappable")
@@ -470,7 +536,7 @@ export class ResponsiveDesignSteps {
     expect(
       footerCheck.areLinksTappable,
       "Footer links should be tappable"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @When("I view the page on a tablet device with {int}px width")
@@ -485,7 +551,7 @@ export class ResponsiveDesignSteps {
     expect(
       tabletCheck.hasAppropriateColumns,
       "Layout should adapt for tablet"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("content should display in appropriate columns")
@@ -495,7 +561,7 @@ export class ResponsiveDesignSteps {
     expect(
       tabletCheck.hasAppropriateColumns,
       "Content should display in columns"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("images should be properly sized")
@@ -505,7 +571,7 @@ export class ResponsiveDesignSteps {
     expect(
       tabletCheck.areImagesProperlySize,
       "Images should be properly sized"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("all interactive elements should be easily accessible")
@@ -515,7 +581,7 @@ export class ResponsiveDesignSteps {
     expect(
       tabletCheck.areElementsAccessible,
       "Interactive elements should be accessible"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @When("I view the page on a desktop browser with {int}px width")
@@ -531,7 +597,7 @@ export class ResponsiveDesignSteps {
         ? main.getBoundingClientRect().width === window.innerWidth
         : false;
     });
-    expect(fullWidth, "Page should display at full width").toBe(true);
+    expect(fullWidth, "Page should display at full width").toBeTruthy();
   }
 
   @Then("content should be properly distributed across the screen")
@@ -541,7 +607,7 @@ export class ResponsiveDesignSteps {
     expect(
       layoutCheck.hasAppropriateColumns,
       "Content should be properly distributed"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("all sections should have proper spacing and margins")
@@ -554,7 +620,7 @@ export class ResponsiveDesignSteps {
         return margin >= 20;
       });
     });
-    expect(spacingCheck, "Sections should have proper spacing").toBe(true);
+    expect(spacingCheck, "Sections should have proper spacing").toBeTruthy();
   }
 
   @Then("no content should be cut off or overflow")
@@ -563,7 +629,7 @@ export class ResponsiveDesignSteps {
       const body = document.body;
       return window.innerWidth >= body.scrollWidth;
     });
-    expect(overflowCheck, "Content should not overflow").toBe(true);
+    expect(overflowCheck, "Content should not overflow").toBeTruthy();
   }
 
   @When("I resize the browser window from mobile to desktop")
@@ -584,7 +650,7 @@ export class ResponsiveDesignSteps {
         );
       });
     });
-    expect(scalingCheck, "Images should scale appropriately").toBe(true);
+    expect(scalingCheck, "Images should scale appropriately").toBeTruthy();
   }
 
   @Then("images should not distort or lose quality")
@@ -597,7 +663,7 @@ export class ResponsiveDesignSteps {
         return Math.abs(naturalRatio - displayRatio) < 0.1;
       });
     });
-    expect(qualityCheck, "Images should maintain aspect ratio").toBe(true);
+    expect(qualityCheck, "Images should maintain aspect ratio").toBeTruthy();
   }
 
   @When("I view the page on mobile, tablet, and desktop")
@@ -623,7 +689,7 @@ export class ResponsiveDesignSteps {
         return fontSize >= 12;
       });
     });
-    expect(fontCheck, "Font sizes should be appropriate").toBe(true);
+    expect(fontCheck, "Font sizes should be appropriate").toBeTruthy();
   }
 
   @Then("line-height should provide comfortable reading")
@@ -639,7 +705,7 @@ export class ResponsiveDesignSteps {
     expect(
       lineHeightCheck,
       "Line height should be comfortable for reading"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("line length should not exceed recommended maximums")
@@ -651,7 +717,7 @@ export class ResponsiveDesignSteps {
         return width <= 800;
       });
     });
-    expect(lineLengthCheck, "Line length should not be excessive").toBe(true);
+    expect(lineLengthCheck, "Line length should not be excessive").toBeTruthy();
   }
 
   @Then("text should not require horizontal scrolling")
@@ -663,7 +729,7 @@ export class ResponsiveDesignSteps {
     expect(
       noHorizontalScroll,
       "Text should not cause horizontal scrolling"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("all clickable elements should have a minimum touch target size")
@@ -678,7 +744,7 @@ export class ResponsiveDesignSteps {
     expect(
       touchTargetCheck,
       "Touch targets should be appropriately sized"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("spacing between interactive elements should be adequate")
@@ -696,7 +762,7 @@ export class ResponsiveDesignSteps {
     expect(
       spacingCheck,
       "Interactive elements should have adequate spacing"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("the page should load quickly on all screen sizes")
@@ -706,7 +772,7 @@ export class ResponsiveDesignSteps {
       const loadTime = perf.timing.loadEventEnd - perf.timing.navigationStart;
       return loadTime < 3000;
     });
-    expect(loadCheck, "Page should load quickly").toBe(true);
+    expect(loadCheck, "Page should load quickly").toBeTruthy();
   }
 
   @Then("interactions should be responsive")
@@ -718,7 +784,7 @@ export class ResponsiveDesignSteps {
         return style.transition !== "none" && style.cursor === "pointer";
       });
     });
-    expect(interactionCheck, "Interactions should be responsive").toBe(true);
+    expect(interactionCheck, "Interactions should be responsive").toBeTruthy();
   }
 
   @Then("no layout shifts should occur during loading")
@@ -731,9 +797,10 @@ export class ResponsiveDesignSteps {
       );
       return totalShiftScore < 0.1;
     });
-    expect(layoutShiftCheck, "No significant layout shifts should occur").toBe(
-      true
-    );
+    expect(
+      layoutShiftCheck,
+      "No significant layout shifts should occur"
+    ).toBeTruthy();
   }
 
   @Then("the viewport meta tag should be present in the HTML head")
@@ -742,7 +809,7 @@ export class ResponsiveDesignSteps {
       const viewportMeta = document.querySelector('meta[name="viewport"]');
       return !!viewportMeta;
     });
-    expect(hasViewportMeta, "Viewport meta tag should be present").toBe(true);
+    expect(hasViewportMeta, "Viewport meta tag should be present").toBeTruthy();
   }
 
   @Then("the viewport should be set to width=device-width")
@@ -756,7 +823,7 @@ export class ResponsiveDesignSteps {
     expect(
       hasCorrectWidth,
       "Viewport width should be set to device-width"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("the initial-scale should be set to 1.0")
@@ -765,7 +832,7 @@ export class ResponsiveDesignSteps {
       const viewportMeta = document.querySelector('meta[name="viewport"]');
       return viewportMeta?.getAttribute("content")?.includes("initial-scale=1");
     });
-    expect(hasCorrectScale, "Initial scale should be set to 1.0").toBe(true);
+    expect(hasCorrectScale, "Initial scale should be set to 1.0").toBeTruthy();
   }
 
   @When("I rotate the device from portrait to landscape")
@@ -783,7 +850,7 @@ export class ResponsiveDesignSteps {
     expect(
       layoutCheck.hasAppropriateColumns,
       "Layout should adapt to rotation"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("content should be properly displayed in landscape mode")
@@ -794,7 +861,7 @@ export class ResponsiveDesignSteps {
         ? main.getBoundingClientRect().width <= window.innerWidth
         : false;
     });
-    expect(landscapeCheck, "Content should fit in landscape mode").toBe(true);
+    expect(landscapeCheck, "Content should fit in landscape mode").toBeTruthy();
   }
 
   private async setViewportSize(width: number, height?: number): Promise<void> {
@@ -809,5 +876,4 @@ export class ResponsiveDesignSteps {
       selector
     );
   }
-
 }

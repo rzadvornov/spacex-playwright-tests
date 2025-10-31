@@ -107,12 +107,12 @@ export class HomePageSteps {
 
   private async validateHeroSectionVisibility(): Promise<void> {
     const isVisible = await this.homePage.hero.isHeroSectionVisible();
-    expect(isVisible, "Hero section should be visible").toBe(true);
+    expect(isVisible, "Hero section should be visible").toBeTruthy();
   }
 
   private async validateHeaderAccessibility(): Promise<void> {
     const isHeaderAccessible = await this.homePage.header.isHeaderVisible();
-    expect(isHeaderAccessible, "Header menu should be accessible").toBe(true);
+    expect(isHeaderAccessible, "Header menu should be accessible").toBeTruthy();
   }
 
   @Then("critical content should be present:")
@@ -153,21 +153,25 @@ export class HomePageSteps {
 
   private async validateMissionStatus(): Promise<void> {
     const isStatusVisible = await this.homePage.hero.isMissionStatusVisible();
-    expect(isStatusVisible, "Mission Status indicator should be visible").toBe(
-      true
-    );
+    expect(
+      isStatusVisible,
+      "Mission Status indicator should be visible"
+    ).toBeTruthy();
   }
 
   private async validateCallToAction(): Promise<void> {
     const isCTAVisible = await this.homePage.hero.isCTAButtonVisible(
       "VIEW MISSION"
     );
-    expect(isCTAVisible, "Primary action button should be visible").toBe(true);
+    expect(
+      isCTAVisible,
+      "Primary action button should be visible"
+    ).toBeTruthy();
   }
 
   private async validateScrollIndicator(): Promise<void> {
     const isScrollVisible = await this.homePage.hero.isScrollDownArrowVisible();
-    expect(isScrollVisible, "Scroll Indicator should be present").toBe(true);
+    expect(isScrollVisible, "Scroll Indicator should be present").toBeTruthy();
   }
 
   @Then("the navigation menu should contain:")
@@ -186,11 +190,11 @@ export class HomePageSteps {
     expect(
       isPrimaryLinkVisible,
       `Primary link "${link["Primary Links"]}" should be visible`
-    ).toBe(true);
+    ).toBeTruthy();
 
     if (link["Secondary Elements"] === "SpaceX Logo") {
       const isLogoVisible = await this.homePage.header.isLogoVisible();
-      expect(isLogoVisible, "SpaceX Logo should be visible").toBe(true);
+      expect(isLogoVisible, "SpaceX Logo should be visible").toBeTruthy();
     }
   }
 
@@ -201,8 +205,8 @@ export class HomePageSteps {
       this.homePage.header.isLogoClickable(),
     ]);
 
-    expect(isLogoVisible, "SpaceX logo should be present").toBe(true);
-    expect(isLogoClickable, "SpaceX logo should be clickable").toBe(true);
+    expect(isLogoVisible, "SpaceX logo should be present").toBeTruthy();
+    expect(isLogoClickable, "SpaceX logo should be clickable").toBeTruthy();
   }
 
   @Then("the menu should be collapsed on mobile")
@@ -210,7 +214,10 @@ export class HomePageSteps {
     const viewport = this.page.viewportSize();
     if (viewport && viewport.width <= this.MOBILE_BREAKPOINT) {
       const isMenuCollapsed = await this.homePage.header.isMenuCollapsed();
-      expect(isMenuCollapsed, "Menu should be collapsed on mobile").toBe(true);
+      expect(
+        isMenuCollapsed,
+        "Menu should be collapsed on mobile"
+      ).toBeTruthy();
     }
   }
 
@@ -223,7 +230,7 @@ export class HomePageSteps {
   @Then("the page should scroll to the next content section")
   async checkScrollToNextSection() {
     const isScrolled = await this.homePage.hero.isPageScrolledPastHero();
-    expect(isScrolled, "Page should scroll past the Hero section").toBe(true);
+    expect(isScrolled, "Page should scroll past the Hero section").toBeTruthy();
   }
 
   @Then("the URL should remain on the Homepage")

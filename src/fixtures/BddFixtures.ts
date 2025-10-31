@@ -36,6 +36,8 @@ import { MissionsPage } from "../pages/ui/MissionsPage";
 import { MissionsSteps } from "../step-definitions/ui/MissionsPageSteps";
 import { RidesharePage } from "../pages/ui/RidesharePage";
 import { RidesharePageSteps } from "../step-definitions/ui/RidesharePageSteps";
+import { StarshieldPage } from "../pages/ui/StarshieldPage";
+import { StarshieldPageSteps } from "../step-definitions/ui/StarshieldPageSteps";
 
 export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   sharedPageSteps: [
@@ -82,7 +84,6 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
     async ({ page, aboutPage, assertionHelper }, use) => {
       const aboutSharedPageSteps = new SharedPageSteps(page);
       const aboutPageSteps = new AboutPageSteps(
-        page,
         aboutPage,
         aboutSharedPageSteps,
         assertionHelper
@@ -179,13 +180,14 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
     await use(missionsPage);
   },
   missionsSteps: [
-    async ({ page, missionsPage, assertionHelper }, use) => {
+    async ({ page, missionsPage, assertionHelper, sharedContext }, use) => {
       const missionsSharedPageSteps = new SharedPageSteps(page);
       const missionsSteps = new MissionsSteps(
         page,
         missionsPage,
         missionsSharedPageSteps,
-        assertionHelper
+        assertionHelper,
+        sharedContext
       );
       await use(missionsSteps);
     },
@@ -232,6 +234,28 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
         assertionHelper
       );
       await use(humanSpaceflightSteps);
+    },
+    { scope: "test" },
+  ],
+  starshieldPage: async ({ page }, use) => {
+    const starshieldPage = new StarshieldPage(page);
+    await use(starshieldPage);
+  },
+  starshieldPageSteps: [
+    async (
+      { page, starshieldPage, sharedContext, viewportUtility, assertionHelper },
+      use
+    ) => {
+      const starshieldSharedPageSteps = new SharedPageSteps(page);
+      const starshieldPageSteps = new StarshieldPageSteps(
+        page,
+        starshieldPage,
+        sharedContext,
+        starshieldSharedPageSteps,
+        assertionHelper,
+        viewportUtility
+      );
+      await use(starshieldPageSteps);
     },
     { scope: "test" },
   ],

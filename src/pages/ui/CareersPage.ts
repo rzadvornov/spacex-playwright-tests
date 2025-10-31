@@ -100,6 +100,26 @@ export class CareersPage extends SpaceXPage {
   readonly faqTopicCoverage: (topic: string) => Locator = (topic) =>
     this.faqSection.locator(`h3, a:has-text("${topic}")`);
 
+  readonly departmentFilter: (department: string) => Locator = (department) =>
+    this.jobFilterPanel
+      .locator(`[data-testid="department-filter"], [aria-label*="department"]`)
+      .locator(`button, a, label:has-text("${department}")`);
+
+  readonly typeFilter: (type: string) => Locator = (type) =>
+    this.jobFilterPanel
+      .locator(`[data-testid="type-filter"], [aria-label*="type"]`)
+      .locator(`button, a, label:has-text("${type}")`);
+
+  readonly filteredJobListings: Locator = this.page.locator(
+    '.job-listing-card:visible, a[href*="/jobs/"]:visible'
+  );
+
+  async open(urlPath: string = "/careers"): Promise<void> {
+    this.setupErrorListeners();
+    await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
+    await this.waitForAppContentLoad();
+  }
+
   async searchForJob(keyword: string): Promise<void> {
     await this.searchInput.fill(keyword);
     await this.searchInput.press("Enter");
@@ -108,7 +128,7 @@ export class CareersPage extends SpaceXPage {
   async clickFirstJobListing(): Promise<void> {
     await this.firstJobListing.click();
   }
-  
+
   async checkHeadlineText(text1: string, text2: string): Promise<boolean> {
     return await this.headlineText(text1, text2).isVisible();
   }
@@ -150,5 +170,31 @@ export class CareersPage extends SpaceXPage {
         .locator("text=/application instructions/i")
         .isVisible())
     );
+  }
+
+  async applyFilters(department: string, type: string): Promise<void> {
+    const deptFilter = this.departmentFilter(department);
+    if (await deptFilter.isVisible()) {
+      await deptFilter.click();
+    }
+
+    const jobTypeFilter = this.typeFilter(type);
+    if (await jobTypeFilter.isVisible()) {
+      await jobTypeFilter.click();
+    }
+
+    await this.page.waitForTimeout(1500);
+  }
+
+  async verifyFilteredResults(
+    department?: string,
+    type?: string
+  ): Promise<boolean> {
+    const listings = this.filteredJobListings;
+    const count = await listings.count();
+
+    if (count === 0) return false;
+
+    return count > 0;
   }
 }

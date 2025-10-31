@@ -133,7 +133,7 @@ export class HumanSpaceflightSteps {
       expect(
         isVisible,
         `Navigation link "${link["Link Text"]}" should be visible`
-      ).toBe(true);
+      ).toBeTruthy();
     }
   }
 
@@ -151,7 +151,7 @@ export class HumanSpaceflightSteps {
       case "Logo":
         const isLogoVisible =
           await this.humanSpaceflightPage.header.isLogoVisible();
-        expect(isLogoVisible, "Logo should be visible").toBe(true);
+        expect(isLogoVisible, "Logo should be visible").toBeTruthy();
         break;
       case "Hamburger":
         const isHamburgerVisible =
@@ -174,7 +174,7 @@ export class HumanSpaceflightSteps {
   async checkMenuExpands() {
     const isExpanded =
       await this.humanSpaceflightPage.header.isMobileMenuExpanded();
-    expect(isExpanded, "Mobile menu should be expanded/visible").toBe(true);
+    expect(isExpanded, "Mobile menu should be expanded/visible").toBeTruthy();
   }
 
   @When("I click close")
@@ -186,7 +186,7 @@ export class HumanSpaceflightSteps {
   async checkMenuCollapses() {
     const isExpanded =
       await this.humanSpaceflightPage.header.isMobileMenuExpanded();
-    expect(isExpanded, "Mobile menu should be collapsed/hidden").toBe(false);
+    expect(isExpanded, "Mobile menu should be collapsed/hidden").toBeFalsy();
   }
 
   @Then("after the actions are performed:")
@@ -204,7 +204,7 @@ export class HumanSpaceflightSteps {
         await this.humanSpaceflightPage.header.clickMobileMenuButton();
         const isExpanded =
           await this.humanSpaceflightPage.header.isMobileMenuExpanded();
-        expect(isExpanded, `Action: ${action.Verification}`).toBe(true);
+        expect(isExpanded, `Action: ${action.Verification}`).toBeTruthy();
         break;
       case "View menu items":
         const allLinksExist =
@@ -219,7 +219,7 @@ export class HumanSpaceflightSteps {
         await this.humanSpaceflightPage.header.clickMobileMenuCloseButton();
         const isCollapsed =
           await this.humanSpaceflightPage.header.isMobileMenuExpanded();
-        expect(isCollapsed, `Action: ${action.Verification}`).toBe(false);
+        expect(isCollapsed, `Action: ${action.Verification}`).toBeFalsy();
         break;
       default:
         throw new Error(`Unknown action type: ${action.Action}`);
@@ -237,7 +237,7 @@ export class HumanSpaceflightSteps {
     await this.humanSpaceflightPage.header.clickMobileMenuButton();
     const isExpanded =
       await this.humanSpaceflightPage.header.isMobileMenuExpanded();
-    expect(isExpanded, "Mobile menu should open").toBe(true);
+    expect(isExpanded, "Mobile menu should open").toBeTruthy();
   }
 
   private async testMobileMenuNavigation(): Promise<void> {
@@ -254,14 +254,14 @@ export class HumanSpaceflightSteps {
     await this.humanSpaceflightPage.header.clickMobileMenuCloseButton();
     const isCollapsed =
       await this.humanSpaceflightPage.header.isMobileMenuExpanded();
-    expect(isCollapsed, "Mobile menu should close after use").toBe(false);
+    expect(isCollapsed, "Mobile menu should close after use").toBeFalsy();
   }
 
   @When("I see the scroll-down arrow animation")
   async checkScrollDownArrowVisible() {
     const isVisible =
       await this.humanSpaceflightPage.hero.isScrollDownArrowVisible();
-    expect(isVisible, "Scroll-down arrow should be visible").toBe(true);
+    expect(isVisible, "Scroll-down arrow should be visible").toBeTruthy();
   }
 
   @When("I click on the arrow")
@@ -277,7 +277,7 @@ export class HumanSpaceflightSteps {
     expect(
       isVisible,
       "Media Carousel section should be in the viewport after scroll"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("the page should meet the following metrics:")
@@ -336,7 +336,7 @@ export class HumanSpaceflightSteps {
   private async validateImageLoading(): Promise<void> {
     const has404s =
       await this.humanSpaceflightPage.performanceSEO.checkImageLoading404s();
-    expect(has404s, "No image 404 errors should be present").toBe(false);
+    expect(has404s, "No image 404 errors should be present").toBeFalsy();
   }
 
   @Then("the page should have the following metadata:")
@@ -397,7 +397,7 @@ export class HumanSpaceflightSteps {
     expect(
       hasKeyword,
       `Keywords meta tag should contain one of: ${expectedKeywords}`
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   private async validateOpenGraphMeta(expectedContent: string): Promise<void> {
@@ -429,7 +429,7 @@ export class HumanSpaceflightSteps {
       expect(
         heroVisible && headerVisible,
         `Page should be responsive at ${size.width}x${size.height}`
-      ).toBe(true);
+      ).toBeTruthy();
     });
   }
 }

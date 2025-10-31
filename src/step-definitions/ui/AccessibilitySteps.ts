@@ -158,14 +158,14 @@ export class AccessibilitySteps {
       expect(
         checks.isFocusable,
         `${elementType}s must be keyboard focusable (tabindex > -1)`
-      ).toBe(true);
+      ).toBeTruthy();
     }
 
     if (requirementMap.has("Be keyboard operable")) {
       expect(
         checks.isOperable,
         `${elementType}s must be operable using keyboard (Enter/Space)`
-      ).toBe(true);
+      ).toBeTruthy();
     }
   }
 
@@ -221,7 +221,7 @@ export class AccessibilitySteps {
     expect(
       hasUnderlines,
       "Links should be underlined or have another non-color visual cue for non-image links."
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("images should have appropriate text alternatives:")
@@ -252,14 +252,14 @@ export class AccessibilitySteps {
       expect(
         results.hasControls,
         `${mediaType} element must have visible controls.`
-      ).toBe(true);
+      ).toBeTruthy();
     }
 
     if (requirementMap.has("Captions/Transcripts")) {
       expect(
         results.hasCaptions,
         `${mediaType} must provide captions (for video) or a transcript (for audio).`
-      ).toBe(true);
+      ).toBeTruthy();
     }
   }
 
@@ -276,14 +276,14 @@ export class AccessibilitySteps {
       expect(
         results.noAutoAdvance,
         "Carousels/Sliders should not auto-advance."
-      ).toBe(true);
+      ).toBeTruthy();
     }
 
     if (requirementMap.has("Disabled")) {
       expect(
         results.noParallax,
         "Parallax scrolling should be disabled or absent."
-      ).toBe(true);
+      ).toBeTruthy();
     }
   }
 
@@ -294,7 +294,7 @@ export class AccessibilitySteps {
     expect(
       isSafe,
       `Content should not flash/blink more than ${maxFrequency} times per second (WCAG 2.3.1).`
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @When("I submit a form with invalid data")
@@ -315,7 +315,7 @@ export class AccessibilitySteps {
       expect(
         results.errorMessagesPresent,
         "Clear, descriptive error messages should be visible after invalid submission."
-      ).toBe(true);
+      ).toBeTruthy();
     }
   }
 

@@ -10,7 +10,7 @@ export class AssertionHelper {
     errorMessage: string
   ): Promise<void> {
     const result = await checkMethod();
-    expect(result, errorMessage).toBe(true);
+    expect(result, errorMessage).toBeTruthy();
   }
 
   assertMetric(

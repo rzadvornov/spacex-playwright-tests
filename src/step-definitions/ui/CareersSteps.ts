@@ -2,7 +2,15 @@ import { expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { CareersPage } from "../../pages/ui/CareersPage";
-import { BenefitTable, CategoryTable, DevTable, FAQTable, OptionTable, SharedContext, ValueTable } from "../../pages/types/Types";
+import {
+  BenefitTable,
+  CategoryTable,
+  DevTable,
+  FAQTable,
+  OptionTable,
+  SharedContext,
+  ValueTable,
+} from "../../pages/types/Types";
 import { SharedPageSteps } from "./SharedPageSteps";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 
@@ -131,7 +139,7 @@ export class CareersSteps {
   }
 
   @When("the user enters search criteria \\(e.g., {string}, {string})")
-  async theUserEntersSearchCriteria(criteria1: string, criteria2: string) {
+  async theUserEntersSearchCriteria(criteria1: string, _criteria2: string) {
     await this.careersPage.searchForJob(criteria1);
   }
 
@@ -161,11 +169,25 @@ export class CareersSteps {
   )
   async theUserSelectsAFilter(department: string, type: string) {
     await this.careersPage.jobFilterPanel.scrollIntoViewIfNeeded();
+
+    await this.careersPage.applyFilters(department, type);
+
+    this.sharedContext.selectedDepartment = department;
+    this.sharedContext.selectedType = type;
   }
 
   @Then("the job listings should filter to show only matching positions")
   async theJobListingsShouldFilterToShowOnlyMatchingPositions() {
-    await expect(this.careersPage.firstJobListing).toBeVisible();
+    const department = this.sharedContext.selectedDepartment;
+    const type = this.sharedContext.selectedType;
+
+    await expect(this.careersPage.filteredJobListings.first()).toBeVisible();
+
+    const hasFilteredResults = await this.careersPage.verifyFilteredResults(
+      department,
+      type
+    );
+    expect(hasFilteredResults).toBeTruthy();
   }
 
   @Then("the available primary job categories should include:")

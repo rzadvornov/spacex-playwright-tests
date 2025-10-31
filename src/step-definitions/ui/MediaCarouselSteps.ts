@@ -19,20 +19,20 @@ export class MediaCarouselSteps {
   @When("I view the media carousel section")
   async viewMediaCarousel() {
     const isVisible = await this.humanSpaceflightPage.mediaCarousel.isVisible();
-    expect(isVisible, "Media carousel should be visible").toBe(true);
+    expect(isVisible, "Media carousel should be visible").toBeTruthy();
   }
 
   @Given("I view the media carousel with the {string} tile active")
   async viewMediaCarouselWithTileActive(expectedTile: string) {
     await this.humanSpaceflightPage.scrollToMediaCarousel();
     const isActive = await this.humanSpaceflightPage.isTileActive(expectedTile);
-    expect(isActive, `Tile "${expectedTile}" should be active`).toBe(true);
+    expect(isActive, `Tile "${expectedTile}" should be active`).toBeTruthy();
   }
 
   @Then("the carousel should be visible")
   async checkCarouselIsVisible() {
     const isVisible = await this.humanSpaceflightPage.mediaCarousel.isVisible();
-    expect(isVisible, "Media carousel section must be visible").toBe(true);
+    expect(isVisible, "Media carousel section must be visible").toBeTruthy();
   }
 
   @Then("I should see four media tiles:")
@@ -72,23 +72,24 @@ export class MediaCarouselSteps {
     expect(
       hasMedia,
       "All media tiles must contain a visual/audio element"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("navigation arrows should be present to scroll through tiles")
   async checkNavigationArrows() {
     const isVisible =
       await this.humanSpaceflightPage.mediaCarousel.areNavigationArrowsVisible();
-    expect(isVisible, "Navigation arrows (prev/next) must be visible").toBe(
-      true
-    );
+    expect(
+      isVisible,
+      "Navigation arrows (prev/next) must be visible"
+    ).toBeTruthy();
   }
 
   @Then("pagination dots should indicate the current tile")
   async checkPaginationDots() {
     const isVisible =
       await this.humanSpaceflightPage.mediaCarousel.arePaginationDotsVisible();
-    expect(isVisible, "Pagination dots must be visible").toBe(true);
+    expect(isVisible, "Pagination dots must be visible").toBeTruthy();
   }
 
   @When("I click the play button on the {string} video tile")
@@ -100,14 +101,14 @@ export class MediaCarouselSteps {
   async checkVideoOverlayOpen() {
     const isVisible =
       await this.humanSpaceflightPage.mediaCarousel.isVideoOverlayVisible();
-    expect(isVisible, "Video overlay should be visible").toBe(true);
+    expect(isVisible, "Video overlay should be visible").toBeTruthy();
   }
 
   @Then("the YouTube video should load")
   async checkYouTubeVideoLoad() {
     const isLoaded =
       await this.humanSpaceflightPage.mediaCarousel.isYouTubeVideoLoaded();
-    expect(isLoaded, "YouTube video must load within the overlay").toBe(true);
+    expect(isLoaded, "YouTube video must load within the overlay").toBeTruthy();
   }
 
   @Then("the video title should be {string}")
@@ -134,7 +135,10 @@ export class MediaCarouselSteps {
   async checkVideoCloseButton() {
     const isVisible =
       await this.humanSpaceflightPage.mediaCarousel.isOverlayCloseButtonVisible();
-    expect(isVisible, "Close button must be visible on the overlay").toBe(true);
+    expect(
+      isVisible,
+      "Close button must be visible on the overlay"
+    ).toBeTruthy();
   }
 
   @When("I click the close button")
@@ -146,7 +150,7 @@ export class MediaCarouselSteps {
   async checkOverlayClosed() {
     const isOverlayClosed =
       await this.humanSpaceflightPage.mediaCarousel.isVideoOverlayClosed();
-    expect(isOverlayClosed, "Video overlay should be closed").toBe(true);
+    expect(isOverlayClosed, "Video overlay should be closed").toBeTruthy();
   }
 
   @When("I click on the {string} audio tile")
@@ -157,7 +161,7 @@ export class MediaCarouselSteps {
   @Then("an audio player should be displayed")
   async checkAudioPlayerVisible() {
     const isVisible = await this.humanSpaceflightPage.isAudioPlayerVisible();
-    expect(isVisible, "Audio player should be visible").toBe(true);
+    expect(isVisible, "Audio player should be visible").toBeTruthy();
   }
 
   @Then("the audio title should be {string}")
@@ -183,24 +187,26 @@ export class MediaCarouselSteps {
   async checkAudioPlayerControls() {
     const hasControls =
       await this.humanSpaceflightPage.hasAudioPlayerControls();
-    expect(hasControls, "Audio player must have play/pause controls").toBe(
-      true
-    );
+    expect(
+      hasControls,
+      "Audio player must have play/pause controls"
+    ).toBeTruthy();
   }
 
   @Then("the audio player should display the audio duration")
   async checkAudioDuration() {
     const hasDuration = await this.humanSpaceflightPage.hasAudioDuration();
-    expect(hasDuration, "Audio player must display duration").toBe(true);
+    expect(hasDuration, "Audio player must display duration").toBeTruthy();
   }
 
   @Then("the audio player should display a progress bar")
   async checkAudioProgressBar() {
     const hasProgressBar =
       await this.humanSpaceflightPage.hasAudioProgressBar();
-    expect(hasProgressBar, "Audio player must display a progress bar").toBe(
-      true
-    );
+    expect(
+      hasProgressBar,
+      "Audio player must display a progress bar"
+    ).toBeTruthy();
   }
 
   @When("I click on the pagination dot for the second tile")
@@ -211,9 +217,10 @@ export class MediaCarouselSteps {
   @Then("the carousel should advance to the {string} tile")
   async checkCarouselAdvanced(expectedTile: string) {
     const isActive = await this.humanSpaceflightPage.isTileActive(expectedTile);
-    expect(isActive, `Carousel should advance to "${expectedTile}" tile`).toBe(
-      true
-    );
+    expect(
+      isActive,
+      `Carousel should advance to "${expectedTile}" tile`
+    ).toBeTruthy();
   }
 
   @Then("the pagination dot for {string} should be active")
@@ -225,7 +232,7 @@ export class MediaCarouselSteps {
     expect(
       isActive,
       `Pagination dot for "${expectedTile}" must be active`
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @When("I click the next arrow button")
@@ -242,7 +249,10 @@ export class MediaCarouselSteps {
   async checkNoAutoplay() {
     const isAutoplayDisabled =
       await this.humanSpaceflightPage.isMediaAutoplayDisabled();
-    expect(isAutoplayDisabled, "Media autoplay should be disabled").toBe(true);
+    expect(
+      isAutoplayDisabled,
+      "Media autoplay should be disabled"
+    ).toBeTruthy();
   }
 
   @When("I click the play button on a video tile")
@@ -262,23 +272,24 @@ export class MediaCarouselSteps {
     expect(
       isOverlayClosed,
       "Overlay should close after pressing the Escape key"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("all video tiles should have play buttons")
   async checkAllVideoTilesHavePlayButtons() {
     const hasMedia =
       await this.humanSpaceflightPage.mediaCarousel.checkTilesHaveMedia();
-    expect(hasMedia, "All video tiles should have media elements").toBe(true);
+    expect(hasMedia, "All video tiles should have media elements").toBeTruthy();
   }
 
   @Then("the carousel should be accessible via keyboard navigation")
   async checkKeyboardNavigation() {
     const hasNavigation =
       await this.humanSpaceflightPage.mediaCarousel.areNavigationArrowsVisible();
-    expect(hasNavigation, "Carousel should have navigation controls").toBe(
-      true
-    );
+    expect(
+      hasNavigation,
+      "Carousel should have navigation controls"
+    ).toBeTruthy();
   }
 
   @Then("the media carousel should be responsive across screen sizes")
@@ -292,7 +303,7 @@ export class MediaCarouselSteps {
       expect(
         carouselVisible && navigationVisible,
         `Media carousel should be responsive at ${size.width}x${size.height}`
-      ).toBe(true);
+      ).toBeTruthy();
     });
   }
 }

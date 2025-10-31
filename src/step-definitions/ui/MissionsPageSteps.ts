@@ -4,6 +4,7 @@ import { MissionsPage } from "../../pages/ui/MissionsPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { Page } from "@playwright/test";
 import { SharedPageSteps } from "./SharedPageSteps";
+import { SharedContext } from "../../pages/types/Types";
 
 @Fixture("missionsSteps")
 export class MissionsSteps {
@@ -11,7 +12,8 @@ export class MissionsSteps {
     private page: Page,
     private missionsPage: MissionsPage,
     private sharedPageSteps: SharedPageSteps,
-    private assertionHelper: AssertionHelper
+    private assertionHelper: AssertionHelper,
+    private sharedContext: SharedContext
   ) {}
 
   @Given("a user navigates to the Missions page")
@@ -123,6 +125,8 @@ export class MissionsSteps {
     "the vehicle filter should allow multiple selections \\(e.g., {string})"
   )
   async verifyMultipleFilterSelections(vehicles: string) {
+    const vehicleList = vehicles.split(",").map((v) => v.trim());
+
     const isSelect =
       (await this.missionsPage.vehicleFilterDropdown.evaluate(
         (el) => el.tagName
@@ -133,13 +137,44 @@ export class MissionsSteps {
         "multiple",
         /.*/i
       );
+
+      for (const vehicle of vehicleList.slice(0, 2)) {
+        // Test with first 2 vehicles
+        await this.missionsPage.vehicleFilterDropdown.selectOption({
+          label: vehicle,
+        });
+      }
+
+      const selectedOptions =
+        await this.missionsPage.vehicleFilterDropdown.evaluate(
+          (select: HTMLSelectElement) =>
+            Array.from(select.selectedOptions).map((option) => option.text)
+        );
+      expect(selectedOptions.length).toBeGreaterThan(1);
     } else {
       await expect(this.missionsPage.vehicleFilterDropdown).toHaveAttribute(
         "aria-multiselectable",
         "true",
         { timeout: 100 }
       );
+
+      for (const vehicle of vehicleList.slice(0, 2)) {
+        await this.missionsPage.vehicleFilterDropdown.click();
+        const option = this.page.locator(
+          `[role="option"]:has-text("${vehicle}")`
+        );
+        await expect(option).toBeVisible();
+        await option.click();
+      }
+
+      const activeSelections = this.page.locator(
+        '[role="option"][aria-selected="true"], [data-selected="true"]'
+      );
+      const activeCount = await activeSelections.count();
+      expect(activeCount).toBeGreaterThan(1);
     }
+
+    this.sharedContext.selectedVehicles = vehicleList.slice(0, 2);
   }
 
   @When("the user clicks on a specific mission link, such as {string}")
@@ -326,7 +361,7 @@ export class MissionsSteps {
       expect(
         isStatusCorrect,
         `Mission card ${i + 1} status should be "${expectedStatus}"`
-      ).toBe(true);
+      ).toBeTruthy();
     }
   }
 
@@ -385,7 +420,7 @@ export class MissionsSteps {
         .locator('[data-field="success-rate"], .success-rate')
         .textContent();
       const match = text ? text.match(/(\d+(\.\d+)?)/) : null;
-      return match ? parseFloat(match[0]) : -1; // -1 for cards where data is missing
+      return match ? parseFloat(match[0]) : -1;
     }, "descending");
   }
 

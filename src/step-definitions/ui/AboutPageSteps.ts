@@ -9,7 +9,6 @@ import { TwoColumnTable, AchievementTable, FacilityTable, InitiativeTable, Partn
 @Fixture("aboutPageSteps")
 export class AboutPageSteps {
   constructor(
-    private page: Page,
     private aboutPage: AboutPage,
     private sharedPageSteps: SharedPageSteps,
     private assertionHelper: AssertionHelper

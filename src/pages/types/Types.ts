@@ -30,6 +30,8 @@ import { MissionsPage } from "../ui/MissionsPage";
 import { MissionsSteps } from "../../step-definitions/ui/MissionsPageSteps";
 import { RidesharePage } from "../ui/RidesharePage";
 import { RidesharePageSteps } from "../../step-definitions/ui/RidesharePageSteps";
+import { StarshieldPage } from "../ui/StarshieldPage";
+import { StarshieldPageSteps } from "../../step-definitions/ui/StarshieldPageSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -388,6 +390,12 @@ export interface SharedContext {
   newTabPromise?: Promise<Page>;
   performanceMetrics?: any;
   startTime: number;
+  expectedPageTitle?: string;
+  initialCursor?: string;
+  testimonialCards?: Locator;
+  selectedDepartment?: string;
+  selectedType?: string;
+  selectedVehicles?: string[];
 }
 
 export interface SocialMediaTag {
@@ -574,6 +582,8 @@ export interface BddFixtures {
   vehiclesSteps: VehiclesSteps;
   sharedContext: SharedContext;
   sharedPageSteps: SharedPageSteps;
+  starshieldPage: StarshieldPage;
+  starshieldPageSteps: StarshieldPageSteps;
   assertionHelper: AssertionHelper;
   viewportUtility: ViewportUtility;
 }

@@ -78,9 +78,9 @@ export class TimelineSteps {
     const isActive = await this.humanSpaceflightPage.timeline.isCardActive(
       year
     );
-    expect(isActive, { message: `${year} milestone should be active` }).toBe(
-      true
-    );
+    expect(isActive, {
+      message: `${year} milestone should be active`,
+    }).toBeTruthy();
   }
 
   @When("I click the {string} arrow")
@@ -96,7 +96,7 @@ export class TimelineSteps {
     );
     expect(isActive, {
       message: `${year} milestone should be active after navigation`,
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   @Then("the pagination dot on behalf of {string} should be active")
@@ -285,7 +285,7 @@ export class TimelineSteps {
       await this.humanSpaceflightPage.timeline.isHorizonImageVisible();
     expect(isHorizonVisible, {
       message: "Horizon image should be visible",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   private async validateMilestoneComponents(
@@ -334,7 +334,7 @@ export class TimelineSteps {
       await this.humanSpaceflightPage.timeline.areBackgroundImagesLoaded();
     expect(imagesLoaded, {
       message: "All milestone cards should have background images",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   private async validateMilestoneInfo(item: MetadataItem): Promise<void> {
@@ -374,7 +374,7 @@ export class TimelineSteps {
     );
     expect(hasAchievement, {
       message: `Should find achievement: ${expectedContent}`,
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   private async validateMilestoneImage(expectedContent: string): Promise<void> {
@@ -449,7 +449,7 @@ export class TimelineSteps {
         .isVisible();
       expect(isVisible, {
         message: `Pagination dot ${i + 1} should be visible`,
-      }).toBe(true);
+      }).toBeTruthy();
     }
   }
 
@@ -509,7 +509,7 @@ export class TimelineSteps {
       await this.humanSpaceflightPage.timeline.areBackgroundImagesLoaded();
     expect(imagesLoaded, {
       message: "Card images should load successfully",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   private async validateHorizonVisibility(): Promise<void> {
@@ -517,7 +517,7 @@ export class TimelineSteps {
       await this.humanSpaceflightPage.timeline.isHorizonImageVisible();
     expect(isHorizonVisible, {
       message: "Horizon image should be visible",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   private async validateArrowButtons(): Promise<void> {
@@ -534,10 +534,10 @@ export class TimelineSteps {
       await this.humanSpaceflightPage.timeline.checkCardsConsistency();
     expect(consistency.hasConsistentWidth, {
       message: "Cards should have consistent width",
-    }).toBe(true);
+    }).toBeTruthy();
     expect(consistency.hasConsistentHeight, {
       message: "Cards should have consistent height",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   private async validateTimelineAdaptation(
@@ -571,7 +571,7 @@ export class TimelineSteps {
     if (requirement === "Full width") {
       expect(mobileChecks.isFullWidth, {
         message: "Cards should be full width on mobile",
-      }).toBe(true);
+      }).toBeTruthy();
     }
   }
 
@@ -580,10 +580,10 @@ export class TimelineSteps {
       await this.humanSpaceflightPage.timeline.checkMobileResponsiveness();
     expect(navChecks.areArrowsSized, {
       message: "Navigation arrows should be properly sized",
-    }).toBe(true);
+    }).toBeTruthy();
     expect(navChecks.areDotsTappable, {
       message: "Pagination dots should be tappable",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   private async validateTouchTargets(): Promise<void> {
@@ -591,7 +591,7 @@ export class TimelineSteps {
       await this.humanSpaceflightPage.timeline.checkMobileResponsiveness();
     expect(touchChecks.areArrowsSized, {
       message: "Touch targets should be at least 44x44px",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   private async validateTextScaling(): Promise<void> {
@@ -599,7 +599,7 @@ export class TimelineSteps {
       await this.humanSpaceflightPage.timeline.checkTextReadability();
     expect(readability.isTextReadable, {
       message: "Text should be readable without zoom",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   private async validateAccessibilityStandard(
@@ -612,12 +612,12 @@ export class TimelineSteps {
       case "Navigation":
         expect(accessibility.isKeyboardNavigable, {
           message: "Should be keyboard navigable",
-        }).toBe(true);
+        }).toBeTruthy();
         break;
       case "Button Labels":
         expect(accessibility.hasAriaLabels, {
           message: "Should have ARIA labels",
-        }).toBe(true);
+        }).toBeTruthy();
         break;
       case "Focus States":
         await this.validateFocusStates();
@@ -660,7 +660,7 @@ export class TimelineSteps {
       await this.humanSpaceflightPage.timeline.getAccessibilityStatus();
     expect(accessibility.isKeyboardNavigable, {
       message: "Should support arrow key navigation",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   private async validateTabNavigation(): Promise<void> {
@@ -668,9 +668,9 @@ export class TimelineSteps {
     const hasFocusable = await this.page.evaluate(
       () => document.activeElement !== document.body
     );
-    expect(hasFocusable, { message: "Should support tab navigation" }).toBe(
-      true
-    );
+    expect(hasFocusable, {
+      message: "Should support tab navigation",
+    }).toBeTruthy();
   }
 
   private async validateMediaStandard(standard: MediaStandard): Promise<void> {
@@ -682,7 +682,7 @@ export class TimelineSteps {
           await this.humanSpaceflightPage.timeline.areBackgroundImagesLoaded();
         expect(imagesLoaded, {
           message: "Card images should load successfully",
-        }).toBe(true);
+        }).toBeTruthy();
         break;
       case "Image Quality":
         const milestones =
@@ -701,7 +701,7 @@ export class TimelineSteps {
         );
         expect(opacityCheck, {
           message: "Images should have consistent opacity",
-        }).toBe(true);
+        }).toBeTruthy();
         break;
       default:
         throw new Error(`Unknown media standard: ${Element}`);
@@ -718,17 +718,17 @@ export class TimelineSteps {
       case "Card Width":
         expect(consistency.hasConsistentWidth, {
           message: "Cards should have uniform width",
-        }).toBe(true);
+        }).toBeTruthy();
         break;
       case "Card Height":
         expect(consistency.hasConsistentHeight, {
           message: "Cards should have consistent height",
-        }).toBe(true);
+        }).toBeTruthy();
         break;
       case "Card Spacing":
         expect(consistency.hasUniformSpacing, {
           message: "Cards should have even spacing",
-        }).toBe(true);
+        }).toBeTruthy();
         break;
       default:
         throw new Error(`Unknown layout consistency element: ${Element}`);
@@ -739,20 +739,18 @@ export class TimelineSteps {
     requirement: TypographyRequirement,
     readability: any
   ): Promise<void> {
-    const {
-      Element,
-    } = requirement;
+    const { Element } = requirement;
 
     switch (Element) {
       case "Year Display":
         expect(readability.isYearVisible, {
           message: "Year text should be visible",
-        }).toBe(true);
+        }).toBeTruthy();
         break;
       case "Achievement Text":
         expect(readability.isTextReadable, {
           message: "Achievement text should be readable",
-        }).toBe(true);
+        }).toBeTruthy();
         break;
       case "Navigation Labels":
         await expect(this.humanSpaceflightPage.timeline.nextArrow, {
@@ -773,14 +771,14 @@ export class TimelineSteps {
           await this.humanSpaceflightPage.timeline.checkTextReadability();
         expect(readability.hasNoOverflow, {
           message: "Text should not overflow",
-        }).toBe(true);
+        }).toBeTruthy();
         break;
       case "Different Lengths":
         const consistency =
           await this.humanSpaceflightPage.timeline.checkCardsConsistency();
         expect(consistency.hasConsistentHeight, {
           message: "Cards should handle different text lengths",
-        }).toBe(true);
+        }).toBeTruthy();
         break;
       default:
         throw new Error(`Unknown text scenario: ${Scenario}`);
@@ -803,7 +801,7 @@ export class TimelineSteps {
           await this.humanSpaceflightPage.timeline.areBackgroundImagesLoaded();
         expect(imagesLoaded, {
           message: "Images should load successfully",
-        }).toBe(true);
+        }).toBeTruthy();
         break;
       default:
         throw new Error(`Unknown performance metric: ${Metric}`);
@@ -813,9 +811,7 @@ export class TimelineSteps {
   private async validateResourceOptimization(
     optimization: ResourceOptimization
   ): Promise<void> {
-    const {
-      "Resource Type": resourceType,
-    } = optimization;
+    const { "Resource Type": resourceType } = optimization;
 
     switch (resourceType) {
       case "Images":

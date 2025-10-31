@@ -159,7 +159,7 @@ export class Falcon9PageSteps {
     );
   }
 
-  @When("the user scrolls down the page")
+  @When("the user scrolls down the Falcon9 page")
   async scrollDownPage() {
     await this.falcon9Page.page.mouse.wheel(0, 1000);
     await this.falcon9Page.launchHistorySection.scrollIntoViewIfNeeded();

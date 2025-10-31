@@ -37,7 +37,7 @@ export class OurMissionsSteps {
     await this.humanSpaceflightPage.ourMissions.scrollIntoView();
     const isVisible =
       await this.humanSpaceflightPage.ourMissions.ourMissionsSection.isVisible();
-    expect(isVisible, "Our Missions section should be visible").toBe(true);
+    expect(isVisible, "Our Missions section should be visible").toBeTruthy();
   }
 
   @Then("I should see the section title {string}")
@@ -62,9 +62,10 @@ export class OurMissionsSteps {
     const isActive = await this.humanSpaceflightPage.ourMissions.isTabActive(
       expectedTab
     );
-    expect(isActive, `The default tab should be active: ${expectedTab}`).toBe(
-      true
-    );
+    expect(
+      isActive,
+      `The default tab should be active: ${expectedTab}`
+    ).toBeTruthy();
   }
 
   @Then("mission tabs should be available:")
@@ -163,7 +164,7 @@ export class OurMissionsSteps {
     expect(
       isActive,
       `Tab "${tabName}" should be active and its content displayed`
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("the metrics table should update with new information")
@@ -172,7 +173,7 @@ export class OurMissionsSteps {
       await this.humanSpaceflightPage.ourMissions.isTabContentUpdated(
         this.previousMetrics
       );
-    expect(isUpdated, "Metrics table content should have updated").toBe(true);
+    expect(isUpdated, "Metrics table content should have updated").toBeTruthy();
   }
 
   @Then("the cargo and science capabilities should list more than {int} items")
@@ -207,24 +208,24 @@ export class OurMissionsSteps {
         break;
       case "Metrics Table":
         const isGrid = await ourMissionsPOF.isMetricsGridLayoutClean();
-        expect(isGrid).toBe(true);
+        expect(isGrid).toBeTruthy();
         break;
       case "Tab Content":
         const isVisible = await (
           await ourMissionsPOF.getTabByName(check["Default Tab"]!)
         ).isVisible();
-        expect(isVisible).toBe(true);
+        expect(isVisible).toBeTruthy();
         break;
       case "CTA Button":
         const isButtonVisible =
           await ourMissionsPOF.isJoinMissionButtonVisible();
-        expect(isButtonVisible).toBe(true);
+        expect(isButtonVisible).toBeTruthy();
         break;
       case "Primary Tab":
         const isActive = await ourMissionsPOF.isTabActive(
           check["Default Tab"]!
         );
-        expect(isActive).toBe(true);
+        expect(isActive).toBeTruthy();
         break;
       default:
         throw new Error(`Unknown structure element check: ${check.Element}`);
@@ -259,7 +260,7 @@ export class OurMissionsSteps {
     expect(
       isRelevant,
       `Image should change and be relevant to ${missionName}`
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("the image should be relevant to {string}")
@@ -268,7 +269,10 @@ export class OurMissionsSteps {
       await this.humanSpaceflightPage.ourMissions.isBackgroundImageRelevantToMission(
         missionName
       );
-    expect(isRelevant, `Image should be relevant to ${missionName}`).toBe(true);
+    expect(
+      isRelevant,
+      `Image should be relevant to ${missionName}`
+    ).toBeTruthy();
   }
 
   @Then("the mission information should align with {string} mission")
@@ -279,12 +283,12 @@ export class OurMissionsSteps {
     const isTabActive = await this.humanSpaceflightPage.ourMissions.isTabActive(
       missionName
     );
-    expect(isTabActive, `Tab ${missionName} should be active`).toBe(true);
+    expect(isTabActive, `Tab ${missionName} should be active`).toBeTruthy();
   }
 
   @When("I click the {string} button")
   async clickJoinMissionButton(buttonText: string) {
-    await this.humanSpaceflightPage.ourMissions.clickJoinMissionButton();
+    await this.humanSpaceflightPage.ourMissions.clickButton(buttonText);
   }
 
   @Then("the Our Missions section should display core elements:")
@@ -322,9 +326,10 @@ export class OurMissionsSteps {
   async checkJoinMissionButtonVisible(buttonText: string) {
     const isVisible =
       await this.humanSpaceflightPage.ourMissions.isJoinMissionButtonVisible();
-    expect(isVisible, `The "${buttonText}" button should be visible`).toBe(
-      true
-    );
+    expect(
+      isVisible,
+      `The "${buttonText}" button should be visible`
+    ).toBeTruthy();
   }
 
   @Then("I should be directed to:")
@@ -351,7 +356,7 @@ export class OurMissionsSteps {
       expect(
         isFormVisible,
         "The Mission Submission Form should be visible"
-      ).toBe(true);
+      ).toBeTruthy();
     }
   }
 
@@ -376,7 +381,7 @@ export class OurMissionsSteps {
     expect(
       isSmooth,
       "Content transitions should be smooth (no console errors/blinking)"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("the UI should remain responsive")
@@ -386,7 +391,7 @@ export class OurMissionsSteps {
     expect(
       isResponsive,
       "The UI should remain responsive after rapid interactions"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("the section should meet visual standards:")
@@ -413,7 +418,7 @@ export class OurMissionsSteps {
         expect(
           isVisible && isRelevant,
           "Background image should be visible, left-aligned, and relevant"
-        ).toBe(true);
+        ).toBeTruthy();
         break;
       case "Image Opacity":
         const opacity = await ourMissionsPOF.getBackgroundImageOpacity();
@@ -422,14 +427,14 @@ export class OurMissionsSteps {
         break;
       case "Tab Design":
         const isConsistent = await ourMissionsPOF.isTabDesignConsistent();
-        expect(isConsistent, "Tab design should be consistent").toBe(true);
+        expect(isConsistent, "Tab design should be consistent").toBeTruthy();
         break;
       case "Metrics Layout":
         const isCleanGrid = await ourMissionsPOF.isMetricsGridLayoutClean();
         expect(
           isCleanGrid,
           "Metrics table should have a clean, organized grid layout"
-        ).toBe(true);
+        ).toBeTruthy();
         break;
       case "Typography":
         const isReadable = await ourMissionsPOF.isTypographyClearAndReadable();
@@ -466,11 +471,11 @@ export class OurMissionsSteps {
     expect(
       sectionVisible,
       `Section should be visible at ${viewport.width}x${viewport.height}`
-    ).toBe(true);
+    ).toBeTruthy();
     expect(
       tabsExist,
       `Tabs should exist at ${viewport.width}x${viewport.height}`
-    ).toBe(true);
+    ).toBeTruthy();
 
     if (sectionBox) {
       expect(

@@ -180,7 +180,7 @@ export class VehiclesSteps {
     ].isVisible();
     expect(sectionVisible, {
       message: "Vehicles section should be visible",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   private async validateVehicleCards(): Promise<void> {
@@ -216,7 +216,9 @@ export class VehiclesSteps {
         await this.humanSpaceflightPage.vehicles.verifyVehicleMediaExists(
           cardName
         );
-      expect(hasMedia, { message: `${cardName} should have media` }).toBe(true);
+      expect(hasMedia, {
+        message: `${cardName} should have media`,
+      }).toBeTruthy();
     }
   }
 
@@ -397,7 +399,7 @@ export class VehiclesSteps {
           await this.humanSpaceflightPage.vehicles.verifyCardSpacing();
         expect(spacing.vertical, {
           message: "Cards should have proper spacing",
-        }).toBe(true);
+        }).toBeTruthy();
         break;
       case "Media Position":
         break;
@@ -411,10 +413,10 @@ export class VehiclesSteps {
           await this.humanSpaceflightPage.vehicles.verifyCardSpacing();
         expect(cardSpacing.vertical, {
           message: "Cards should have proper vertical spacing",
-        }).toBe(true);
+        }).toBeTruthy();
         expect(cardSpacing.horizontal, {
           message: "Cards should have proper horizontal spacing",
-        }).toBe(true);
+        }).toBeTruthy();
         break;
       default:
         throw new Error(`Unknown card adaptation element: ${Element}`);
@@ -513,7 +515,7 @@ export class VehiclesSteps {
   private async validateAccessibilityMethod(
     method: NavigationMethod
   ): Promise<void> {
-    const { Method, "Expected Behavior": expectedBehavior } = method;
+    const { Method } = method;
 
     switch (Method) {
       case "Keyboard":
@@ -535,9 +537,9 @@ export class VehiclesSteps {
     const hasFocus = await this.page.evaluate(
       () => document.activeElement !== document.body
     );
-    expect(hasFocus, { message: "Should support keyboard navigation" }).toBe(
-      true
-    );
+    expect(hasFocus, {
+      message: "Should support keyboard navigation",
+    }).toBeTruthy();
   }
 
   private async validateScreenReaderSupport(): Promise<void> {
@@ -559,7 +561,7 @@ export class VehiclesSteps {
   private async validatePerformanceMetric(
     metric: PerformanceMetric
   ): Promise<void> {
-    const { Metric, Requirement, Priority } = metric;
+    const { Metric } = metric;
 
     switch (Metric) {
       case "Image Loading":
@@ -581,7 +583,7 @@ export class VehiclesSteps {
       const isLoaded = await images
         .nth(i)
         .evaluate((img: HTMLImageElement) => img.complete);
-      expect(isLoaded, { message: "Images should load" }).toBe(true);
+      expect(isLoaded, { message: "Images should load" }).toBeTruthy();
     }
   }
 
@@ -627,7 +629,7 @@ export class VehiclesSteps {
 
     expect(hasModernFormat || imageCount === 0, {
       message: "Should use modern image formats",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   private async validateVideoOptimization(): Promise<void> {

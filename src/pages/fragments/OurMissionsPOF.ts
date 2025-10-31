@@ -322,4 +322,12 @@ export class OurMissionsPOF {
     }
     return "";
   }
+
+  async clickButton(buttonText: string): Promise<void> {
+    const button = this.ourMissionsSection.locator("button", {
+      hasText: buttonText,
+    });
+    await button.click();
+    await this.page.waitForLoadState("domcontentloaded");
+  }
 }

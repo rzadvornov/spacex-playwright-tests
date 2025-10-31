@@ -57,7 +57,7 @@ export class DestinationsSteps {
     expect(
       allVisible,
       `Destination ${dest.Destination} should be visible`
-    ).toBe(true);
+    ).toBeTruthy();
 
     if (dest.Path) {
       await this.humanSpaceflightPage.destinations.clickDestination(
@@ -79,7 +79,7 @@ export class DestinationsSteps {
     expect(
       allMediaVisible,
       "All destinations should have associated visual elements"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @When("I click on the {string} destination card")
@@ -98,9 +98,10 @@ export class DestinationsSteps {
       return document.readyState === "complete";
     });
 
-    expect(isPageReady, "Should be navigated to a fully loaded page").toBe(
-      true
-    );
+    expect(
+      isPageReady,
+      "Should be navigated to a fully loaded page"
+    ).toBeTruthy();
 
     const currentUrl = this.page.url();
     expect(currentUrl).not.toContain("#");
@@ -128,9 +129,10 @@ export class DestinationsSteps {
       await this.humanSpaceflightPage.destinations.isDestinationImageLoadedCorrectly(
         req.Destination
       );
-    expect(imageLoaded, `${req.Destination} image should load correctly`).toBe(
-      true
-    );
+    expect(
+      imageLoaded,
+      `${req.Destination} image should load correctly`
+    ).toBeTruthy();
 
     if (req["Element Type"]?.includes("SVG")) {
       const hasSvgOverlay =
@@ -152,7 +154,7 @@ export class DestinationsSteps {
       expect(
         allMediaVisible,
         `Visual elements should be visible at ${size.width}x${size.height}`
-      ).toBe(true);
+      ).toBeTruthy();
     });
   }
 
@@ -186,7 +188,7 @@ export class DestinationsSteps {
     expect(
       areClickable,
       "Destinations should be clickable over background"
-    ).toBe(true);
+    ).toBeTruthy();
 
     const areVisible =
       await this.humanSpaceflightPage.destinations.areAllDestinationsVisible(
@@ -195,7 +197,7 @@ export class DestinationsSteps {
     expect(
       areVisible,
       "Destinations should be clearly visible above background"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @When("I interact with the {string} on desktop")
@@ -244,11 +246,11 @@ export class DestinationsSteps {
   private async validateHoverState(): Promise<void> {
     const hasHoverEffect =
       await this.humanSpaceflightPage.destinations.isDestinationHoverEffectVisible();
-    expect(hasHoverEffect, "Element should show hover effect").toBe(true);
+    expect(hasHoverEffect, "Element should show hover effect").toBeTruthy();
 
     const hasPointerCursor =
       await this.humanSpaceflightPage.destinations.isDestinationCursorPointer();
-    expect(hasPointerCursor, "Cursor should be pointer on hover").toBe(true);
+    expect(hasPointerCursor, "Cursor should be pointer on hover").toBeTruthy();
   }
 
   private async validateRegularState(): Promise<void> {
@@ -256,13 +258,14 @@ export class DestinationsSteps {
 
     const effectDisappeared =
       await this.humanSpaceflightPage.destinations.isDestinationHoverEffectDisappeared();
-    expect(effectDisappeared, "Hover effect should disappear").toBe(true);
+    expect(effectDisappeared, "Hover effect should disappear").toBeTruthy();
 
     const hasPointerCursor =
       await this.humanSpaceflightPage.destinations.isDestinationCursorPointer();
-    expect(hasPointerCursor, "Cursor should not be pointer after unhover").toBe(
-      false
-    );
+    expect(
+      hasPointerCursor,
+      "Cursor should not be pointer after unhover"
+    ).toBeFalsy();
   }
 
   @Then("destinations should be displayed in the correct order:")
@@ -278,7 +281,7 @@ export class DestinationsSteps {
     expect(
       allVisible,
       `Destinations should be visible in order: ${expectedOrder.join(", ")}`
-    ).toBe(true);
+    ).toBeTruthy();
   }
 
   @Then("each destination should have accessible descriptions")
@@ -291,6 +294,6 @@ export class DestinationsSteps {
     expect(
       areAccessible,
       "All destinations should have proper content and be accessible"
-    ).toBe(true);
+    ).toBeTruthy();
   }
 }

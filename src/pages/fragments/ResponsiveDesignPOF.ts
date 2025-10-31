@@ -27,6 +27,7 @@ export class ResponsiveDesignPOF {
   readonly navigationMenu: Locator;
   readonly closeMenuButton: Locator;
   readonly navigationLinks: Locator;
+  readonly carouselSection: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -36,6 +37,7 @@ export class ResponsiveDesignPOF {
     this.navigationMenu = page.locator(".mobile-navigation");
     this.closeMenuButton = page.locator("button.close-menu");
     this.navigationLinks = page.locator(".navigation-links a");
+    this.carouselSection = page.locator('[data-test="media-carousel"], .carousel, [role="region"][aria-label*="carousel"]');
   }
 
   async setViewportSize(width: number, height: number = 812): Promise<void> {
@@ -688,4 +690,69 @@ export class ResponsiveDesignPOF {
       };
     }, ResponsiveDesignPOF.MIN_TOUCH_TARGET_SIZE);
   }
+
+  async swipeElement(
+    element: string,
+    direction: "left" | "right" = "left"
+  ): Promise<void> {
+    const locator = this.getInteractiveElement(element);
+    const box = await locator.boundingBox();
+    if (box) {
+      const startX = box.x + box.width / 2;
+      const startY = box.y + box.height / 2;
+      const endX = direction === "left" ? startX - 100 : startX + 100;
+
+      await this.page.mouse.move(startX, startY);
+      await this.page.mouse.down();
+      await this.page.mouse.move(endX, startY);
+      await this.page.mouse.up();
+    }
+  }
+
+  getInteractiveElement(element: string): Locator {
+    switch (element.toLowerCase()) {
+      case "menu":
+        return this.hamburgerButton;
+      case "carousel":
+        return this.carouselSection.locator(".slide").first();
+      case "button":
+        return this.page.locator("button").first();
+      case "form":
+        return this.page.locator("input, textarea, select").first();
+      default:
+        return this.page.locator(element);
+    }
+  }
+
+  async focusAndTypeInElement(element: string): Promise<void> {
+    const locator = this.getInteractiveElement(element);
+    await locator.focus();
+    await locator.fill('test input');
+  }
+
+  async hoverAndClickElement(element: string): Promise<void> {
+    const locator = this.getInteractiveElement(element);
+    await locator.hover();
+    await this.page.waitForTimeout(100);
+    await locator.click();
+  }
+
+  async tapElement(element: string): Promise<void> {
+    const locator = this.getInteractiveElement(element);
+    await locator.click({ force: true });
+  }
+
+  async simulateSwipe(direction: 'left' | 'right'): Promise<void> {
+    await this.swipeElement('carousel', direction);
+  }
+
+  async clickNextArrow(): Promise<void> {
+    const nextArrow = this.carouselSection.locator('[data-test="next-arrow"], .carousel-next, button[aria-label*="next"]');
+    await nextArrow.click();
+  }
+
+ async clickElement(element: string): Promise<void> {
+  const locator = this.getElementLocator(element);
+  await locator.click();
+}
 }

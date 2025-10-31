@@ -66,6 +66,6 @@ Feature: View and Learn About Falcon 9 Rocket
 
   @falcon9 @history @statistics
   Scenario: View Launch History and Reuse Statistics
-    When the user scrolls down the page
+    When the user scrolls down the Falcon9 page
     Then a dedicated section or link summarizing Falcon 9's launch history should be displayed
     And key statistics like total successful missions and **booster reuse count** should be highlighted

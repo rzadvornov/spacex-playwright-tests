@@ -41,9 +41,10 @@ export class FooterSteps {
       await this.humanSpaceflightPage.footer.checkFooterLinksExist(
         expectedLinks
       );
-    expect(allLinksExist, "All specified footer links should be present").toBe(
-      true
-    );
+    expect(
+      allLinksExist,
+      "All specified footer links should be present"
+    ).toBeTruthy();
   }
 
   @Then(
@@ -91,10 +92,11 @@ export class FooterSteps {
       this.humanSpaceflightPage.footer.isTwitterButtonVisible(),
     ]);
 
-    expect(isSectionVisible, "Social media section should be visible").toBe(
-      true
-    );
-    expect(isTwitterVisible, "Twitter/X button should be visible").toBe(true);
+    expect(
+      isSectionVisible,
+      "Social media section should be visible"
+    ).toBeTruthy();
+    expect(isTwitterVisible, "Twitter/X button should be visible").toBeTruthy();
   }
 
   @Then("I should be navigated to the appropriate page")
@@ -103,14 +105,14 @@ export class FooterSteps {
     const isLoaded = await this.page.evaluate(
       () => document.readyState === "complete"
     );
-    expect(isLoaded, "Page should be loaded").toBe(true);
+    expect(isLoaded, "Page should be loaded").toBeTruthy();
   }
 
   @Then("the page should load successfully")
   async checkPageLoadSuccess() {
     await this.page.waitForLoadState("load");
     const hasError = await this.checkForPageErrors(this.page);
-    expect(hasError, "Page should load without errors").toBe(false);
+    expect(hasError, "Page should load without errors").toBeFalsy();
   }
 
   @Then("the content should load successfully")
@@ -118,7 +120,7 @@ export class FooterSteps {
     const newPage = this.sharedContext.newPage!;
     await newPage.waitForLoadState("load");
     const hasError = await this.checkForPageErrors(newPage);
-    expect(hasError, "Content should load without errors").toBe(false);
+    expect(hasError, "Content should load without errors").toBeFalsy();
   }
 
   private async checkForPageErrors(targetPage: Page): Promise<boolean> {
@@ -149,7 +151,7 @@ export class FooterSteps {
         expect(
           socialMediaVisible,
           "Social media section should be visible"
-        ).toBe(true);
+        ).toBeTruthy();
         break;
 
       case "Navigation Links":
@@ -159,7 +161,7 @@ export class FooterSteps {
             "Updates",
             "Suppliers",
           ]);
-        expect(linksExist, "Navigation links should exist").toBe(true);
+        expect(linksExist, "Navigation links should exist").toBeTruthy();
         break;
 
       case "Copyright Text":
@@ -198,7 +200,7 @@ export class FooterSteps {
         expect(
           socialVisible && linksExist,
           "Footer elements should have proper horizontal layout"
-        ).toBe(true);
+        ).toBeTruthy();
         break;
 
       case "Vertical":
@@ -215,7 +217,7 @@ export class FooterSteps {
       case "Overall":
         const isNotCramped =
           await this.humanSpaceflightPage.footer.isFooterNotCramped();
-        expect(isNotCramped, "Layout should not appear cramped").toBe(true);
+        expect(isNotCramped, "Layout should not appear cramped").toBeTruthy();
         break;
 
       default:
@@ -239,14 +241,14 @@ export class FooterSteps {
   async checkHoverEffect() {
     const hasEffect =
       await this.humanSpaceflightPage.footer.hasFooterLinkHoverEffect();
-    expect(hasEffect, "Element should show hover effect").toBe(true);
+    expect(hasEffect, "Element should show hover effect").toBeTruthy();
   }
 
   @Then("the cursor should change to pointer")
   async checkCursorPointer() {
     const isPointer =
       await this.humanSpaceflightPage.footer.isFooterLinkCursorPointer();
-    expect(isPointer, "Cursor should change to pointer").toBe(true);
+    expect(isPointer, "Cursor should change to pointer").toBeTruthy();
   }
 
   @When("I move away from the {string}")
@@ -259,7 +261,7 @@ export class FooterSteps {
     await this.page.waitForTimeout(this.HOVER_TRANSITION_DELAY);
     const hasEffect =
       await this.humanSpaceflightPage.footer.hasFooterLinkHoverEffect();
-    expect(hasEffect, "Hover effect should disappear").toBe(false);
+    expect(hasEffect, "Hover effect should disappear").toBeFalsy();
   }
 
   @Then("the Twitter/X social media button should have:")
@@ -289,7 +291,7 @@ export class FooterSteps {
         expect(
           isIconVisible,
           "Twitter/X icon should be visible and centered"
-        ).toBe(true);
+        ).toBeTruthy();
         break;
 
       case "Design":
@@ -318,9 +320,10 @@ export class FooterSteps {
     await this.humanSpaceflightPage.footer.hoverOverFooterLink(linkText);
     const hasEffect =
       await this.humanSpaceflightPage.footer.hasFooterLinkHoverEffect();
-    expect(hasEffect, `${linkText} should have consistent hover effect`).toBe(
-      true
-    );
+    expect(
+      hasEffect,
+      `${linkText} should have consistent hover effect`
+    ).toBeTruthy();
     await this.humanSpaceflightPage.footer.unhoverFooterLink();
   }
 
@@ -342,7 +345,7 @@ export class FooterSteps {
       expect(
         socialVisible && linksExist,
         `Footer elements should be visible at ${size.width}x${size.height}`
-      ).toBe(true);
+      ).toBeTruthy();
     });
   }
 }

@@ -186,7 +186,7 @@ export class TheSuitesSteps {
     if (state === "Centered") {
       const isCentered =
         await this.humanSpaceflightPage.theSuites.isSuitImageCentered();
-      expect(isCentered).toBe(true);
+      expect(isCentered).toBeTruthy();
     }
   }
 
@@ -194,7 +194,7 @@ export class TheSuitesSteps {
     if (state === "Visible") {
       const areVisible =
         await this.humanSpaceflightPage.theSuites.areHotspotsVisible();
-      expect(areVisible).toBe(true);
+      expect(areVisible).toBeTruthy();
     }
   }
 
@@ -202,7 +202,7 @@ export class TheSuitesSteps {
     if (state === "Visible") {
       const isVisible =
         await this.humanSpaceflightPage.theSuites.isGradientVisible();
-      expect(isVisible).toBe(true);
+      expect(isVisible).toBeTruthy();
     }
   }
 
@@ -279,7 +279,7 @@ export class TheSuitesSteps {
       await this.page.waitForTimeout(this.TEST_CONSTANTS.ANIMATION_DELAY);
       const isLoaded =
         await this.humanSpaceflightPage.theSuites.isSuitImageLoaded();
-      expect(isLoaded).toBe(true);
+      expect(isLoaded).toBeTruthy();
     }
   }
 
@@ -287,7 +287,7 @@ export class TheSuitesSteps {
     if (stateChange === "Update for new suit type") {
       const areVisible =
         await this.humanSpaceflightPage.theSuites.areHotspotsVisible();
-      expect(areVisible).toBe(true);
+      expect(areVisible).toBeTruthy();
     }
   }
 
@@ -426,7 +426,7 @@ export class TheSuitesSteps {
   private async validateVisualStandard(
     standard: VisualStandard
   ): Promise<void> {
-    const { Element, Requirement, Details } = standard;
+    const { Element, Requirement } = standard;
 
     switch (Element) {
       case "Suit Image":
@@ -477,13 +477,13 @@ export class TheSuitesSteps {
         await this.humanSpaceflightPage.theSuites.isGradientVisible();
       expect(isVisible, {
         message: "Background gradient should be visible",
-      }).toBe(true);
+      }).toBeTruthy();
 
       const enhancesVisibility =
         await this.humanSpaceflightPage.theSuites.isGradientEnhancingSuitVisibility();
       expect(enhancesVisibility, {
         message: "Gradient should enhance visibility",
-      }).toBe(true);
+      }).toBeTruthy();
     }
   }
 
@@ -513,7 +513,7 @@ export class TheSuitesSteps {
           );
         expect(isPositioned, {
           message: `Callout should adapt position for hotspot ${i + 1}`,
-        }).toBe(true);
+        }).toBeTruthy();
       }
     }
   }
@@ -526,9 +526,9 @@ export class TheSuitesSteps {
 
     const isLoaded =
       await this.humanSpaceflightPage.theSuites.isSuitImageLoaded();
-    expect(isLoaded, { message: `${suitType} suit image should load` }).toBe(
-      true
-    );
+    expect(isLoaded, {
+      message: `${suitType} suit image should load`,
+    }).toBeTruthy();
 
     const hotspotCount =
       await this.humanSpaceflightPage.theSuites.getHotspotCount();

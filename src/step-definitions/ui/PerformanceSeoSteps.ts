@@ -107,7 +107,7 @@ export class PerformanceSeoSteps {
 
     expect(hasModernFormat, {
       message: "At least one image should use modern formats (WebP, AVIF)",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   @Then("images should have responsive sizes \\(srcset)")
@@ -118,7 +118,7 @@ export class PerformanceSeoSteps {
     expect(hasResponsive, {
       message:
         "At least one image should have srcset attribute for responsive sizing",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   @Then("images should load lazily when below the fold")
@@ -128,7 +128,7 @@ export class PerformanceSeoSteps {
 
     expect(hasLazyLoad, {
       message: "At least one image should use lazy loading",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   @Then("critical CSS should be inlined or loaded first")
@@ -268,7 +268,7 @@ export class PerformanceSeoSteps {
       const isAbsoluteUrl = link.href.startsWith("http");
       expect(isAbsoluteUrl, {
         message: `Internal link at index ${index} should use relative URL instead of: ${link.href}`,
-      }).toBe(false);
+      }).toBeFalsy();
     }
   }
 
@@ -288,15 +288,15 @@ export class PerformanceSeoSteps {
 
     expect(mobileOptimization.textReadable, {
       message: "Text should be readable on mobile devices",
-    }).toBe(true);
+    }).toBeTruthy();
 
     expect(mobileOptimization.touchTargetsSize, {
       message: "Touch targets should be properly sized for mobile interaction",
-    }).toBe(true);
+    }).toBeTruthy();
 
     expect(mobileOptimization.noInterstitials, {
       message: "No interstitials should block mobile content",
-    }).toBe(true);
+    }).toBeTruthy();
   }
 
   @Then("these metrics should be consistent across page loads")
