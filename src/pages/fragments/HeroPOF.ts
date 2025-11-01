@@ -2,12 +2,13 @@ import { Locator, Page } from "@playwright/test";
 import { BoundingBox } from "../types/Types";
 
 export class HeroPOF {
-  private readonly heroSection: Locator;
-  private readonly heroTitle: Locator;
-  private readonly heroSubtitle: Locator;
-  private readonly upcomingLaunchesWidget: Locator;
-  private readonly scrollDownArrow: Locator;
-  private readonly mediaCarouselSection: Locator;
+  readonly heroSection: Locator;
+  readonly heroTitle: Locator;
+  readonly heroSubtitle: Locator;
+  readonly upcomingLaunchesWidget: Locator;
+  readonly scrollDownArrow: Locator;
+  readonly mediaCarouselSection: Locator;
+  readonly heroImage: Locator;
 
   private cachedHeroSectionHeight: number | null = null;
 
@@ -32,6 +33,7 @@ export class HeroPOF {
     this.mediaCarouselSection = page
       .locator(".media-carousel-section, .section-2")
       .first();
+    this.heroImage = page.locator("img.hero-graphic").first();
   }
 
   private getPage(): Page {

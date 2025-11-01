@@ -38,6 +38,8 @@ import { RidesharePage } from "../pages/ui/RidesharePage";
 import { RidesharePageSteps } from "../step-definitions/ui/RidesharePageSteps";
 import { StarshieldPage } from "../pages/ui/StarshieldPage";
 import { StarshieldPageSteps } from "../step-definitions/ui/StarshieldPageSteps";
+import { StarshipPage } from "../pages/ui/StarshipPage";
+import { StarshipPageSteps } from "../step-definitions/ui/StarshipPageSteps";
 
 export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   sharedPageSteps: [
@@ -256,6 +258,24 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
         viewportUtility
       );
       await use(starshieldPageSteps);
+    },
+    { scope: "test" },
+  ],
+  starshipPage: async ({ page }, use) => {
+    const starshipPage = new StarshipPage(page);
+    await use(starshipPage);
+  },
+  starshipPageSteps: [
+    async ({ page, starshipPage, viewportUtility, assertionHelper }, use) => {
+      const starshipSharedPageSteps = new SharedPageSteps(page);
+      const starshipPageSteps = new StarshipPageSteps(
+        page,
+        starshipPage,
+        starshipSharedPageSteps,
+        assertionHelper,
+        viewportUtility
+      );
+      await use(starshipPageSteps);
     },
     { scope: "test" },
   ],

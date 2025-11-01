@@ -1,11 +1,11 @@
 import { Locator, Page } from "@playwright/test";
 
 export class HeaderPOF {
-  private readonly navigation: Locator;
-  private readonly menuButton: Locator;
-  private readonly mobileMenu: Locator;
-  private readonly logoLink: Locator;
-  private readonly mobileMenuCloseButton: Locator;
+  readonly navigation: Locator;
+  readonly menuButton: Locator;
+  readonly mobileMenu: Locator;
+  readonly logoLink: Locator;
+  readonly mobileMenuCloseButton: Locator;
   
   private cachedHeaderHeight: number | null = null;
   private cachedLogoSize: number | null = null;

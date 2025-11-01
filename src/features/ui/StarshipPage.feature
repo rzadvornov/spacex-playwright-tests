@@ -38,7 +38,7 @@ Feature: Learn About the Starship Transportation System's Capabilities
   @starship @specifications @super-heavy
   Scenario: Review Super Heavy Booster specifications
     When I view the Super Heavy Booster specifications
-    Then I should see the following technical details are accurately displayed:
+    Then I should see the following Super Heavy Booster technical details are accurately displayed:
       | Attribute           | Metric Value | Imperial Value | Other Details     |
       | Height              | 71 m         | 232 ft         |                   |
       | Diameter            | 9 m          | 29.5 ft        |                   |

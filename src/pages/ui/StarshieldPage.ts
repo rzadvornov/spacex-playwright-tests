@@ -1,11 +1,12 @@
 import { Page, Locator } from "@playwright/test";
 import { SpaceXPage } from "../base/SpaceXPage";
 import { FooterPOF } from "../fragments/FooterPOF";
+import { HeroPOF } from "../fragments/HeroPOF";
 
 export class StarshieldPage extends SpaceXPage {
+  readonly hero: HeroPOF;
   readonly starshieldBranding: Locator;
   readonly mainNavigationMenu: Locator;
-  readonly heroSection: Locator;
   readonly servicesSection: Locator;
   readonly earthObservationInfo: Locator;
   readonly communicationsInfo: Locator;
@@ -18,7 +19,6 @@ export class StarshieldPage extends SpaceXPage {
   readonly submitButton: Locator;
   readonly emailField: Locator;
   readonly secureChannelsInfo: Locator;
-  readonly heroImage: Locator;
   readonly videoPlayer: Locator;
   readonly infographics: Locator;
   readonly technicalSpecs: Locator;
@@ -33,6 +33,7 @@ export class StarshieldPage extends SpaceXPage {
 
   constructor(page: Page) {
     super(page);
+    this.hero = new HeroPOF(page);
     this.footer = new FooterPOF(page);
     this.errorBanner = this.page.locator(".global-error-message, .error-toast");
     this.breadcrumb = this.page.locator(".breadcrumb-nav");
@@ -46,7 +47,6 @@ export class StarshieldPage extends SpaceXPage {
 
     this.starshieldBranding = this.page.locator(".starshield-logo");
     this.mainNavigationMenu = this.page.locator("nav.main-nav");
-    this.heroSection = this.page.locator("#hero-section");
     this.servicesSection = this.page.locator("#services-section");
     this.allCTAs = this.page.locator("a.cta-button, button.cta-button");
     this.inquiryForm = this.page.locator("form#contact-inquiry-form");
@@ -65,7 +65,6 @@ export class StarshieldPage extends SpaceXPage {
     this.comparisonInfo = this.page.locator("#starshield-starlink-comparison");
     this.complianceInfo = this.page.locator("#compliance-certifications");
 
-    this.heroImage = this.heroSection.locator("img.hero-graphic").first();
     this.videoPlayer = this.page.locator("video-player");
     this.infographics = this.page.locator(".technical-diagrams img");
     this.technicalSpecs = this.page.locator("#technical-specifications-table");

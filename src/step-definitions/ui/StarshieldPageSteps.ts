@@ -8,6 +8,7 @@ import { ViewportUtility } from "../../utils/ViewportUtility";
 
 @Fixture("starshieldPageSteps")
 export class StarshieldPageSteps {
+  
   constructor(
     private page: Page,
     private starshieldPage: StarshieldPage,
@@ -41,13 +42,13 @@ export class StarshieldPageSteps {
     "the hero section should contain information about Starshield's purpose"
   )
   async heroSectionShouldContainPurposeInfo() {
-    const heroText = await this.starshieldPage.heroSection.textContent();
+    const heroText = await this.starshieldPage.hero.heroSection.textContent();
     this.assertionHelper.assertValuePresent(
       heroText,
       "Hero text content must be present."
     );
     expect(heroText?.length).toBeGreaterThan(50);
-    await expect(this.starshieldPage.heroSection).toBeVisible();
+    await expect(this.starshieldPage.hero.heroSection).toBeVisible();
   }
 
   @Given("the main navigation is visible")
@@ -259,7 +260,7 @@ export class StarshieldPageSteps {
   @Then("the content should be displayed without errors")
   async theContentShouldBeDisplayedWithoutErrors() {
     await expect(this.starshieldPage.errorBanner).not.toBeVisible();
-    await expect(this.starshieldPage.heroSection).toBeVisible();
+    await expect(this.starshieldPage.hero.heroSection).toBeVisible();
   }
 
   @Given("the user is viewing a Starshield subpage or section")
@@ -793,7 +794,7 @@ export class StarshieldPageSteps {
 
   @Then("the main content should scroll underneath the header")
   async mainContentShouldScrollUnderneathTheHeader() {
-    const boundingBox = await this.starshieldPage.heroSection.boundingBox();
+    const boundingBox = await this.starshieldPage.hero.heroSection.boundingBox();
     expect(boundingBox?.y).toBeLessThan(100);
   }
 
@@ -852,7 +853,7 @@ export class StarshieldPageSteps {
 
   @Then("all critical resources should be loaded efficiently")
   async allCriticalResourcesShouldBeLoadedEfficiently() {
-    const imageLoaded = await this.starshieldPage.heroImage.isVisible();
+    const imageLoaded = await this.starshieldPage.hero.heroImage.isVisible();
     expect(imageLoaded).toBeTruthy();
   }
 
@@ -923,7 +924,7 @@ export class StarshieldPageSteps {
       .locator("body")
       .textContent();
     expect(bodyText?.length).toBeGreaterThan(10);
-    const altText = await this.starshieldPage.heroImage.getAttribute("alt");
+    const altText = await this.starshieldPage.hero.heroImage.getAttribute("alt");
     this.assertionHelper.assertValuePresent(
       altText,
       "Alt text must be present as a fallback for the hero image."
@@ -972,7 +973,7 @@ export class StarshieldPageSteps {
 
   @Then("critical information should be visible without JavaScript")
   async criticalInformationShouldBeVisibleWithoutJavaScript() {
-    const heroText = await this.starshieldPage.heroSection.textContent();
+    const heroText = await this.starshieldPage.hero.heroSection.textContent();
     this.assertionHelper.assertValuePresent(
       heroText,
       "Hero text content must be present even without JavaScript."
@@ -1317,12 +1318,12 @@ export class StarshieldPageSteps {
 
   @Given("the page contains hero images or graphics")
   async thePageContainsHeroImagesOrGraphics() {
-    await expect(this.starshieldPage.heroImage).toBeVisible();
+    await expect(this.starshieldPage.hero.heroImage).toBeVisible();
   }
 
   @Then("images should load progressively or with placeholders")
   async imagesShouldLoadProgressivelyOrWithPlaceholders() {
-    const heroImage = this.starshieldPage.heroImage;
+    const heroImage = this.starshieldPage.hero.heroImage;
     const isLazyLoaded = (await heroImage.getAttribute("loading")) === "lazy";
     const hasPlaceholder = await this.page
       .locator(".image-placeholder, .skeleton-screen")
@@ -1333,7 +1334,7 @@ export class StarshieldPageSteps {
 
   @Then("images should have appropriate alt text for accessibility")
   async imagesShouldHaveAppropriateAltTextForAccessibility() {
-    const altText = await this.starshieldPage.heroImage.getAttribute("alt");
+    const altText = await this.starshieldPage.hero.heroImage.getAttribute("alt");
     this.assertionHelper.assertValuePresent(
       altText,
       "Hero image must have a non-empty 'alt' attribute for accessibility."
@@ -1343,7 +1344,7 @@ export class StarshieldPageSteps {
 
   @Then("images should be optimized for web performance")
   async imagesShouldBeOptimizedForWebPerformance() {
-    const heroImage = this.starshieldPage.heroImage;
+    const heroImage = this.starshieldPage.hero.heroImage;
     const src = await heroImage.getAttribute("src");
     const srcset = await heroImage.getAttribute("srcset");
 
@@ -1641,7 +1642,7 @@ export class StarshieldPageSteps {
   @Then("the page should remain functional")
   async pageShouldRemainFunctional() {
     await expect(this.starshieldPage.mainNavigationMenu).toBeVisible();
-    await expect(this.starshieldPage.heroSection).toBeVisible();
+    await expect(this.starshieldPage.hero.heroSection).toBeVisible();
   }
 
   @Given("the page contains images")
@@ -1680,7 +1681,7 @@ export class StarshieldPageSteps {
     await expect(this.starshieldPage.mainNavigationMenu).toBeVisible();
     await expect(this.starshieldPage.footer.footer).toBeVisible();
 
-    const heroBox = await this.starshieldPage.heroSection.boundingBox();
+    const heroBox = await this.starshieldPage.hero.heroSection.boundingBox();
     const navBox = await this.starshieldPage.mainNavigationMenu.boundingBox();
 
     expect(heroBox?.y).toBeGreaterThan(navBox?.y || 0);
@@ -1733,7 +1734,7 @@ export class StarshieldPageSteps {
   @Then("the rest of the page should remain functional")
   async restOfPageShouldRemainFunctional() {
     await expect(this.starshieldPage.mainNavigationMenu).toBeVisible();
-    await expect(this.starshieldPage.heroSection).toBeVisible();
+    await expect(this.starshieldPage.hero.heroSection).toBeVisible();
     await expect(this.starshieldPage.footer.footer).toBeVisible();
   }
 

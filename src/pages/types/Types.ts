@@ -32,6 +32,8 @@ import { RidesharePage } from "../ui/RidesharePage";
 import { RidesharePageSteps } from "../../step-definitions/ui/RidesharePageSteps";
 import { StarshieldPage } from "../ui/StarshieldPage";
 import { StarshieldPageSteps } from "../../step-definitions/ui/StarshieldPageSteps";
+import { StarshipPage } from "../ui/StarshipPage";
+import { StarshipPageSteps } from "../../step-definitions/ui/StarshipPageSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -584,6 +586,8 @@ export interface BddFixtures {
   sharedPageSteps: SharedPageSteps;
   starshieldPage: StarshieldPage;
   starshieldPageSteps: StarshieldPageSteps;
+  starshipPage: StarshipPage;
+  starshipPageSteps: StarshipPageSteps;
   assertionHelper: AssertionHelper;
   viewportUtility: ViewportUtility;
 }

@@ -31,4 +31,23 @@ export class ViewportUtility {
       }
     }
   }
+
+ getViewportNameFromSize(viewportSize: {
+    width: number;
+    height: number;
+  }): string {
+     const matchedSize = this.VIEWPORT_SIZES.find(
+      (size: any) =>
+        size.width === viewportSize.width && size.height === viewportSize.height
+    );
+
+    if (matchedSize) {
+      if (viewportSize.width === 375) return "mobile";
+      if (viewportSize.width === 768) return "tablet";
+      if (viewportSize.width === 1920) return "desktop";
+    }
+
+    return `${viewportSize.width}x${viewportSize.height}`;
+ }
+  
 }
