@@ -16,8 +16,7 @@ export class AboutPageSteps {
 
   @Given("a user navigates to the About page")
   async aUserNavigatesToTheAboutPage() {
-    await this.aboutPage.open();
-    await this.aboutPage.waitForAppContentLoad();
+    await this.aboutPage.navigate();
   }
 
   @When("the About page loads successfully")

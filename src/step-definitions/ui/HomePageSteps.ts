@@ -46,8 +46,7 @@ export class HomePageSteps {
   @Given("I am on the SpaceX HomePage")
   async openHomePage() {
     this.sharedContext.startTime = Date.now();
-    await this.homePage.open();
-    await this.page.waitForLoadState("networkidle");
+    await this.homePage.navigate();
   }
 
   @Given("I am on the SpaceX HomePage viewed on mobile")

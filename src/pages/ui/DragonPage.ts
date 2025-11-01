@@ -126,9 +126,9 @@ export class DragonPage extends SpaceXPage {
   readonly superDracoDetail: (detail: string) => Locator = (detail) =>
     this.superDracoSection.locator(`text=/${detail}/i`);
 
-  async open(urlPath: string = "/dragon"): Promise<void> {
+  async navigate(urlPath: string = "/dragon"): Promise<void> {
     this.setupErrorListeners();
-    await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
+    await this.open(urlPath);
     await this.waitForAppContentLoad();
   }
 

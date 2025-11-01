@@ -19,7 +19,7 @@ import { ViewportUtility } from "../../utils/ViewportUtility";
 import { AboutPageSteps } from "../../step-definitions/ui/AboutPageSteps";
 import { AboutPage } from "../ui/AboutPage";
 import { CareersPage } from "../ui/CareersPage";
-import { CareersSteps } from "../../step-definitions/ui/CareersSteps";
+import { CareersPageSteps } from "../../step-definitions/ui/CareersPageSteps";
 import { DragonPage } from "../ui/DragonPage";
 import { DragonPageSteps } from "../../step-definitions/ui/DragonPageSteps";
 import { Falcon9Page } from "../ui/Falcon9Page";
@@ -34,6 +34,8 @@ import { StarshieldPage } from "../ui/StarshieldPage";
 import { StarshieldPageSteps } from "../../step-definitions/ui/StarshieldPageSteps";
 import { StarshipPage } from "../ui/StarshipPage";
 import { StarshipPageSteps } from "../../step-definitions/ui/StarshipPageSteps";
+import { SuppliersPage } from "../ui/SuppliersPage";
+import { SuppliersPageSteps } from "../../step-definitions/ui/SuppliersPageSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -558,7 +560,7 @@ export interface BddFixtures {
   aboutPageSteps: AboutPageSteps;
   accessibilitySteps: AccessibilitySteps;
   careersPage: CareersPage;
-  careersSteps: CareersSteps;
+  careersPageSteps: CareersPageSteps;
   destinationsSteps: DestinationsSteps;
   dragonPage: DragonPage;
   dragonPageSteps: DragonPageSteps;
@@ -572,7 +574,7 @@ export interface BddFixtures {
   falconHeavyPage: FalconHeavyPage;
   falconHeavyPageSteps: FalconHeavyPageSteps;
   mediaCarouselSteps: MediaCarouselSteps;
-  missionsPage: MissionsPage
+  missionsPage: MissionsPage;
   missionsSteps: MissionsSteps;
   ourMissionsSteps: OurMissionsSteps;
   performanceSeoSteps: PerformanceSeoSteps;
@@ -588,6 +590,8 @@ export interface BddFixtures {
   starshieldPageSteps: StarshieldPageSteps;
   starshipPage: StarshipPage;
   starshipPageSteps: StarshipPageSteps;
+  suppliersPage: SuppliersPage;
+  suppliersPageSteps: SuppliersPageSteps;
   assertionHelper: AssertionHelper;
   viewportUtility: ViewportUtility;
 }

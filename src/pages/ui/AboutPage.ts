@@ -88,9 +88,9 @@ export class AboutPage extends SpaceXPage {
   readonly resourceLink: (resourceName: string) => Locator = (resourceName) =>
     this.resourcesSection.locator(`a:has-text("${resourceName}")`);
 
-  async open(urlPath: string = "/about"): Promise<void> {
+  async navigate(urlPath: string = "/about"): Promise<void> {
     this.setupErrorListeners();
-    await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
+    await this.open(urlPath);
     await this.waitForAppContentLoad();
   }
 

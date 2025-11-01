@@ -16,7 +16,7 @@ export class Falcon9PageSteps {
 
   @Given("a user navigates to the Falcon 9 vehicle information page")
   async navigateToFalcon9Page() {
-    await this.falcon9Page.open();
+    await this.falcon9Page.navigate();
   }
 
   @When("the Falcon 9 page loads successfully")

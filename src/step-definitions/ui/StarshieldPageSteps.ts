@@ -20,7 +20,7 @@ export class StarshieldPageSteps {
 
   @Given("the user is on the Starshield homepage")
   async userIsOnStarshieldHomepage() {
-    await this.starshieldPage.open();
+    await this.starshieldPage.navigate();
   }
 
   @When("the Starshield page loads")

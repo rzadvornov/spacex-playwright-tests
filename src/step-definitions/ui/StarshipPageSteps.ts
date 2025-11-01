@@ -18,7 +18,7 @@ export class StarshipPageSteps {
 
   @Given("I am on the Starship vehicle information page")
   async navigateToStarshipPage(): Promise<void> {
-    await this.starshipPage.open();
+    await this.starshipPage.navigate();
     await this.starshipPage.waitForStarshipPageLoad();
     await this.assertionHelper.validateBooleanCheck(
       async () => await this.starshipPage.isStarshipPageLoaded(),

@@ -14,8 +14,8 @@ import {
 import { SharedPageSteps } from "./SharedPageSteps";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 
-@Fixture("careersSteps")
-export class CareersSteps {
+@Fixture("careersPageSteps")
+export class CareersPageSteps {
   constructor(
     private careersPage: CareersPage,
     private sharedContext: SharedContext,
@@ -25,7 +25,7 @@ export class CareersSteps {
 
   @When("the user navigates to the Careers page")
   async navigateToCareersPage() {
-    await this.careersPage.open();
+    await this.careersPage.navigate();
   }
 
   @Then("the Careers page main heading should be visible")

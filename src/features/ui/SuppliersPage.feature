@@ -12,7 +12,7 @@ Feature: Learn About and Apply to the SpaceX Supplier Program
     When the page loads successfully
     Then the user should see SpaceX's supplier program information and its purpose
     And the program's benefits (e.g., long-term partnership, impact on space exploration) should be highlighted
-    And clear contact information for supplier inquiries (email/phone) should be displayed
+    And clear contact information for supplier inquiries (email,phone) should be displayed
     And the page should match the snapshot "suppliers_initial_load"
 
   @suppliers @requirements @onboarding
@@ -85,5 +85,5 @@ Feature: Learn About and Apply to the SpaceX Supplier Program
   Scenario: View Supplier Portal Login
     When the user is an existing supplier
     Then a prominent link or section for the **Supplier Portal Login** should be accessible
-    And the login form should require **username/email and password authentication**
+    And the login form should require **username, email and password authentication**
     And a functional password reset option should be available

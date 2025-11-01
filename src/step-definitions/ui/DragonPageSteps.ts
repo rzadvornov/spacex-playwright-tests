@@ -16,7 +16,7 @@ export class DragonPageSteps {
 
   @Given("a user navigates to the Dragon page")
   async navigateToDragonPage() {
-    await this.dragonPage.open();
+    await this.dragonPage.navigate();
   }
 
   @When("the Dragon page successfully loads")

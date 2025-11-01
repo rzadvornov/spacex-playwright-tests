@@ -114,9 +114,9 @@ export class FalconHeavyPage extends SpaceXPage {
     );
   }
 
-  async open(urlPath: string = "/falcon-heavy"): Promise<void> {
+  async navigate(urlPath: string = "/falcon-heavy"): Promise<void> {
     this.setupErrorListeners();
-    await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
+    await this.open(urlPath);
     await this.waitForAppContentLoad();
   }
 

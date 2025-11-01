@@ -19,7 +19,7 @@ export class FalconHeavyPageSteps {
 
   @Given("a user navigates to the Falcon Heavy page")
   async navigateToFalconHeavyPage() {
-    await this.falconHeavyPage.open();
+    await this.falconHeavyPage.navigate();
   }
 
   @When("the Falcon Heavy page successfully loads")

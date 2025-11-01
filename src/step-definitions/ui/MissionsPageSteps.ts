@@ -18,7 +18,7 @@ export class MissionsSteps {
 
   @Given("a user navigates to the Missions page")
   async navigateToMissionsPage() {
-    await this.missionsPage.open();
+    await this.missionsPage.navigate();
   }
 
   @Given("the list of all available missions is successfully loaded")

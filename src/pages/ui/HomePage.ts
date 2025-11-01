@@ -40,9 +40,9 @@ export class HomePage extends SpaceXPage {
       .first();
   }
 
-  async open(urlPath: string = "/"): Promise<void> {
+  async navigate(urlPath: string = "/"): Promise<void> {
     this.setupErrorListeners();
-    await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
+    await this.open(urlPath);
     await this.waitForAppContentLoad();
   }
 

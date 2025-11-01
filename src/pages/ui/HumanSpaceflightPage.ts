@@ -41,9 +41,9 @@ export class HumanSpaceflightPage extends SpaceXPage {
     this.vehicles = new VehiclesPOF(page);
   }
 
-  async open(urlPath: string = "/humanspaceflight") {
+  async navigate(urlPath: string = "/humanspaceflight") {
     this.setupErrorListeners();
-    await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
+    await this.open(urlPath);
     await this.waitForAppContentLoad();
   }
 

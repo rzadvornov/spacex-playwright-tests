@@ -1,6 +1,5 @@
 import { Page, Locator } from "@playwright/test";
 import { SpaceXPage } from "../base/SpaceXPage";
-import { FooterPOF } from "../fragments/FooterPOF";
 import { HeroPOF } from "../fragments/HeroPOF";
 
 export class StarshieldPage extends SpaceXPage {
@@ -24,7 +23,6 @@ export class StarshieldPage extends SpaceXPage {
   readonly technicalSpecs: Locator;
   readonly testimonialsSection: Locator;
   readonly allCTAs: Locator;
-  readonly footer: FooterPOF;
   readonly errorBanner: Locator;
   readonly breadcrumb: Locator;
   readonly currentPageBreadcrumbItem: Locator;
@@ -34,7 +32,6 @@ export class StarshieldPage extends SpaceXPage {
   constructor(page: Page) {
     super(page);
     this.hero = new HeroPOF(page);
-    this.footer = new FooterPOF(page);
     this.errorBanner = this.page.locator(".global-error-message, .error-toast");
     this.breadcrumb = this.page.locator(".breadcrumb-nav");
     this.currentPageBreadcrumbItem = this.breadcrumb.locator(
@@ -71,9 +68,9 @@ export class StarshieldPage extends SpaceXPage {
     this.testimonialsSection = this.page.locator("#customer-testimonials");
   }
 
-  async open(urlPath: string = "/starshield"): Promise<void> {
+  async navigate(urlPath: string = "/starshield"): Promise<void> {
     this.setupErrorListeners();
-    await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
+    await this.open(urlPath);
     await this.waitForAppContentLoad();
   }
 

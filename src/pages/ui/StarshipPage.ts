@@ -26,9 +26,9 @@ export class StarshipPage extends SpaceXPage {
     this.contactSection = this.appRoot.locator(".starship-contact, .contact-section").first();
   }
 
-  async open(urlPath: string = "/vehicles/starship"): Promise<void> {
+  async navigate(urlPath: string = "/vehicles/starship"): Promise<void> {
     this.setupErrorListeners();
-    await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
+    await this.open(urlPath);
     await this.waitForAppContentLoad();
   }
 

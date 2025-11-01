@@ -91,9 +91,9 @@ export class Falcon9Page extends SpaceXPage {
       has: this.page.locator(`text=/^${fieldName}:/i`),
     });
 
-  async open(urlPath: string = "/falcon9"): Promise<void> {
+  async navigate(urlPath: string = "/falcon9"): Promise<void> {
     this.setupErrorListeners();
-    await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
+    await this.open(urlPath);
     await this.waitForAppContentLoad();
   }
 

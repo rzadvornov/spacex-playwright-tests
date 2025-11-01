@@ -80,9 +80,9 @@ export class MissionsPage extends SpaceXPage {
       .first();
   }
 
-  async open(urlPath: string = "/missions"): Promise<void> {
+  async navigate(urlPath: string = "/missions"): Promise<void> {
     this.setupErrorListeners();
-    await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
+    await this.open(urlPath);
     await this.waitForAppContentLoad();
   }
 

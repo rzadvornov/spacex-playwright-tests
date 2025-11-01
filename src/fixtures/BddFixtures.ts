@@ -25,7 +25,7 @@ import { ViewportUtility } from "../utils/ViewportUtility";
 import { AboutPage } from "../pages/ui/AboutPage";
 import { AboutPageSteps } from "../step-definitions/ui/AboutPageSteps";
 import { CareersPage } from "../pages/ui/CareersPage";
-import { CareersSteps } from "../step-definitions/ui/CareersSteps";
+import { CareersPageSteps } from "../step-definitions/ui/CareersPageSteps";
 import { DragonPage } from "../pages/ui/DragonPage";
 import { DragonPageSteps } from "../step-definitions/ui/DragonPageSteps";
 import { Falcon9Page } from "../pages/ui/Falcon9Page";
@@ -40,6 +40,8 @@ import { StarshieldPage } from "../pages/ui/StarshieldPage";
 import { StarshieldPageSteps } from "../step-definitions/ui/StarshieldPageSteps";
 import { StarshipPage } from "../pages/ui/StarshipPage";
 import { StarshipPageSteps } from "../step-definitions/ui/StarshipPageSteps";
+import { SuppliersPage } from "../pages/ui/SuppliersPage";
+import { SuppliersPageSteps } from "../step-definitions/ui/SuppliersPageSteps";
 
 export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   sharedPageSteps: [
@@ -98,16 +100,16 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
     const careersPage = new CareersPage(page);
     await use(careersPage);
   },
-  careersSteps: [
+  careersPageSteps: [
     async ({ page, careersPage, sharedContext, assertionHelper }, use) => {
       const careersSharedPageSteps = new SharedPageSteps(page);
-      const careersSteps = new CareersSteps(
+      const careersPageSteps = new CareersPageSteps(
         careersPage,
         sharedContext,
         careersSharedPageSteps,
         assertionHelper
       );
-      await use(careersSteps);
+      await use(careersPageSteps);
     },
     { scope: "test" },
   ],
@@ -276,6 +278,24 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
         viewportUtility
       );
       await use(starshipPageSteps);
+    },
+    { scope: "test" },
+  ],
+  suppliersPage: async ({ page }, use) => {
+    const suppliersPage = new SuppliersPage(page);
+    await use(suppliersPage);
+  },
+  suppliersPageSteps: [
+    async ({ page, suppliersPage, viewportUtility, assertionHelper }, use) => {
+      const supplierSharedPageSteps = new SharedPageSteps(page);
+      const suppliersPageSteps = new SuppliersPageSteps(
+        page,
+        suppliersPage,
+        supplierSharedPageSteps,
+        assertionHelper,
+        viewportUtility
+      );
+      await use(suppliersPageSteps);
     },
     { scope: "test" },
   ],

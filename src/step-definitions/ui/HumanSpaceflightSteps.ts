@@ -48,7 +48,7 @@ export class HumanSpaceflightSteps {
   @Given("I am on the SpaceX Human Spaceflight page")
   async openHumanSpaceflightPage() {
     this.sharedContext.startTime = Date.now();
-    await this.humanSpaceflightPage.open("/human-spaceflight");
+    await this.humanSpaceflightPage.navigate();
     await this.page.waitForLoadState("networkidle");
   }
 

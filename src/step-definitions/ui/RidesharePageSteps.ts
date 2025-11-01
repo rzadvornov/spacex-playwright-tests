@@ -20,7 +20,7 @@ export class RidesharePageSteps {
 
   @Given("a user navigates to the Rideshare program page")
   async navigateToRidesharePage() {
-    await this.ridesharePage.open();
+    await this.ridesharePage.navigate();
   }
 
   @When("the Rideshare page loads initially")

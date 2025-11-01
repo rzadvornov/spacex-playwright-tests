@@ -114,9 +114,9 @@ export class CareersPage extends SpaceXPage {
     '.job-listing-card:visible, a[href*="/jobs/"]:visible'
   );
 
-  async open(urlPath: string = "/careers"): Promise<void> {
+  async navigate(urlPath: string = "/careers"): Promise<void> {
     this.setupErrorListeners();
-    await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
+    await this.open(urlPath);
     await this.waitForAppContentLoad();
   }
 

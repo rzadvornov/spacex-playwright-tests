@@ -114,9 +114,9 @@ export class RidesharePage extends SpaceXPage {
     return this.page.locator(`text=/Falcon ${vehicle}.*reusable orbital class rocket/i`);
   }
 
-  async open(urlPath: string = "/rideshare"): Promise<void> {
+  async navigate(urlPath: string = "/rideshare"): Promise<void> {
     this.setupErrorListeners();
-    await this.goto(this.baseURL + urlPath, { waitUntil: "domcontentloaded" });
+    await this.open(urlPath);
     await this.waitForAppContentLoad();
   }
 
