@@ -36,6 +36,8 @@ import { StarshipPage } from "../ui/StarshipPage";
 import { StarshipPageSteps } from "../../step-definitions/ui/StarshipPageSteps";
 import { SuppliersPage } from "../ui/SuppliersPage";
 import { SuppliersPageSteps } from "../../step-definitions/ui/SuppliersPageSteps";
+import { UpdatesPage } from "../ui/UpdatesPage";
+import { UpdatesPageSteps } from "../../step-definitions/ui/UpdatesPageSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -592,6 +594,8 @@ export interface BddFixtures {
   starshipPageSteps: StarshipPageSteps;
   suppliersPage: SuppliersPage;
   suppliersPageSteps: SuppliersPageSteps;
+  updatesPage: UpdatesPage;
+  updatesPageSteps: UpdatesPageSteps;
   assertionHelper: AssertionHelper;
   viewportUtility: ViewportUtility;
 }

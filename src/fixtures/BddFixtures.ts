@@ -42,6 +42,8 @@ import { StarshipPage } from "../pages/ui/StarshipPage";
 import { StarshipPageSteps } from "../step-definitions/ui/StarshipPageSteps";
 import { SuppliersPage } from "../pages/ui/SuppliersPage";
 import { SuppliersPageSteps } from "../step-definitions/ui/SuppliersPageSteps";
+import { UpdatesPage } from "../pages/ui/UpdatesPage";
+import { UpdatesPageSteps } from "../step-definitions/ui/UpdatesPageSteps";
 
 export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   sharedPageSteps: [
@@ -296,6 +298,24 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
         viewportUtility
       );
       await use(suppliersPageSteps);
+    },
+    { scope: "test" },
+  ],
+  updatesPage: async ({ page }, use) => {
+    const updatesPage = new UpdatesPage(page);
+    await use(updatesPage);
+  },
+  updatesPageSteps: [
+    async ({ page, updatesPage, viewportUtility, assertionHelper }, use) => {
+      const updatesSharedPageSteps = new SharedPageSteps(page);
+      const updatesPageSteps = new UpdatesPageSteps(
+        page,
+        updatesPage,
+        updatesSharedPageSteps,
+        assertionHelper,
+        viewportUtility
+      );
+      await use(updatesPageSteps);
     },
     { scope: "test" },
   ],
