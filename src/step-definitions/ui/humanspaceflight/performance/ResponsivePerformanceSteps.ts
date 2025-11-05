@@ -1,7 +1,11 @@
 import { Page, expect } from "@playwright/test";
 import { Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { LayoutShiftEntry, ResourceTimingInfo } from "../../../../utils/types/Types";
+import {
+  LayoutShiftEntry,
+  ResourceTimingInfo,
+} from "../../../../utils/types/Types";
+import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
 
 @Fixture("responsivePerformanceSteps")
 export class ResponsivePerformanceSteps {
@@ -11,7 +15,7 @@ export class ResponsivePerformanceSteps {
     MAX_ANIMATION_DURATION: 300,
   } as const;
 
-  constructor(private page: Page) {}
+  constructor(private page: Page, private humanSpaceflightPage: HumanSpaceflightPage) {}
 
   @Then("layout shifts should be minimal during viewport changes")
   async checkLayoutShifts() {
@@ -340,5 +344,85 @@ export class ResponsivePerformanceSteps {
       executionTime,
       "JavaScript execution should be efficient"
     ).toBeLessThan(100);
+  }
+
+  @Then("the page should provide optimal mobile experience")
+  async checkMobileExperience() {
+    const mobileOptimization =
+      await this.humanSpaceflightPage.performanceSEO.checkMobileOptimization();
+    await this.validateMobileExperience(mobileOptimization);
+  }
+
+  private async validateMobileExperience(
+    mobileOptimization: any
+  ): Promise<void> {
+    const validations = [
+      this.validateTextReadability(mobileOptimization),
+      this.validateTouchTargets(mobileOptimization),
+      this.validateNoInterstitials(mobileOptimization),
+      this.validateViewportMetaTag(),
+      this.validateViewportAdaptation(),
+    ];
+
+    const results = await Promise.allSettled(validations);
+
+    const failedValidations = results.filter(
+      (result) => result.status === "rejected"
+    );
+    if (failedValidations.length > 0) {
+      const errorMessages = failedValidations.map(
+        (result: PromiseRejectedResult) => result.reason.message
+      );
+      throw new Error(
+        `Mobile experience validation failed:\n${errorMessages.join("\n")}`
+      );
+    }
+  }
+
+  private async validateTextReadability(
+    mobileOptimization: any
+  ): Promise<void> {
+    if (!mobileOptimization.textReadable) {
+      throw new Error("Text should be readable on mobile without zoom");
+    }
+  }
+
+  private async validateTouchTargets(mobileOptimization: any): Promise<void> {
+    if (!mobileOptimization.touchTargetsSize) {
+      throw new Error(
+        "Touch targets should be properly sized for mobile (min 44x44px)"
+      );
+    }
+  }
+
+  private async validateNoInterstitials(
+    mobileOptimization: any
+  ): Promise<void> {
+    if (!mobileOptimization.noInterstitials) {
+      throw new Error("No interstitials should block mobile content");
+    }
+  }
+
+  private async validateViewportMetaTag(): Promise<void> {
+    const viewportMeta =
+      await this.humanSpaceflightPage.performanceSEO.getMetaTags();
+    if (!viewportMeta["viewport"]) {
+      throw new Error(
+        "Viewport meta tag should be present for mobile optimization"
+      );
+    }
+  }
+
+  private async validateViewportAdaptation(): Promise<void> {
+    const MOBILE_MAX_WIDTH = 400;
+    const pageWidth = await this.page.evaluate(
+      () => document.documentElement.clientWidth
+    );
+
+    if (pageWidth > MOBILE_MAX_WIDTH) {
+      throw new Error(
+        `Page should adapt to mobile viewport (max ${MOBILE_MAX_WIDTH}px, actual: ${pageWidth}px)`
+      );
+    }
   }
 }

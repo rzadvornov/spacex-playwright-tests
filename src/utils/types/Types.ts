@@ -89,6 +89,7 @@ import { TimelineCoreSteps } from "../../step-definitions/ui/timeline/TimelineCo
 import { TimelineNavigationSteps } from "../../step-definitions/ui/timeline/TimelineNavigationSteps";
 import { TimelineResponsiveSteps } from "../../step-definitions/ui/timeline/TimelineResponsiveSteps";
 import { TimelineVisualSteps } from "../../step-definitions/ui/timeline/TimelineVisualSteps";
+import { HomePageMetadataSteps } from "../../step-definitions/ui/home/HomePageMetadataSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -746,6 +747,26 @@ export function parseLandmarkExpectations(data: any[]): LandmarkExpectation[] {
   }));
 }
 
+export interface FormElementMatcher {
+  matches(tagName: string, inputType: string | null): boolean;
+}
+
+export interface CueValidator {
+  hasCue(element: any): Promise<boolean>;
+}
+
+export interface StateChecker {
+  hasState(element: any): Promise<boolean>;
+}
+
+export interface BrowserPreferenceHandler {
+  setPreference(setting: string): Promise<void>;
+}
+
+export interface AdaptationChecker {
+  hasAdapted(element: any): Promise<boolean>;
+}
+
 export interface AccessibilityResult {
   altTextPresent: boolean;
   ariaLabelsUsed: boolean;
@@ -806,6 +827,7 @@ export interface BddFixtures {
   homePageMobileSteps: HomePageMobileSteps;
   homePageNavigationSteps: HomePageNavigationSteps;
   homePageTechnicalSteps: HomePageTechnicalSteps;
+  homePageMetadataSteps: HomePageMetadataSteps;
   humanSpaceflightPage: HumanSpaceflightPage;
   falcon9Page: Falcon9Page;
   falcon9PageSteps: Falcon9PageSteps;

@@ -348,7 +348,6 @@ export class MissionsSteps {
     await this._verifySortWithStrategy(strategy);
   }
 
-  // Private helper methods
   private async _verifyCardFieldVisible(card: Locator, selector: string) {
     await expect(card.locator(selector)).toBeVisible();
   }

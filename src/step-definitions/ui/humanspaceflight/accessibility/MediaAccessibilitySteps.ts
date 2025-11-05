@@ -273,4 +273,14 @@ export class MediaAccessibilitySteps {
         break;
     }
   }
+
+  @Then("screen readers should use correct pronunciation")
+  async checkPronunciation() {
+    const lang =
+      await this.humanSpaceflightPage.accessibility.getHtmlLangAttribute();
+    expect(
+      lang,
+      "Language must be set for screen readers to use correct pronunciation"
+    ).toBeTruthy();
+  }
 }

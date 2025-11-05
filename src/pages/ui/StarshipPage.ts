@@ -57,7 +57,6 @@ export class StarshipPage extends SpaceXPage {
     return (await valueCell.textContent())?.trim() ?? "";
   }
 
-  // Specifications Section Methods
   async getStarshipSpecification(attribute: string): Promise<{ metric: string; imperial: string }> {
     return await this.getSpecification("starship", attribute);
   }

@@ -47,7 +47,7 @@ export class HomePage extends SpaceXPage {
 
   async clickNavigationItem(itemName: string): Promise<void> {
     await this.navLink(itemName).click();
-    await this.waitForAppContentLoad(); // Wait for the new page content to load
+    await this.waitForAppContentLoad();
   }
 
   async interactWithButton(buttonText: string): Promise<void> {

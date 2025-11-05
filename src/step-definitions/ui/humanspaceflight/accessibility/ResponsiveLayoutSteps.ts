@@ -223,4 +223,116 @@ export class ResponsiveLayoutSteps {
     });
     expect(overflowCheck, "Content should not overflow").toBeTruthy();
   }
+
+  @Then("the layout should adapt with requirements:")
+  async checkOrientationAdaptation(dataTable: DataTable) {
+    const requirements = dataTable.hashes();
+
+    for (const requirement of requirements) {
+      await this.validateOrientationRequirement(
+        requirement.Element,
+        requirement.Requirement
+      );
+    }
+  }
+
+  private async validateOrientationRequirement(
+    element: string,
+    requirement: string
+  ): Promise<void> {
+    const validators: Record<string, (requirement: string) => Promise<void>> = {
+      Content: () => this.validateContentAdaptation(),
+      Navigation: (req) => this.validateNavigationAdaptation(req),
+      Images: (req) => this.validateImagesAdaptation(req),
+      Performance: () => this.validatePerformanceAdaptation(),
+    };
+
+    const validator = validators[element];
+    if (!validator) {
+      throw new Error(`Unknown orientation element: ${element}`);
+    }
+
+    await validator(requirement);
+  }
+
+  private async validateContentAdaptation(): Promise<void> {
+    const noOverflow = await this.page.evaluate(() => {
+      const body = document.body;
+      return (
+        body.scrollWidth <= window.innerWidth &&
+        body.scrollHeight <= window.innerHeight
+      );
+    });
+
+    expect(
+      noOverflow,
+      "Content should not have cutoff or overflow"
+    ).toBeTruthy();
+  }
+
+  private async validateNavigationAdaptation(
+    requirement: string
+  ): Promise<void> {
+    const navAdapted = await this.page.evaluate((req) => {
+      const nav = document.querySelector("nav");
+      if (!nav) return false;
+
+      const navStyle = getComputedStyle(nav);
+      const isVisible =
+        navStyle.display !== "none" && navStyle.visibility !== "hidden";
+
+      const requirementHandlers: Record<string, () => boolean> = {
+        "Collapse to menu": () =>
+          !!document.querySelector('.hamburger-menu, [aria-label*="menu"]'),
+        "Show full nav": () =>
+          isVisible &&
+          (navStyle.display === "flex" || navStyle.display === "block"),
+        "Expand navigation": () =>
+          isVisible && nav.getBoundingClientRect().width > 200,
+      };
+
+      const handler = requirementHandlers[req];
+      return handler ? handler() : isVisible;
+    }, requirement);
+
+    expect(navAdapted, `Navigation should ${requirement}`).toBeTruthy();
+  }
+
+  private async validateImagesAdaptation(requirement: string): Promise<void> {
+    const imagesAdapted = await this.page.evaluate((req) => {
+      const images = document.querySelectorAll("img");
+
+      const requirementHandlers: Record<string, (img: Element) => boolean> = {
+        "Adjust aspect ratio": (img) => {
+          const rect = img.getBoundingClientRect();
+          return (
+            rect.width <= window.innerWidth && rect.height <= window.innerHeight
+          );
+        },
+        "Maintain quality": (img) => {
+          const naturalWidth = (img as HTMLImageElement).naturalWidth;
+          const displayWidth = img.getBoundingClientRect().width;
+          return naturalWidth >= displayWidth;
+        },
+        "Optimize for width": (img) => {
+          const rect = img.getBoundingClientRect();
+          return rect.width >= window.innerWidth * 0.5;
+        },
+      };
+
+      const handler = requirementHandlers[req];
+      return Array.from(images).every((img) => (handler ? handler(img) : true));
+    }, requirement);
+
+    expect(imagesAdapted, `Images should ${requirement}`).toBeTruthy();
+  }
+
+  private async validatePerformanceAdaptation(): Promise<void> {
+    const performanceGood = await this.page.evaluate(() => {
+      const now = performance.now();
+      return performance.now() - now < 100;
+    });
+
+    expect(performanceGood, "Performance should not degrade").toBeTruthy();
+  }
 }

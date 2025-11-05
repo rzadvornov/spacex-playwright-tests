@@ -95,6 +95,7 @@ import { TimelineCoreSteps } from "../step-definitions/ui/timeline/TimelineCoreS
 import { TimelineNavigationSteps } from "../step-definitions/ui/timeline/TimelineNavigationSteps";
 import { TimelineResponsiveSteps } from "../step-definitions/ui/timeline/TimelineResponsiveSteps";
 import { TimelineVisualSteps } from "../step-definitions/ui/timeline/TimelineVisualSteps";
+import { HomePageMetadataSteps } from "../step-definitions/ui/home/HomePageMetadataSteps";
 
 export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   sharedPageSteps: [
@@ -323,8 +324,11 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
     { scope: "test" },
   ],
   responsivePerformanceSteps: [
-    async ({ page }, use) => {
-      const responsivePerformanceSteps = new ResponsivePerformanceSteps(page);
+    async ({ page, humanSpaceflightPage }, use) => {
+      const responsivePerformanceSteps = new ResponsivePerformanceSteps(
+        page,
+        humanSpaceflightPage
+      );
       await use(responsivePerformanceSteps);
     },
     { scope: "test" },
@@ -488,6 +492,13 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
     },
     { scope: "test" },
   ],
+  homePageMetadataSteps: [
+    async ({ page, homePage }, use) => {
+      const homePageMetadataSteps = new HomePageMetadataSteps(page, homePage);
+      await use(homePageMetadataSteps);
+    },
+    { scope: "test" },
+  ],
   homePageMobileSteps: [
     async ({ page, homePage, sharedContext, assertionHelper }, use) => {
       const homePageMobileSteps = new HomePageMobileSteps(
@@ -522,9 +533,13 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
     { scope: "test" },
   ],
   visualElementAccessibilitySteps: [
-    async ({ page }, use) => {
+    async ({ page, humanSpaceflightPage, assertionHelper }, use) => {
       const visualElementAccessibilitySteps =
-        new VisualElementAccessibilitySteps(page);
+        new VisualElementAccessibilitySteps(
+          page,
+          humanSpaceflightPage,
+          assertionHelper
+        );
       await use(visualElementAccessibilitySteps);
     },
     { scope: "test" },
@@ -927,9 +942,7 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
   ],
   timelineVisualSteps: [
     async ({ humanSpaceflightPage }, use) => {
-      const timelineVisualSteps = new TimelineVisualSteps(
-        humanSpaceflightPage
-      );
+      const timelineVisualSteps = new TimelineVisualSteps(humanSpaceflightPage);
       await use(timelineVisualSteps);
     },
     { scope: "test" },

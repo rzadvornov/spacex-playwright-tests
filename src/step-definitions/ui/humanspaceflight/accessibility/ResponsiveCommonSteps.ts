@@ -1,6 +1,8 @@
 import { Page, expect } from "@playwright/test";
 import { When, Then, Fixture } from "playwright-bdd/decorators";
 import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { DataTable } from "playwright-bdd";
+import { AnyObject, ResponsiveRequirements } from "../../../../utils/types/Types";
 
 @Fixture("responsiveCommonSteps")
 export class ResponsiveCommonSteps {
@@ -205,5 +207,16 @@ export class ResponsiveCommonSteps {
         contentAccessible: hasContent
       };
     }, section);
+  }
+
+  @Then("responsive assets should be optimized:")
+  async checkAssetOptimization(dataTable: DataTable) {
+    const optimization =
+      (await this.humanSpaceflightPage.responsiveDesign.checkAssetOptimization()) as AnyObject;
+    const requirements = dataTable.rowsHash() as ResponsiveRequirements;
+
+    for (const [assetType, strategy] of Object.entries(optimization)) {
+      expect(strategy).toBe(requirements[assetType]);
+    }
   }
 }

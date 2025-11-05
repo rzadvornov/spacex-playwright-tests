@@ -10,7 +10,7 @@ export class ResponsiveViewportSteps {
 
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage,
+    private humanSpaceflightPage: HumanSpaceflightPage
   ) {}
 
   @When("I view the {string} on a mobile device with width {string}px")
@@ -49,6 +49,26 @@ export class ResponsiveViewportSteps {
         this.RESPONSIVE_CONSTANTS.TRANSITION_DELAY
       );
     }
+  }
+
+  @When("device orientation changes to {string} on {string}")
+  async changeDeviceOrientation(orientation: string, _device: string) {
+    const currentSize = this.page.viewportSize();
+    if (!currentSize) return;
+
+    if (orientation.toLowerCase() === "landscape") {
+      await this.setViewportSize(
+        Math.max(currentSize.width, currentSize.height),
+        Math.min(currentSize.width, currentSize.height)
+      );
+    } else {
+      await this.setViewportSize(
+        Math.min(currentSize.width, currentSize.height),
+        Math.max(currentSize.width, currentSize.height)
+      );
+    }
+
+    await this.page.waitForTimeout(this.RESPONSIVE_CONSTANTS.TRANSITION_DELAY);
   }
 
   @When("viewing content on {string} with width {string}")
