@@ -1,11 +1,12 @@
 import { Locator, Page } from "@playwright/test";
 import { BasePage } from "../base/BasePage";
-import { Position, HotspotDistribution } from "../types/Types";
+import { Position, HotspotDistribution } from "../../utils/types/Types";
 
 export class TheSuitesPOF extends BasePage {
   private static readonly CALLOUT_WAIT_TIME = 200;
   private static readonly CENTER_TOLERANCE = 5;
   private static readonly MAX_CALLOUT_DISTANCE = 100;
+  private static readonly CALLOUT_SELECTOR = ".suit-callout";
 
   readonly suitsSection: Locator;
   readonly suitHeading: Locator;
@@ -28,7 +29,7 @@ export class TheSuitesPOF extends BasePage {
     });
     this.suitImage = this.suitsSection.locator(".suit-image");
     this.hotspots = this.suitsSection.locator(".suit-hotspot");
-    this.suitCallout = this.suitsSection.locator(".suit-callout");
+    this.suitCallout = this.suitsSection.locator(TheSuitesPOF.CALLOUT_SELECTOR);
     this.backgroundGradient = this.suitsSection.locator(".gradient-background");
   }
 
@@ -121,7 +122,9 @@ export class TheSuitesPOF extends BasePage {
 
   async getHotspotDistribution(): Promise<HotspotDistribution> {
     return await this.hotspots.evaluateAll((hotspots) => {
-      const parentElement = hotspots[0]?.closest('[data-test="suits-section"]');
+      const parentElement = hotspots[0]?.closest(
+        '[data-test="suits-section"]'
+      ) as HTMLElement | null;
       const suitHeight = parentElement?.getBoundingClientRect().height || 0;
 
       if (suitHeight === 0) {
@@ -152,10 +155,14 @@ export class TheSuitesPOF extends BasePage {
     await this.hoverHotspot(hotspotIndex);
     await this.waitForCallout();
 
-    return await this.hotspots
-      .nth(hotspotIndex)
-      .evaluate((hotspot, maxDistance) => {
-        const callout = document.querySelector(".suit-callout") as HTMLElement;
+    const calloutSelector = TheSuitesPOF.CALLOUT_SELECTOR;
+
+    return await this.hotspots.nth(hotspotIndex).evaluate(
+      (hotspot, params) => {
+        const { maxDistance, calloutSelector } = params;
+        const callout = document.querySelector(
+          calloutSelector
+        ) as HTMLElement | null;
 
         if (!callout) return false;
 
@@ -170,18 +177,24 @@ export class TheSuitesPOF extends BasePage {
           calloutRect.bottom <= viewportHeight &&
           calloutRect.right <= viewportWidth;
 
-        const distance = Math.sqrt(
-          Math.pow(calloutRect.left - hotspotRect.left, 2) +
-            Math.pow(calloutRect.top - hotspotRect.top, 2)
+        const distance = Math.hypot(
+          calloutRect.left - hotspotRect.left,
+          calloutRect.top - hotspotRect.top
         );
 
         return isInViewport && distance <= maxDistance;
-      }, TheSuitesPOF.MAX_CALLOUT_DISTANCE);
+      },
+      {
+        maxDistance: TheSuitesPOF.MAX_CALLOUT_DISTANCE,
+        calloutSelector: calloutSelector,
+      }
+    );
   }
 
   async isSuitImageLoaded(): Promise<boolean> {
-    return await this.suitImage.evaluate((img: HTMLImageElement) => {
-      return img.complete && img.naturalWidth > 0;
+    return await this.suitImage.evaluate((img: Element) => {
+      const htmlImg = img as HTMLImageElement;
+      return htmlImg.complete && htmlImg.naturalWidth > 0;
     });
   }
 
@@ -223,7 +236,7 @@ export class TheSuitesPOF extends BasePage {
 
   async isCalloutContentValid(): Promise<boolean> {
     const text = await this.getCalloutText();
-    return text.length > 0 && text !== "Loading...";
+    return text.length > 0 && text.toLowerCase() !== "loading...";
   }
 
   async verifyHotspotInteraction(hotspotIndex: number): Promise<{

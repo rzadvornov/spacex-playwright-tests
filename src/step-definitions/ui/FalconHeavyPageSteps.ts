@@ -3,11 +3,10 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { FalconHeavyPage } from "../../pages/ui/FalconHeavyPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
-import {
-  AttributeDetailTable,
-  TechnicalSpecTable,
-} from "../../pages/types/Types";
 import { SharedPageSteps } from "./SharedPageSteps";
+import { AttributeDetailVerificationStrategy } from "../../utils/strategies/AttributeDetailVerificationStrategy";
+import { TechnicalSpecVerificationStrategy } from "../../utils/strategies/TechnicalSpecVerificationStrategy";
+import { TechnicalSpecTable, AttributeDetailTable, SpecVerificationStrategy } from "../../utils/types/Types";
 
 @Fixture("falconHeavyPageSteps")
 export class FalconHeavyPageSteps {
@@ -45,7 +44,15 @@ export class FalconHeavyPageSteps {
     "the total thrust at liftoff should be highlighted as **{int} million pounds** \\(or its metric equivalent)"
   )
   async verifyTotalThrustHighlight(thrustMillions: number) {
+    await this.verifyTotalThrustVisibility();
+    await this.verifyTotalThrustContainsValue(thrustMillions);
+  }
+
+  private async verifyTotalThrustVisibility() {
     await expect(this.falconHeavyPage.totalThrustHighlight).toBeVisible();
+  }
+
+  private async verifyTotalThrustContainsValue(thrustMillions: number) {
     await expect(this.falconHeavyPage.totalThrustHighlight).toContainText(
       thrustMillions.toString()
     );
@@ -53,6 +60,10 @@ export class FalconHeavyPageSteps {
 
   @When("the user reviews the overview section")
   async reviewOverviewSection() {
+    await this.scrollToOverviewSection();
+  }
+
+  private async scrollToOverviewSection() {
     await this.falconHeavyPage.scrollToElement(
       this.falconHeavyPage.overviewSection
     );
@@ -76,9 +87,17 @@ export class FalconHeavyPageSteps {
     "the maximum payload capacity should be mentioned as **{int} metric tons \\/ {int},{int} lbs** to orbit"
   )
   async verifyMaxPayloadCapacity(metricTons: number, imperialLbs: number) {
+    await this.verifyPayloadCapacityContainsMetricTons(metricTons);
+    await this.verifyPayloadCapacityContainsImperialLbs(imperialLbs);
+  }
+
+  private async verifyPayloadCapacityContainsMetricTons(metricTons: number) {
     await expect(this.falconHeavyPage.payloadCapacityText).toContainText(
       `${metricTons} metric tons`
     );
+  }
+
+  private async verifyPayloadCapacityContainsImperialLbs(imperialLbs: number) {
     await expect(this.falconHeavyPage.payloadCapacityText).toContainText(
       `${imperialLbs} lbs`
     );
@@ -94,21 +113,19 @@ export class FalconHeavyPageSteps {
   @Then("the page should display the following key technical details:")
   async verifyKeyTechnicalSpecifications(dataTable: DataTable) {
     const specs = dataTable.hashes() as TechnicalSpecTable;
-    for (const spec of specs) {
-      await this.assertionHelper.validateBooleanCheck(
-        () =>
-          this.falconHeavyPage.isTechnicalSpecValueDisplayed(
-            spec.Attribute,
-            spec["Metric Value"],
-            spec["Imperial Value"]
-          ),
-        `Technical spec: Attribute '${spec.Attribute}' with Metric '${spec["Metric Value"]}' and Imperial '${spec["Imperial Value"]}' is not displayed as expected.`
-      );
-    }
+    const validationStrategy = new TechnicalSpecVerificationStrategy(
+      this.falconHeavyPage
+    );
+
+    await this.validateSpecifications(specs, validationStrategy);
   }
 
   @When("the user reviews the Merlin {int}D engine section")
-  async reviewMerlin1DEngineSection() {
+  async reviewMerlin1DEngineSection(_falconVersion: number) {
+    await this.scrollToMerlin1DSection();
+  }
+
+  private async scrollToMerlin1DSection() {
     await this.falconHeavyPage.scrollToElement(
       this.falconHeavyPage.merlin1DSection
     );
@@ -117,20 +134,22 @@ export class FalconHeavyPageSteps {
   @Then("the page should display details on the engine's core features:")
   async verifyMerlin1DEngineDetails(dataTable: DataTable) {
     const specs = dataTable.hashes() as AttributeDetailTable;
-    for (const spec of specs) {
-      await this.assertionHelper.validateBooleanCheck(
-        () =>
-          this.falconHeavyPage.isMerlin1DEngineSpecDisplayed(
-            spec.Attribute,
-            spec.Detail
-          ),
-        `Merlin 1D spec: Attribute '${spec.Attribute}' with Detail '${spec.Detail}' is not displayed.`
-      );
-    }
+    const validationStrategy = new AttributeDetailVerificationStrategy(
+      this.falconHeavyPage.isMerlin1DEngineSpecDisplayed.bind(
+        this.falconHeavyPage
+      ),
+      "Merlin 1D"
+    );
+
+    await this.validateSpecifications(specs, validationStrategy);
   }
 
   @When("the user reads the Merlin Vacuum section")
   async readMerlinVacuumSection() {
+    await this.scrollToMerlinVacuumSection();
+  }
+
+  private async scrollToMerlinVacuumSection() {
     await this.falconHeavyPage.scrollToElement(
       this.falconHeavyPage.merlinVacuumSection
     );
@@ -139,14 +158,24 @@ export class FalconHeavyPageSteps {
   @Then("the page should display the following details:")
   async verifyMerlinVacuumEngineDetails(dataTable: DataTable) {
     const specs = dataTable.hashes() as AttributeDetailTable;
+    const validationStrategy = new AttributeDetailVerificationStrategy(
+      this.falconHeavyPage.isMerlinVacuumSpecDisplayed.bind(
+        this.falconHeavyPage
+      ),
+      "Merlin Vacuum"
+    );
+
+    await this.validateSpecifications(specs, validationStrategy);
+  }
+
+  private async validateSpecifications(
+    specs: any[],
+    validationStrategy: SpecVerificationStrategy
+  ): Promise<void> {
     for (const spec of specs) {
       await this.assertionHelper.validateBooleanCheck(
-        () =>
-          this.falconHeavyPage.isMerlinVacuumSpecDisplayed(
-            spec.Attribute,
-            spec.Detail
-          ),
-        `Merlin Vacuum spec: Attribute '${spec.Attribute}' with Detail '${spec.Detail}' is not displayed.`
+        () => validationStrategy.validate(spec),
+        validationStrategy.getErrorMessage(spec)
       );
     }
   }
@@ -184,6 +213,10 @@ export class FalconHeavyPageSteps {
 
   @When("the user seeks comparative information")
   async seekComparativeInformation() {
+    await this.scrollToMarketPositioningSection();
+  }
+
+  private async scrollToMarketPositioningSection() {
     await this.falconHeavyPage.scrollToElement(
       this.falconHeavyPage.marketPositioningSection
     );
@@ -221,6 +254,10 @@ export class FalconHeavyPageSteps {
 
   @When("the user reviews the vehicle description")
   async reviewVehicleDescription() {
+    await this.scrollToVehicleDescription();
+  }
+
+  private async scrollToVehicleDescription() {
     await this.falconHeavyPage.scrollToElement(
       this.falconHeavyPage.vehicleDescription
     );
@@ -269,13 +306,22 @@ export class FalconHeavyPageSteps {
 
   @Then("the page should display Merlin engine specifications:")
   async displayMerlinEngineSpecifications(dataTable: DataTable) {
+    await this.verifyMerlinEngineSpecsSectionVisible();
+
+    const specs = dataTable.hashes() as { Attribute: string; Detail: string }[];
+    await this.validateMerlinEngineSpecs(specs);
+  }
+
+  private async verifyMerlinEngineSpecsSectionVisible() {
     await this.assertionHelper.validateBooleanCheck(
       () => this.falconHeavyPage.isMerlinEngineSpecsDisplayed(),
       "The Merlin engine specifications section is not visible."
     );
+  }
 
-    const specs = dataTable.hashes() as { Attribute: string; Detail: string }[];
-
+  private async validateMerlinEngineSpecs(
+    specs: { Attribute: string; Detail: string }[]
+  ) {
     for (const spec of specs) {
       await this.assertionHelper.validateBooleanCheck(
         () =>

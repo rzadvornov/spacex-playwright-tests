@@ -47,7 +47,6 @@ export class StarshipPage extends SpaceXPage {
     return (await description.textContent())?.trim() ?? "";
   }
 
-  // Capabilities Section Methods
   async getCapabilityDetail(capabilityType: string): Promise<string> {
     const capabilityRow = this.capabilitiesSection
       .locator(".capability-row, .spec-row")
@@ -86,7 +85,6 @@ export class StarshipPage extends SpaceXPage {
     };
   }
 
-  // Propulsion Section Methods
   async getRaptorEngineSpecs(engineType: 'sea-level' | 'vacuum'): Promise<Map<string, string>> {
     const engineSection = this.propulsionSection
       .locator(`.raptor-${engineType}, .${engineType}-engine`)
@@ -114,7 +112,6 @@ export class StarshipPage extends SpaceXPage {
     return (await configNote.textContent())?.trim() ?? "";
   }
 
-  // Missions Section Methods
   async getMissionCapabilities(missionType: 'mars' | 'lunar' | 'earth'): Promise<string[]> {
     const missionSection = this.missionsSection
       .locator(`.${missionType}-missions, .${missionType}-capabilities`)
@@ -135,7 +132,6 @@ export class StarshipPage extends SpaceXPage {
     return capabilities;
   }
 
-  // Payload Section Methods
   async getPayloadAdvantages(): Promise<string[]> {
     const advantageItems = await this.payloadSection
       .locator(".advantage-item, .payload-feature")
@@ -152,7 +148,6 @@ export class StarshipPage extends SpaceXPage {
     return advantages;
   }
 
-  // Development Section Methods
   async getDevelopmentLocation(): Promise<string> {
     const location = this.developmentSection
       .locator(".development-location, .manufacturing-site")
@@ -167,7 +162,6 @@ export class StarshipPage extends SpaceXPage {
     return (await updates.textContent())?.trim() ?? "";
   }
 
-  // Contact Section Methods
   async getSalesEmail(): Promise<string> {
     const emailLink = this.contactSection
       .getByRole("link", { name: /sales@spacex.com/i })
@@ -177,14 +171,12 @@ export class StarshipPage extends SpaceXPage {
     return (await emailLink.textContent())?.trim() ?? "";
   }
 
-  // Navigation Methods
   async navigateToSection(section: string): Promise<void> {
     const sectionLink = this.appRoot.getByRole("link", { name: section, exact: true });
     await sectionLink.click();
     await this.page.waitForLoadState('networkidle');
   }
 
-  // Utility Methods
   async waitForStarshipPageLoad(): Promise<void> {
     await this.waitForAppContentLoad();
     await this.overviewSection.waitFor({ state: 'visible' });
@@ -195,7 +187,6 @@ export class StarshipPage extends SpaceXPage {
            await this.verifyPageTitle("Starship");
   }
 
-  // Section Visibility Methods
   async isOverviewSectionVisible(): Promise<boolean> {
     return await this.overviewSection.isVisible();
   }

@@ -1,5 +1,5 @@
 import { Page } from "@playwright/test";
-import { BoundingBox } from "../pages/types/Types";
+import { BoundingBox } from "./types/Types";
 
 type ViewportCheckCallback = (size: BoundingBox) => Promise<void>;
 

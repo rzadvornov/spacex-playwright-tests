@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import { EarthImageStyles } from "../types/Types";
+import { EarthImageStyles } from "../../utils/types/Types";
 
 export class DestinationsPOF {
   private readonly page: Page;
@@ -48,22 +48,29 @@ export class DestinationsPOF {
     return this.destinationsSection.locator(".earth").first();
   }
 
-  private async getAllDestinationElements(): Promise<Locator[]> {
-    const count = await this.destinationElements.count();
-    const elements: Locator[] = [];
-
-    for (let i = 0; i < count; i++) {
-      elements.push(this.destinationElements.nth(i));
-    }
-
-    return elements;
-  }
-
   private async getDestinationMediaElement(
     destination: Locator
   ): Promise<Locator | null> {
     const media = destination.locator("img, svg").first();
     return (await media.count()) > 0 ? media : null;
+  }
+
+  private async evaluateComputedStyle(
+    element: Locator,
+    property: "cursor" | "opacity"
+  ): Promise<string> {
+    return await element.evaluate(
+      (el: Element, prop) => window.getComputedStyle(el)[prop],
+      property
+    );
+  }
+
+  private async evaluateCursorStyle(element: Locator): Promise<string> {
+    return this.evaluateComputedStyle(element, "cursor");
+  }
+
+  private async evaluateOpacityStyle(element: Locator): Promise<string> {
+    return this.evaluateComputedStyle(element, "opacity");
   }
 
   private async evaluateMediaLoaded(media: Locator): Promise<boolean> {
@@ -80,16 +87,8 @@ export class DestinationsPOF {
     return true;
   }
 
-  private async evaluateCursorStyle(element: Locator): Promise<string> {
-    return await element.evaluate(
-      (el: Element) => window.getComputedStyle(el).cursor
-    );
-  }
-
-  private async evaluateOpacityStyle(element: Locator): Promise<string> {
-    return await element.evaluate(
-      (el: Element) => window.getComputedStyle(el).opacity
-    );
+  private async getAllDestinationElements(): Promise<Locator[]> {
+    return this.destinationElements.all();
   }
 
   async scrollToDestinationsSection(): Promise<void> {
@@ -102,81 +101,41 @@ export class DestinationsPOF {
     return text?.trim() ?? "";
   }
 
+  async getDestinationCount(): Promise<number> {
+    return await this.destinationElements.count();
+  }
+
+  async getDestinationNames(): Promise<string[]> {
+    const destinationElements = await this.getAllDestinationElements();
+    const names: string[] = [];
+
+    for (const destination of destinationElements) {
+      const className = await destination.getAttribute("class");
+      const destinationName = Object.entries(this.DESTINATION_CLASS_MAP).find(
+        ([, value]) => className?.includes(value)
+      )?.[0];
+
+      if (destinationName) {
+        names.push(destinationName);
+      }
+    }
+
+    return names;
+  }
+
   async areAllDestinationsVisible(expectedNames: string[]): Promise<boolean> {
     try {
-      for (const name of expectedNames) {
-        const element = this.getDestinationElement(name);
-        if (!(await element.isVisible())) {
-          return false;
-        }
-      }
+      const checkVisibility = expectedNames.map((name) =>
+        this.getDestinationElement(name).isVisible()
+      );
+
+      const allVisible = (await Promise.all(checkVisibility)).every((v) => v);
 
       const actualCount = await this.destinationElements.count();
-      return actualCount === expectedNames.length;
+      return allVisible && actualCount === expectedNames.length;
     } catch {
       return false;
     }
-  }
-
-  async clickDestination(destinationName: string): Promise<void> {
-    const media = this.getDestinationMedia(destinationName);
-    await media.click();
-  }
-
-  async isDestinationImageLoadedCorrectly(
-    destinationName: string
-  ): Promise<boolean> {
-    const media = this.getDestinationMedia(destinationName);
-
-    if (!(await media.isVisible())) {
-      return false;
-    }
-
-    return await this.evaluateMediaLoaded(media);
-  }
-
-  async hoverOverDestination(destinationName: string): Promise<void> {
-    const media = this.getDestinationMedia(destinationName);
-    this.currentlyHoveredDestination = media;
-    await media.hover();
-    await this.page.waitForTimeout(50);
-  }
-
-  async unhoverDestination(): Promise<void> {
-    if (this.currentlyHoveredDestination) {
-      await this.destinationsHeading.hover({ force: true });
-      this.currentlyHoveredDestination = null;
-    }
-    await this.page.waitForTimeout(50);
-  }
-
-  async isDestinationHoverEffectVisible(): Promise<boolean> {
-    if (!this.currentlyHoveredDestination) {
-      return false;
-    }
-
-    const element = this.currentlyHoveredDestination;
-
-    await this.unhoverDestination();
-    const defaultOpacity = await this.evaluateOpacityStyle(element);
-
-    await element.hover();
-    const hoverOpacity = await this.evaluateOpacityStyle(element);
-
-    if (this.currentlyHoveredDestination === element) {
-      await element.hover();
-    }
-
-    return defaultOpacity !== hoverOpacity;
-  }
-
-  async hasDestinationSvgCircleOverlay(
-    destinationName: string
-  ): Promise<boolean> {
-    const svgOverlay = this.getDestinationElement(destinationName)
-      .locator("svg")
-      .first();
-    return await svgOverlay.isVisible();
   }
 
   async waitForDestinationsSectionLoad(): Promise<void> {
@@ -190,43 +149,24 @@ export class DestinationsPOF {
       return false;
     }
 
-    for (const destination of destinations) {
+    const visibilityChecks = destinations.map(async (destination) => {
       const media = await this.getDestinationMediaElement(destination);
-      if (!media || !(await media.isVisible())) {
-        return false;
-      }
-    }
+      return !!media && (await media.isVisible());
+    });
 
-    return true;
+    return (await Promise.all(visibilityChecks)).every((v) => v);
   }
 
-  async areAllDestinationsClickableAndInteractive(): Promise<boolean> {
-    const destinations = await this.getAllDestinationElements();
+  async isDestinationImageLoadedCorrectly(
+    destinationName: string
+  ): Promise<boolean> {
+    const media = this.getDestinationMedia(destinationName);
 
-    if (destinations.length === 0) {
+    if (!(await media.isVisible())) {
       return false;
     }
 
-    for (const destination of destinations) {
-      if (
-        !(await destination.isVisible()) ||
-        !(await destination.isEnabled())
-      ) {
-        return false;
-      }
-
-      const media = await this.getDestinationMediaElement(destination);
-      if (!media) {
-        return false;
-      }
-
-      const cursorStyle = await this.evaluateCursorStyle(media);
-      if (cursorStyle !== "pointer") {
-        return false;
-      }
-    }
-
-    return true;
+    return await this.evaluateMediaLoaded(media);
   }
 
   async isEarthImageBackgroundVisible(): Promise<boolean> {
@@ -253,69 +193,107 @@ export class DestinationsPOF {
     });
   }
 
-  async isDestinationCursorPointer(): Promise<boolean> {
-    if (!this.currentlyHoveredDestination) {
-      return false;
-    }
+  async clickDestination(destinationName: string): Promise<void> {
+    const media = this.getDestinationMedia(destinationName);
+    await media.click();
+  }
 
-    const cursorStyle = await this.evaluateCursorStyle(
-      this.currentlyHoveredDestination
-    );
-    return cursorStyle === "pointer";
+  async hoverOverDestination(destinationName: string): Promise<void> {
+    const media = this.getDestinationMedia(destinationName);
+    this.currentlyHoveredDestination = media;
+    await media.hover();
+    await this.page.waitForTimeout(50);
+  }
+
+  async unhoverDestination(): Promise<void> {
+    if (this.currentlyHoveredDestination) {
+      await this.destinationsHeading.hover({ force: true });
+      this.currentlyHoveredDestination = null;
+    }
+    await this.page.waitForTimeout(50);
+  }
+
+  async isDestinationHoverEffectVisible(): Promise<boolean> {
+    const element = this.currentlyHoveredDestination;
+    if (!element) return false;
+
+    await this.unhoverDestination();
+    const defaultOpacity = await this.evaluateOpacityStyle(element);
+
+    await element.hover();
+    const hoverOpacity = await this.evaluateOpacityStyle(element);
+
+    await this.unhoverDestination();
+
+    return defaultOpacity !== hoverOpacity;
   }
 
   async isDestinationHoverEffectDisappeared(): Promise<boolean> {
-    const firstDestination = this.destinationElements.first();
-
-    if ((await firstDestination.count()) === 0) {
-      return true;
-    }
-
-    const media = await this.getDestinationMediaElement(firstDestination);
-    if (!media) {
-      return true;
-    }
-
-    await media.hover();
-    const hoverOpacity = await this.evaluateOpacityStyle(media);
-
-    await this.unhoverDestination();
-    const defaultOpacity = await this.evaluateOpacityStyle(media);
-
-    return hoverOpacity !== defaultOpacity;
+    return this.isDestinationHoverEffectVisible();
   }
 
-  async getDestinationCount(): Promise<number> {
-    return await this.destinationElements.count();
+  async hasDestinationSvgCircleOverlay(
+    destinationName: string
+  ): Promise<boolean> {
+    const svgOverlay = this.getDestinationElement(destinationName)
+      .locator("svg")
+      .first();
+    return await svgOverlay.isVisible();
   }
 
-  async getDestinationNames(): Promise<string[]> {
+  async areAllDestinationsClickableAndInteractive(): Promise<boolean> {
     const destinations = await this.getAllDestinationElements();
-    const names: string[] = [];
 
-    for (const destination of destinations) {
-      const className = await destination.getAttribute("class");
-      const destinationName = Object.entries(this.DESTINATION_CLASS_MAP).find(
-        ([, value]) => className?.includes(value)
-      )?.[0];
-
-      if (destinationName) {
-        names.push(destinationName);
-      }
+    if (destinations.length === 0) {
+      return false;
     }
 
-    return names;
+    const interactivityChecks = destinations.map(async (destination) => {
+      if (
+        !(await destination.isVisible()) ||
+        !(await destination.isEnabled())
+      ) {
+        return false;
+      }
+
+      const media = await this.getDestinationMediaElement(destination);
+      if (!media) {
+        return false;
+      }
+
+      const cursorStyle = await this.evaluateCursorStyle(media);
+      return cursorStyle === "pointer";
+    });
+
+    return (await Promise.all(interactivityChecks)).every((v) => v);
+  }
+
+  async isDestinationCursorPointer(): Promise<boolean> {
+    if (!this.currentlyHoveredDestination) {
+      const firstName = (await this.getDestinationNames())[0];
+      if (!firstName) return false;
+      await this.hoverOverDestination(firstName);
+    }
+
+    const cursorStyle = await this.evaluateCursorStyle(
+      this.currentlyHoveredDestination!
+    );
+    return cursorStyle === "pointer";
   }
 
   async isDestinationInteractive(destinationName: string): Promise<boolean> {
     const element = this.getDestinationElement(destinationName);
     const media = this.getDestinationMedia(destinationName);
 
-    return (
-      (await element.isVisible()) &&
-      (await element.isEnabled()) &&
-      (await media.isVisible()) &&
-      (await this.evaluateCursorStyle(media)) === "pointer"
+    const [isVisible, isEnabled, mediaVisible, cursorStyle] = await Promise.all(
+      [
+        element.isVisible(),
+        element.isEnabled(),
+        media.isVisible(),
+        this.evaluateCursorStyle(media),
+      ]
     );
+
+    return isVisible && isEnabled && mediaVisible && cursorStyle === "pointer";
   }
 }

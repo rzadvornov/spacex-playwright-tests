@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import { BoundingBox } from "../types/Types";
+import { BoundingBox } from "../../utils/types/Types";
 
 export class HeroPOF {
   readonly heroSection: Locator;
@@ -34,10 +34,6 @@ export class HeroPOF {
       .locator(".media-carousel-section, .section-2")
       .first();
     this.heroImage = page.locator("img.hero-graphic").first();
-  }
-
-  private getPage(): Page {
-    return this.heroSection.page();
   }
 
   private async waitForElementVisible(
@@ -114,7 +110,7 @@ export class HeroPOF {
 
   async isPageScrolledPastHero(): Promise<boolean> {
     const [scrollPosition, heroHeight] = await Promise.all([
-      this.getPage().evaluate(() => window.scrollY),
+      this.heroSection.page().evaluate(() => window.scrollY),
       this.getHeroSectionHeight(),
     ]);
 
@@ -130,7 +126,7 @@ export class HeroPOF {
 
       const [boundingBox, viewport] = await Promise.all([
         this.getElementBoundingBox(this.mediaCarouselSection),
-        this.getPage().viewportSize(),
+        this.heroSection.page().viewportSize(),
       ]);
 
       if (!boundingBox || !viewport) {
@@ -196,6 +192,6 @@ export class HeroPOF {
   }
 
   async getCurrentScrollPosition(): Promise<number> {
-    return await this.getPage().evaluate(() => window.scrollY);
+    return await this.heroSection.page().evaluate(() => window.scrollY);
   }
 }

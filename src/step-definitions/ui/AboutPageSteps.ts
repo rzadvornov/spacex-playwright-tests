@@ -4,7 +4,7 @@ import { AboutPage } from "../../pages/ui/AboutPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { DataTable } from "playwright-bdd";
 import { SharedPageSteps } from "./SharedPageSteps";
-import { TwoColumnTable, AchievementTable, FacilityTable, InitiativeTable, PartnershipTable, DivisionTable, ResourceTable } from "../../pages/types/Types";
+import { TwoColumnTable, AchievementTable, FacilityTable, InitiativeTable, PartnershipTable, DivisionTable, ResourceTable } from "../../utils/types/Types";
 
 @Fixture("aboutPageSteps")
 export class AboutPageSteps {
@@ -15,20 +15,20 @@ export class AboutPageSteps {
   ) {}
 
   @Given("a user navigates to the About page")
-  async aUserNavigatesToTheAboutPage() {
+  async navigateToAboutPage() {
     await this.aboutPage.navigate();
   }
 
   @When("the About page loads successfully")
-  async thePageLoadsSuccessfully() {
-    await this.assertionHelper.validateBooleanCheck(
+  async verifyPageLoadsSuccessfully() {
+    await this.validateContentVisibility(
       () => this.aboutPage.isPageContentVisible(),
       "The main content of the About page is not visible."
     );
   }
 
   @Then("the user should see SpaceX's **mission statement** and core vision")
-  async theUserShouldSeeMissionStatement() {
+  async verifyMissionStatementVisible() {
     await expect(
       this.aboutPage.missionStatementText,
       "Mission statement and core vision text should be visible"
@@ -38,7 +38,7 @@ export class AboutPageSteps {
   @Then(
     "the mission to make **humanity multiplanetary** should be prominently featured"
   )
-  async theMissionToMakeHumanityMultiplanetaryShouldBeProminentlyFeatured() {
+  async verifyHumanityMultiplanetaryFeatured() {
     await expect(
       this.aboutPage.humanityMultiplanetaryText,
       "Humanity Multiplanetary vision should be featured"
@@ -48,7 +48,7 @@ export class AboutPageSteps {
   @Then(
     "the page should highlight the company's core values and long-term objectives"
   )
-  async thePageShouldHighlightTheCompanysCoreValues() {
+  async verifyCoreValuesHighlighted() {
     await expect(
       this.aboutPage.missionSection,
       "Mission/Core Values section should be visible"
@@ -56,68 +56,63 @@ export class AboutPageSteps {
   }
 
   @When("the user reviews the company history section")
-  async theUserReviewsTheCompanyHistorySection() {
+  async scrollToHistorySection() {
     await this.aboutPage.historySection.scrollIntoViewIfNeeded();
   }
 
   @Then("the following key milestones should be displayed chronologically:")
-  async theFollowingKeyMilestonesShouldBeDisplayedChronologically(
-    dataTable: DataTable
-  ) {
+  async verifyMilestonesDisplayed(dataTable: DataTable) {
     const milestones = dataTable.hashes() as TwoColumnTable;
-    for (const milestone of milestones) {
-      const detail = milestone["Detail"];
-      await this.assertionHelper.validateBooleanCheck(
-        () => this.aboutPage.isMilestoneDetailDisplayed(detail),
-        `Milestone detail "${detail}" is not displayed.`
-      );
-    }
+    await this.validateTableItems(
+      milestones,
+      (milestone) =>
+        this.aboutPage.isMilestoneDetailDisplayed(milestone["Detail"]),
+      (detail) => `Milestone detail "${detail}" is not displayed.`
+    );
   }
 
   @Then(
     "the company's **approach to reusability** should be emphasized throughout the history."
   )
-  async theCompanysApproachToReusabilityShouldBeEmphasized() {
-    await this.assertionHelper.validateBooleanCheck(
+  async verifyReusabilityEmphasized() {
+    await this.validateContentVisibility(
       () => this.aboutPage.isReusabilityEmphasized(),
       "Reusability emphasis is not visible in the history section."
     );
   }
 
   @When("the user scrolls to the leadership section")
-  async theUserScrollsToTheLeadershipTeamSection() {
+  async scrollToLeadershipSection() {
     await this.aboutPage.leadershipSection.scrollIntoViewIfNeeded();
   }
 
   @Then("photos and biographies for the core leaders should be available")
-  async photosAndBiographiesForTheCoreLeadersShouldBeAvailable() {
-    await this.assertionHelper.validateBooleanCheck(
-      () => this.aboutPage.checkLeaderPhotosAndBiographies(),
-      "Fewer than 4 leader photos/bios were found."
-    );
+  async verifyLeaderPhotosAndBiographiesAvailable() {
+    await this.validateLeaderContent();
   }
 
   @When("the user reviews the major achievements and metrics section")
-  async theUserReviewsTheMajorAchievementsAndMetricsSection() {
+  async scrollToAchievementsSection() {
     await this.aboutPage.achievementsSection.scrollIntoViewIfNeeded();
   }
 
   @Then("the page should display up-to-date metrics for:")
-  async thePageShouldDisplayUpToDateMetricsFor(dataTable: DataTable) {
+  async verifyAchievementMetricsDisplayed(dataTable: DataTable) {
     const achievements = dataTable.hashes() as AchievementTable;
-    for (const achievement of achievements) {
-      const metric = achievement["Achievement Metric"];
-      await this.assertionHelper.validateBooleanCheck(
-        () => this.aboutPage.isAchievementMetricDisplayed(metric),
-        `Achievement metric "${metric}" is not displayed.`
-      );
-    }
+    await this.validateTableItems(
+      achievements,
+      (achievement) =>
+        this.aboutPage.isAchievementMetricDisplayed(
+          achievement["Achievement Metric"]
+        ),
+      (metric) => `Achievement metric "${metric}" is not displayed.`
+    );
   }
 
   @Then(
     "the displayed values should be presented with a **clear value format**"
   )
-  async theDisplayedValuesShouldBePresentedWithAClearValueFormat() {
+  async verifyClearValueFormat() {
     await expect(
       this.aboutPage.achievementsSection,
       "Achievements section is not visible to check value formats."
@@ -125,182 +120,203 @@ export class AboutPageSteps {
   }
 
   @When("the user looks for information on key facilities")
-  async theUserLooksForInformationOnKeyFacilities() {
+  async scrollToFacilitiesSection() {
     await this.aboutPage.facilitiesSection.scrollIntoViewIfNeeded();
   }
 
   @Then("the following operational facilities should be clearly listed:")
-  async theFollowingOperationalFacilitiesShouldBeClearlyListed(
-    dataTable: DataTable
-  ) {
+  async verifyFacilitiesListed(dataTable: DataTable) {
     const facilities = dataTable.hashes() as FacilityTable;
-    for (const facility of facilities) {
-      const facilityName = facility["Facility Name"];
-      await this.assertionHelper.validateBooleanCheck(
-        () => this.aboutPage.isFacilityInfoDisplayed(facilityName),
-        `Facility info for "${facilityName}" is not displayed.`
-      );
-    }
+    await this.validateTableItems(
+      facilities,
+      (facility) =>
+        this.aboutPage.isFacilityInfoDisplayed(facility["Facility Name"]),
+      (facilityName) => `Facility info for "${facilityName}" is not displayed.`
+    );
   }
 
   @When("the user reviews the company's sustainability initiatives")
-  async theUserReviewsTheCompanysSustainabilityInitiatives() {
+  async scrollToSustainabilitySection() {
     await this.aboutPage.sustainabilitySection.scrollIntoViewIfNeeded();
   }
 
   @Then("the section should clearly describe initiatives focused on:")
-  async theSectionShouldClearlyDescribeInitiativesFocusedOn(
-    dataTable: DataTable
-  ) {
+  async verifySustainabilityInitiativesDescribed(dataTable: DataTable) {
     const initiatives = dataTable.hashes() as InitiativeTable;
-    for (const initiative of initiatives) {
-      const focus = initiative["Initiative Focus"];
-      await this.assertionHelper.validateBooleanCheck(
-        () => this.aboutPage.isSustainabilityDetailDescribed(focus),
+    await this.validateTableItems(
+      initiatives,
+      (initiative) =>
+        this.aboutPage.isSustainabilityDetailDescribed(
+          initiative["Initiative Focus"]
+        ),
+      (focus) =>
         `Sustainability initiative focus "${focus}" is not clearly described.`
-      );
-    }
+    );
   }
 
   @When("the user reviews the partnerships section")
-  async theUserReviewsThePartnershipsSection() {
+  async scrollToPartnershipsSection() {
     await this.aboutPage.partnershipsSection.scrollIntoViewIfNeeded();
   }
 
   @Then("major long-standing partnerships should be listed, including:")
-  async majorLongStandingPartnershipsShouldBeListed(dataTable: DataTable) {
+  async verifyPartnershipsListed(dataTable: DataTable) {
     const partnerships = dataTable.hashes() as PartnershipTable;
-    for (const partnership of partnerships) {
-      const detail = partnership["Example Detail"];
-      await this.assertionHelper.validateBooleanCheck(
-        () => this.aboutPage.isPartnerDetailListed(detail),
-        `Partnership detail "${detail}" is not listed.`
-      );
-    }
+    await this.validateTableItems(
+      partnerships,
+      (partnership) =>
+        this.aboutPage.isPartnerDetailListed(partnership["Example Detail"]),
+      (detail) => `Partnership detail "${detail}" is not listed.`
+    );
   }
 
   @When("the user looks for organizational information")
-  async theUserLooksForOrganizationalInformation() {
+  async scrollToStructureSection() {
     await this.aboutPage.structureSection.scrollIntoViewIfNeeded();
   }
 
   @Then(
     "the page should clearly describe the major product and development divisions:"
   )
-  async thePageShouldClearlyDescribeTheMajorProductAndDevelopmentDivisions(
-    dataTable: any
-  ) {
+  async verifyDivisionsDescribed(dataTable: DataTable) {
     const divisions = dataTable.hashes() as DivisionTable;
-    for (const division of divisions) {
-      const primaryFocus = division["Primary Focus"];
-      await this.assertionHelper.validateBooleanCheck(
-        () => this.aboutPage.isDivisionFocusDescribed(primaryFocus),
+    await this.validateTableItems(
+      divisions,
+      (division) =>
+        this.aboutPage.isDivisionFocusDescribed(division["Primary Focus"]),
+      (primaryFocus) =>
         `Division primary focus "${primaryFocus}" is not clearly described.`
-      );
-    }
+    );
   }
 
   @When("the user looks for additional information")
-  async theUserLooksForAdditionalInformation() {
+  async scrollToResourcesSection() {
     await this.aboutPage.resourcesSection.scrollIntoViewIfNeeded();
   }
 
   @Then(
     "clearly labeled links should be available to the following external resources:"
   )
-  async clearlyLabeledLinksShouldBeAvailableToTheFollowingExternalResources(
-    dataTable: any
-  ) {
+  async verifyResourceLinksAvailable(dataTable: DataTable) {
     const resources = dataTable.hashes() as ResourceTable;
-    for (const resource of resources) {
-      const resourceName = resource["Resource Name"];
-      await this.assertionHelper.validateBooleanCheck(
-        () => this.aboutPage.isResourceLinked(resourceName),
+    await this.validateTableItems(
+      resources,
+      (resource) => this.aboutPage.isResourceLinked(resource["Resource Name"]),
+      (resourceName) =>
         `Resource link for "${resourceName}" is not clearly labeled or available.`
-      );
-    }
+    );
   }
 
   @Then(
     "the following key executive roles should be listed with associated names:"
   )
-  async theFollowingKeyExecutiveRolesShouldBeListedWithAssociatedNames(
-    dataTable: DataTable
-  ) {
+  async verifyExecutiveRolesListed(dataTable: DataTable) {
     const roles = dataTable.hashes() as TwoColumnTable;
-    for (const role of roles) {
-      const roleName = role["Role"];
-      await this.assertionHelper.validateBooleanCheck(
-        () => this.aboutPage.isKeyExecutiveRoleListed(roleName),
-        `Key executive role "${roleName}" is not listed.`
-      );
-    }
+    await this.validateTableItems(
+      roles,
+      (role) => this.aboutPage.isKeyExecutiveRoleListed(role["Role"]),
+      (roleName) => `Key executive role "${roleName}" is not listed.`
+    );
   }
 
   @Then(
     "**photos and brief biographies** should be provided for the primary leaders."
   )
-  async photosAndBriefBiographiesShouldBeProvidedForThePrimaryLeaders() {
-    await this.assertionHelper.validateBooleanCheck(
-      () => this.aboutPage.checkLeaderPhotosAndBiographies(),
-      "Fewer than 4 leader photos/bios were found."
-    );
+  async verifyPrimaryLeadersContent() {
+    await this.validateLeaderContent();
   }
 
   @When("the user reviews the company accomplishments summary")
-  async theUserReviewsTheCompanyAccomplishmentsSummary() {
+  async scrollToAccomplishmentsSection() {
     await this.aboutPage.achievementsSection.scrollIntoViewIfNeeded();
   }
 
   @Then("the page should display verifiable, major achievements:")
-  async thePageShouldDisplayVerifiableMajorAchievements(dataTable: DataTable) {
+  async verifyMajorAchievementsDisplayed(dataTable: DataTable) {
     const achievements = dataTable.hashes() as AchievementTable;
-    for (const achievement of achievements) {
-      const metric = achievement["Achievement Metric"];
-      await this.assertionHelper.validateBooleanCheck(
-        () => this.aboutPage.isAchievementMetricDisplayed(metric),
-        `Achievement metric "${metric}" is not displayed.`
-      );
-    }
+    await this.validateTableItems(
+      achievements,
+      (achievement) =>
+        this.aboutPage.isAchievementMetricDisplayed(
+          achievement["Achievement Metric"]
+        ),
+      (metric) => `Achievement metric "${metric}" is not displayed.`
+    );
   }
 
   @When("the user reads about operations and facilities")
-  async theUserReadsAboutOperationsAndFacilities() {
+  async scrollToOperationsSection() {
     await this.aboutPage.facilitiesSection.scrollIntoViewIfNeeded();
   }
 
   @Then("information about key SpaceX locations should be clearly displayed:")
-  async informationAboutKeySpaceXLocationsShouldBeClearlyDisplayed(
-    dataTable: DataTable
-  ) {
+  async verifyKeyLocationsDisplayed(dataTable: DataTable) {
     const facilities = dataTable.hashes() as FacilityTable;
-    for (const facility of facilities) {
-      const facilityName = facility["Facility Name"];
-      await this.assertionHelper.validateBooleanCheck(
-        () => this.aboutPage.isFacilityInfoDisplayed(facilityName),
-        `Facility info for "${facilityName}" is not displayed.`
-      );
-    }
+    await this.validateTableItems(
+      facilities,
+      (facility) =>
+        this.aboutPage.isFacilityInfoDisplayed(facility["Facility Name"]),
+      (facilityName) => `Facility info for "${facilityName}" is not displayed.`
+    );
   }
 
   @When("the user looks for environmental information")
-  async theUserLooksForEnvironmentalInformation() {
+  async scrollToEnvironmentalSection() {
     await this.aboutPage.sustainabilitySection.scrollIntoViewIfNeeded();
   }
 
   @Then(
     "the page should describe SpaceX's commitment to sustainability, including:"
   )
-  async thePageShouldDescribeSpaceXsCommitmentToSustainabilityIncluding(
-    dataTable: DataTable
-  ) {
+  async verifySustainabilityCommitmentDescribed(dataTable: DataTable) {
     const initiatives = dataTable.hashes() as InitiativeTable;
-    for (const initiative of initiatives) {
-      const focus = initiative["Initiative Focus"];
-      await this.assertionHelper.validateBooleanCheck(
-        () => this.aboutPage.isSustainabilityDetailDescribed(focus),
+    await this.validateTableItems(
+      initiatives,
+      (initiative) =>
+        this.aboutPage.isSustainabilityDetailDescribed(
+          initiative["Initiative Focus"]
+        ),
+      (focus) =>
         `Sustainability initiative focus "${focus}" is not clearly described.`
+    );
+  }
+
+  private async validateContentVisibility(
+    checkFunction: () => Promise<boolean>,
+    errorMessage: string
+  ): Promise<void> {
+    await this.assertionHelper.validateBooleanCheck(
+      checkFunction,
+      errorMessage
+    );
+  }
+
+  private async validateLeaderContent(): Promise<void> {
+    await this.validateContentVisibility(
+      () => this.aboutPage.checkLeaderPhotosAndBiographies(),
+      "Fewer than 4 leader photos/bios were found."
+    );
+  }
+
+  private async validateTableItems<T>(
+    items: T[],
+    checkFunction: (item: T) => Promise<boolean>,
+    errorMessageBuilder: (key: string) => string
+  ): Promise<void> {
+    for (const item of items) {
+      const key = this.extractKeyFromItem(item);
+      await this.validateContentVisibility(
+        () => checkFunction(item),
+        errorMessageBuilder(key)
       );
     }
+  }
+
+  private extractKeyFromItem(item: any): string {
+    const values = Object.values(item);
+    const stringValue = values.find(
+      (value) => typeof value === "string"
+    ) as string;
+    return stringValue || "Unknown";
   }
 }

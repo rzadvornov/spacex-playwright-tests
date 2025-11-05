@@ -4,7 +4,6 @@ import { SpaceXPage } from "../base/SpaceXPage";
 
 export class HomePage extends SpaceXPage {
   readonly hero: HeroPOF;
-
   public readonly page: Page;
 
   readonly navLink: (itemName: string) => Locator;

@@ -116,7 +116,6 @@ export class AboutPage extends SpaceXPage {
       const fontSize = await locator.evaluate((el: HTMLElement) => {
         return window.getComputedStyle(el).fontSize;
       });
-      // Assuming font size larger than standard body text (1rem or 16px)
       return parseFloat(fontSize) > 16;
     }
     return false;

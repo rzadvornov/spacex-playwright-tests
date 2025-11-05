@@ -26,12 +26,8 @@ export class HeaderPOF {
       .first();
   }
 
-  private getPage(): Page {
-    return this.navigation.page();
-  }
-
   private async waitForAnimation(): Promise<void> {
-    await this.getPage().waitForTimeout(300);
+    await this.navigation.page().waitForTimeout(300);
   }
 
   private async waitForElementVisible(element: Locator, timeout: number = 5000): Promise<boolean> {
@@ -113,15 +109,13 @@ export class HeaderPOF {
   }
 
   async checkNavigationLinksExist(links: string[]): Promise<boolean> {
-    for (const linkText of links) {
-      const link = this.getNavigationLink(linkText);
-      const exists = await link.count().then(count => count > 0);
+    if (links.length === 0) return true;
+    
+    const existenceChecks = links.map(linkText => 
+      this.getNavigationLink(linkText).count().then(count => count > 0)
+    );
 
-      if (!exists) {
-        return false;
-      }
-    }
-    return true;
+    return (await Promise.all(existenceChecks)).every(exists => exists);
   }
 
   async clickNavigationLink(linkText: string): Promise<void> {

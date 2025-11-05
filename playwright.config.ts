@@ -6,7 +6,7 @@ defineBddConfig({
   paths: ["src/features/**/*.feature", "src/features/**/**/*.feature"],
 
   // Specify the paths to your Step Definition files (.ts)
-  require: ["src/fixtures/BddFixtures.ts", "src/step-definitions/**/*.ts"],
+  require: ["src/fixtures/BddFixtures.ts", "src/step-definitions/**/*.ts", "src/step-definitions/**/**/*.ts", "src/step-definitions/**/**/**/*.ts"],
 
   // The directory where Playwright-BDD will generate the runnable .spec.ts files.
   // This MUST match the 'testDir' in your Playwright configuration.

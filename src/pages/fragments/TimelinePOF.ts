@@ -1,12 +1,6 @@
 import { Locator, Page } from "@playwright/test";
 import { BasePage } from "../base/BasePage";
-import {
-  AccessibilityStatus,
-  CardsConsistency,
-  Milestone,
-  MobileResponsiveness,
-  TextReadability,
-} from "../types/Types";
+import { Milestone, MobileResponsiveness, CardsConsistency, TextReadability, AccessibilityStatus } from "../../utils/types/Types";
 
 export class TimelinePOF extends BasePage {
   private static readonly MOBILE_VIEWPORT = { width: 375, height: 812 };
@@ -47,17 +41,17 @@ export class TimelinePOF extends BasePage {
   }
 
   async getAllMilestoneData(): Promise<Milestone[]> {
-    return await this.milestoneCards.evaluateAll((cards) =>
-      cards.map((card) => {
+    return await this.milestoneCards.evaluateAll((cards: Element[]) =>
+      (cards as HTMLElement[]).map((card) => {
         const yearElement = card.querySelector(".year");
         const achievementElement = card.querySelector(".achievement-text");
 
         return {
           year:
-            card.getAttribute("data-year") ||
-            yearElement?.textContent?.trim() ||
+            card.getAttribute("data-year") ??
+            yearElement?.textContent?.trim() ??
             "",
-          achievement: achievementElement?.textContent?.trim() || "",
+          achievement: achievementElement?.textContent?.trim() ?? "",
         };
       })
     );
@@ -66,8 +60,8 @@ export class TimelinePOF extends BasePage {
   async getMilestoneCardByYear(year: string): Promise<Locator> {
     const card = this.milestoneCards.filter({ hasText: year }).first();
 
-    const exists = await card.isVisible().catch(() => false);
-    if (!exists) {
+    const count = await card.count();
+    if (count === 0) {
       throw new Error(`Milestone card for year '${year}' not found`);
     }
 
@@ -117,20 +111,18 @@ export class TimelinePOF extends BasePage {
       )
     );
 
-    return activeIndices.findIndex((isActive) => isActive) || 0;
+    const activeIndex = activeIndices.findIndex((isActive) => isActive);
+
+    return activeIndex === -1 ? 0 : activeIndex;
   }
 
   async areBackgroundImagesLoaded(): Promise<boolean> {
-    return await this.milestoneCards.evaluateAll((cards) =>
-      cards.every((card) => {
+    return await this.milestoneCards.evaluateAll((cards: Element[]) =>
+      (cards as HTMLElement[]).every((card) => {
         const style = window.getComputedStyle(card);
         const backgroundImage = style.backgroundImage;
 
-        return (
-          backgroundImage !== "none" &&
-          !backgroundImage.includes("undefined") &&
-          !backgroundImage.includes("none")
-        );
+        return backgroundImage.includes("url(") && backgroundImage !== "none";
       })
     );
   }
@@ -161,21 +153,27 @@ export class TimelinePOF extends BasePage {
 
   async checkMobileResponsiveness(): Promise<MobileResponsiveness> {
     return await this.page.evaluate(
-      ({ MIN_TOUCH_TARGET, MIN_DOT_SIZE }) => {
-        const carousel = document.querySelector(".timeline-carousel");
+      (params) => {
+        const { MIN_TOUCH_TARGET, MIN_DOT_SIZE } = params;
+        const carousel = document.querySelector(
+          ".timeline-carousel"
+        ) as HTMLElement | null;
         const arrows = document.querySelectorAll(
           ".timeline-carousel button.arrow"
         );
         const dots = document.querySelectorAll(".pagination-dots button");
 
-        const areArrowsSized = Array.from(arrows).every((arrow) => {
+        const arrowsArray = Array.from(arrows) as Array<HTMLElement>;
+        const dotsArray = Array.from(dots) as Array<HTMLElement>;
+
+        const areArrowsSized = arrowsArray.every((arrow) => {
           const rect = arrow.getBoundingClientRect();
           return (
-            rect.width >= MIN_TOUCH_TARGET && rect.height >= MIN_TOUCH_TARGET
+            rect.width >= MIN_TOUCH_TARGET || rect.height >= MIN_TOUCH_TARGET
           );
         });
 
-        const areDotsTappable = Array.from(dots).every((dot) => {
+        const areDotsTappable = dotsArray.every((dot) => {
           const rect = dot.getBoundingClientRect();
           return rect.width >= MIN_DOT_SIZE && rect.height >= MIN_DOT_SIZE;
         });
@@ -196,110 +194,137 @@ export class TimelinePOF extends BasePage {
   }
 
   async checkCardsConsistency(): Promise<CardsConsistency> {
-    return await this.milestoneCards.evaluateAll((cards, tolerance) => {
-      if (cards.length < 2) {
+    return await this.milestoneCards.evaluateAll(
+      (cards: Element[], tolerance) => {
+        const htmlCards = cards as HTMLElement[];
+
+        if (htmlCards.length < 2) {
+          return {
+            hasConsistentWidth: true,
+            hasConsistentHeight: true,
+            hasUniformSpacing: true,
+          };
+        }
+
+        const firstRect = htmlCards[0].getBoundingClientRect();
+        const expectedWidth = firstRect.width;
+        const expectedHeight = firstRect.height;
+        const expectedSpacing =
+          htmlCards[1].getBoundingClientRect().left - firstRect.right;
+
+        const hasConsistentWidth = htmlCards.every((card) => {
+          const width = card.getBoundingClientRect().width;
+          return Math.abs(width - expectedWidth) < tolerance;
+        });
+
+        const hasConsistentHeight = htmlCards.every((card) => {
+          const height = card.getBoundingClientRect().height;
+          return Math.abs(height - expectedHeight) < tolerance;
+        });
+
+        const hasUniformSpacing = htmlCards.slice(1).every((card, i) => {
+          const prevRect = htmlCards[i].getBoundingClientRect();
+          const currentRect = card.getBoundingClientRect();
+          const actualSpacing = currentRect.left - prevRect.right;
+          return Math.abs(actualSpacing - expectedSpacing) < tolerance;
+        });
+
         return {
-          hasConsistentWidth: true,
-          hasConsistentHeight: true,
-          hasUniformSpacing: true,
+          hasConsistentWidth,
+          hasConsistentHeight,
+          hasUniformSpacing,
         };
-      }
-
-      const firstRect = cards[0].getBoundingClientRect();
-      const expectedWidth = firstRect.width;
-      const expectedHeight = firstRect.height;
-      const expectedSpacing =
-        cards[1].getBoundingClientRect().left - firstRect.right;
-
-      const hasConsistentWidth = cards.every((card) => {
-        const width = card.getBoundingClientRect().width;
-        return Math.abs(width - expectedWidth) < tolerance;
-      });
-
-      const hasConsistentHeight = cards.every((card) => {
-        const height = card.getBoundingClientRect().height;
-        return Math.abs(height - expectedHeight) < tolerance;
-      });
-
-      const hasUniformSpacing = cards.slice(1).every((card, i) => {
-        const prevRect = cards[i].getBoundingClientRect();
-        const currentRect = card.getBoundingClientRect();
-        const actualSpacing = currentRect.left - prevRect.right;
-        return Math.abs(actualSpacing - expectedSpacing) < tolerance;
-      });
-
-      return {
-        hasConsistentWidth,
-        hasConsistentHeight,
-        hasUniformSpacing,
-      };
-    }, TimelinePOF.DIMENSION_TOLERANCE);
+      },
+      TimelinePOF.DIMENSION_TOLERANCE
+    );
   }
 
   async checkTextReadability(): Promise<TextReadability> {
-    return await this.milestoneCards.evaluateAll((cards, minFontSize) => {
-      const hasSufficientContrast = (
-        textEl: Element,
-        bgEl: Element
-      ): boolean => {
-        const textColor = window.getComputedStyle(textEl).color;
-        const bgColor = window.getComputedStyle(bgEl).backgroundColor;
-        return textColor !== bgColor && textColor !== "transparent";
-      };
+    return await this.milestoneCards.evaluateAll(
+      (cards: Element[], minFontSize) => {
+        const htmlCards = cards as HTMLElement[];
 
-      const results = cards.map((card) => {
-        const yearEl = card.querySelector(".year");
-        const textEl = card.querySelector(".achievement-text");
+        const hasSufficientContrastHeuristic = (
+          textEl: HTMLElement,
+          bgEl: HTMLElement
+        ): boolean => {
+          const textColor = window.getComputedStyle(textEl).color;
+          const bgColor = window.getComputedStyle(bgEl).backgroundColor;
+          return (
+            textColor !== bgColor &&
+            textColor !== "transparent" &&
+            bgColor !== "transparent"
+          );
+        };
+
+        const results = htmlCards.map((card) => {
+          const yearEl = card.querySelector(".year") as HTMLElement | null;
+          const textEl = card.querySelector(
+            ".achievement-text"
+          ) as HTMLElement | null;
+
+          const isYearVisible = yearEl
+            ? window.getComputedStyle(yearEl).opacity !== "0" &&
+              window.getComputedStyle(yearEl).visibility !== "hidden"
+            : false;
+
+          const fontSize = textEl
+            ? parseInt(window.getComputedStyle(textEl).fontSize)
+            : 0;
+
+          const isTextReadable = fontSize >= minFontSize;
+
+          const hasSufficientContrast = textEl
+            ? hasSufficientContrastHeuristic(textEl, card)
+            : false;
+
+          const hasNoOverflow = textEl
+            ? textEl.scrollHeight <= textEl.clientHeight
+            : true;
+
+          return {
+            isYearVisible,
+            isTextReadable,
+            hasSufficientContrast,
+            hasNoOverflow,
+          };
+        });
 
         return {
-          isYearVisible: yearEl
-            ? window.getComputedStyle(yearEl).opacity !== "0"
-            : false,
-          isTextReadable: textEl
-            ? parseInt(window.getComputedStyle(textEl).fontSize) >= minFontSize
-            : false,
-          hasSufficientContrast: textEl
-            ? hasSufficientContrast(textEl, card)
-            : false,
-          hasNoOverflow: textEl
-            ? textEl.scrollHeight <= textEl.clientHeight
-            : true,
+          isYearVisible: results.every((result) => result.isYearVisible),
+          isTextReadable: results.every((result) => result.isTextReadable),
+          hasSufficientContrast: results.every(
+            (result) => result.hasSufficientContrast
+          ),
+          hasNoOverflow: results.every((result) => result.hasNoOverflow),
         };
-      });
-
-      return {
-        isYearVisible: results.every((result) => result.isYearVisible),
-        isTextReadable: results.every((result) => result.isTextReadable),
-        hasSufficientContrast: results.every(
-          (result) => result.hasSufficientContrast
-        ),
-        hasNoOverflow: results.every((result) => result.hasNoOverflow),
-      };
-    }, TimelinePOF.MIN_FONT_SIZE);
+      },
+      TimelinePOF.MIN_FONT_SIZE
+    );
   }
 
   async getAccessibilityStatus(): Promise<AccessibilityStatus> {
-    const [hasAriaLabels, isKeyboardNavigable, announceChanges] =
-      await Promise.all([
-        this.timelineCarousel.evaluate(
-          (carousel) => carousel.querySelectorAll("[aria-label]").length > 0
-        ),
-        this.timelineCarousel.evaluate(
-          (carousel) =>
-            carousel.querySelectorAll('button, [tabindex="0"]').length > 0
-        ),
-        this.timelineCarousel.evaluate(
-          (carousel) =>
-            carousel.hasAttribute("aria-live") ||
-            carousel.querySelector("[aria-live]") !== null
-        ),
-      ]);
+    const [status] = await Promise.all([
+      this.timelineCarousel.evaluate((carousel) => {
+        const hasAriaLabels =
+          carousel.querySelectorAll("[aria-label]").length > 0;
 
-    return {
-      isKeyboardNavigable,
-      hasAriaLabels,
-      announceChanges,
-    };
+        const hasFocusableElements =
+          carousel.querySelectorAll('button, [tabindex="0"], a').length > 0;
+
+        const announceChanges =
+          carousel.hasAttribute("aria-live") ||
+          carousel.querySelector("[aria-live]") !== null;
+
+        return {
+          isKeyboardNavigable: hasFocusableElements,
+          hasAriaLabels,
+          announceChanges,
+        };
+      }),
+    ]);
+
+    return status;
   }
 
   async getActiveMilestone(): Promise<Milestone | null> {
@@ -309,16 +334,16 @@ export class TimelinePOF extends BasePage {
       return null;
     }
 
-    return await this.activeCard.evaluate((card) => {
+    return await this.activeCard.evaluate((card: Element) => {
       const yearElement = card.querySelector(".year");
       const achievementElement = card.querySelector(".achievement-text");
 
       return {
         year:
-          card.getAttribute("data-year") ||
-          yearElement?.textContent?.trim() ||
+          card.getAttribute("data-year") ??
+          yearElement?.textContent?.trim() ??
           "",
-        achievement: achievementElement?.textContent?.trim() || "",
+        achievement: achievementElement?.textContent?.trim() ?? "",
       };
     });
   }

@@ -4,7 +4,9 @@ import { MissionsPage } from "../../pages/ui/MissionsPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { Page } from "@playwright/test";
 import { SharedPageSteps } from "./SharedPageSteps";
-import { SharedContext } from "../../pages/types/Types";
+import { SharedContext, SortStrategy } from "../../utils/types/Types";
+import { NumericSortStrategy } from "../../utils/strategies/NumericSortStrategy";
+import { GroupingSortStrategy } from "../../utils/strategies/GroupingSortStrategy";
 
 @Fixture("missionsSteps")
 export class MissionsSteps {
@@ -47,25 +49,26 @@ export class MissionsSteps {
   )
   async verifyMissionCardDetails() {
     const firstCard = this.missionsPage.missionCard.first();
-    await expect(
-      firstCard.locator('[data-field="mission-name"], h2')
-    ).toBeVisible();
-    await expect(
-      firstCard.locator('[data-field="launch-date"], .launch-date')
-    ).toBeVisible();
-    await expect(
-      firstCard.locator('[data-field="vehicle-type"], .vehicle-type')
-    ).toBeVisible();
+    await this._verifyCardFieldVisible(
+      firstCard,
+      '[data-field="mission-name"], h2'
+    );
+    await this._verifyCardFieldVisible(
+      firstCard,
+      '[data-field="launch-date"], .launch-date'
+    );
+    await this._verifyCardFieldVisible(
+      firstCard,
+      '[data-field="vehicle-type"], .vehicle-type'
+    );
   }
 
   @Then(
     "the mission list should be ordered **chronologically from most recent to oldest**"
   )
   async verifyChronologicalOrder() {
-    const allCards = await this.missionsPage.missionCard.all();
+    const cardsToCheck = await this._getCardsToCheck(5);
     const dates: Date[] = [];
-
-    const cardsToCheck = allCards.slice(0, Math.min(allCards.length, 5));
 
     for (const card of cardsToCheck) {
       const dateText = await this.missionsPage.getLaunchDateFromCard(card);
@@ -94,27 +97,14 @@ export class MissionsSteps {
     "the mission list should update to show **only** missions launched by {string}"
   )
   async verifyFilterByVehicle(vehicleType: string) {
-    await this.missionsPage.missionCard.first().waitFor({ state: "visible" });
-
-    const count = await this.missionsPage.missionCard.count();
-
-    const cardsToCheck = Math.min(count, 10);
-    for (let i = 0; i < cardsToCheck; i++) {
-      const vehicleText = await this.missionsPage.missionCard
-        .nth(i)
-        .locator('[data-field="vehicle-type"], .vehicle-type')
-        .textContent();
-      expect(
-        vehicleText,
-        `Mission card ${i + 1} vehicle type should be ${vehicleType}`
-      ).toContain(vehicleType);
-    }
+    await this._waitForMissionCards();
+    await this._verifyAllCardsContainVehicleType(vehicleType);
   }
 
   @Then(
     "the total count of filtered missions should be displayed prominently \\(e.g., {string})"
   )
-  async verifyMissionCountDisplay(exampleText: string) {
+  async verifyMissionCountDisplay(_exampleText: string) {
     await expect(this.missionsPage.missionCountDisplay).toBeVisible();
     await expect(this.missionsPage.missionCountDisplay).toHaveText(
       /\d+ of \d+ Missions/
@@ -126,54 +116,7 @@ export class MissionsSteps {
   )
   async verifyMultipleFilterSelections(vehicles: string) {
     const vehicleList = vehicles.split(",").map((v) => v.trim());
-
-    const isSelect =
-      (await this.missionsPage.vehicleFilterDropdown.evaluate(
-        (el) => el.tagName
-      )) === "SELECT";
-
-    if (isSelect) {
-      await expect(this.missionsPage.vehicleFilterDropdown).toHaveAttribute(
-        "multiple",
-        /.*/i
-      );
-
-      for (const vehicle of vehicleList.slice(0, 2)) {
-        // Test with first 2 vehicles
-        await this.missionsPage.vehicleFilterDropdown.selectOption({
-          label: vehicle,
-        });
-      }
-
-      const selectedOptions =
-        await this.missionsPage.vehicleFilterDropdown.evaluate(
-          (select: HTMLSelectElement) =>
-            Array.from(select.selectedOptions).map((option) => option.text)
-        );
-      expect(selectedOptions.length).toBeGreaterThan(1);
-    } else {
-      await expect(this.missionsPage.vehicleFilterDropdown).toHaveAttribute(
-        "aria-multiselectable",
-        "true",
-        { timeout: 100 }
-      );
-
-      for (const vehicle of vehicleList.slice(0, 2)) {
-        await this.missionsPage.vehicleFilterDropdown.click();
-        const option = this.page.locator(
-          `[role="option"]:has-text("${vehicle}")`
-        );
-        await expect(option).toBeVisible();
-        await option.click();
-      }
-
-      const activeSelections = this.page.locator(
-        '[role="option"][aria-selected="true"], [data-selected="true"]'
-      );
-      const activeCount = await activeSelections.count();
-      expect(activeCount).toBeGreaterThan(1);
-    }
-
+    await this._verifyMultipleSelectionSupport(vehicleList);
     this.sharedContext.selectedVehicles = vehicleList.slice(0, 2);
   }
 
@@ -185,9 +128,7 @@ export class MissionsSteps {
 
   @Then("the mission detail page for {string} should load")
   async verifyMissionDetailPageLoads(missionName: string) {
-    const expectedPath = `/missions/${missionName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")}`;
+    const expectedPath = this._getExpectedMissionPath(missionName);
     await expect(this.page).toHaveURL(new RegExp(expectedPath));
     await expect(
       this.page.getByRole("heading", { name: missionName, level: 1 })
@@ -203,7 +144,7 @@ export class MissionsSteps {
     "the mission list should filter dynamically to show only matching results"
   )
   async verifyDynamicFilter() {
-    await this.missionsPage.missionCard.first().waitFor({ state: "visible" });
+    await this._waitForMissionCards();
     const count = await this.missionsPage.missionCard.count();
     expect(count).toBeLessThan(50);
   }
@@ -229,13 +170,7 @@ export class MissionsSteps {
       "Total Payload Deployed",
     ];
     for (const metric of requiredMetrics) {
-      await this.assertionHelper.validateBooleanCheck(
-        () =>
-          this.missionsPage
-            .getMetricValue(metric)
-            .then((v) => v !== "" && v.length > 0),
-        `Metric '${metric}' value is not displayed or is empty.`
-      );
+      await this._verifyMetricDisplayed(metric);
     }
   }
 
@@ -308,18 +243,18 @@ export class MissionsSteps {
     "the page should show detailed information including **payload, launch site, and mission objectives**"
   )
   async verifyDetailedMissionInformation() {
-    await expect(
+    await this._verifyDetailVisible(
       this.missionsPage.payloadDetail,
-      "Payload detail should be visible"
-    ).toBeVisible();
-    await expect(
+      "Payload detail"
+    );
+    await this._verifyDetailVisible(
       this.missionsPage.launchSiteDetail,
-      "Launch Site detail should be visible"
-    ).toBeVisible();
-    await expect(
+      "Launch Site detail"
+    );
+    await this._verifyDetailVisible(
       this.missionsPage.objectivesDetail,
-      "Mission Objectives detail should be visible"
-    ).toBeVisible();
+      "Mission Objectives detail"
+    );
   }
 
   @Then(
@@ -345,24 +280,9 @@ export class MissionsSteps {
     "the mission list should display **only** missions with the {string} status"
   )
   async verifyFilterByStatus(expectedStatus: string) {
-    await this.missionsPage.missionCard.first().waitFor({ state: "visible" });
-
-    const missionCount = await this.missionsPage.missionCard.count();
-    const cardsToCheck = Math.min(missionCount, 10);
-
-    for (let i = 0; i < cardsToCheck; i++) {
-      const card = this.missionsPage.missionCard.nth(i);
-      const isStatusCorrect = await card
-        .locator(
-          `text=/${expectedStatus}/i, [data-status="${expectedStatus.toLowerCase()}"]`
-        )
-        .isVisible();
-
-      expect(
-        isStatusCorrect,
-        `Mission card ${i + 1} status should be "${expectedStatus}"`
-      ).toBeTruthy();
-    }
+    await this._waitForMissionCards();
+    const cardsToCheck = await this._getCardsToCheck(10);
+    await this._verifyAllCardsHaveStatus(cardsToCheck, expectedStatus);
   }
 
   @Then(
@@ -385,6 +305,7 @@ export class MissionsSteps {
   async searchForMissionWithText(searchTerm: string) {
     await this.missionsPage.searchForMission(searchTerm);
   }
+
   @Then(
     "the displayed statistics should update automatically when a new mission is marked as completed"
   )
@@ -396,6 +317,7 @@ export class MissionsSteps {
     const finalTotalMissions = await this.missionsPage.getMetricValue(
       "Total Missions"
     );
+
     expect(
       parseInt(finalTotalMissions.replace(/,/g, "")),
       `Final mission count (${finalTotalMissions}) did not update from initial count (${initialTotalMissions})`
@@ -406,79 +328,151 @@ export class MissionsSteps {
     "the mission list should reorder to group missions by their vehicle type"
   )
   async verifySortByVehicleType() {
-    await this._verifyGroupingSort((card) =>
+    const strategy = new GroupingSortStrategy((card) =>
       this.missionsPage.getVehicleTypeFromCard(card)
     );
+    await this._verifySortWithStrategy(strategy);
   }
 
   @Then(
     "missions should be ordered based on the success rate of the vehicle used"
   )
   async verifySortBySuccessRate() {
-    await this._verifyNumericSort(async (card) => {
+    const strategy = new NumericSortStrategy(async (card) => {
       const text = await card
         .locator('[data-field="success-rate"], .success-rate')
         .textContent();
       const match = text ? text.match(/(\d+(\.\d+)?)/) : null;
       return match ? parseFloat(match[0]) : -1;
     }, "descending");
+    await this._verifySortWithStrategy(strategy);
   }
 
-  private async _verifyGroupingSort(
-    getValue: (card: Locator) => Promise<string>
-  ) {
-    await this.missionsPage.missionCard.first().waitFor({ state: "visible" });
+  // Private helper methods
+  private async _verifyCardFieldVisible(card: Locator, selector: string) {
+    await expect(card.locator(selector)).toBeVisible();
+  }
+
+  private async _getCardsToCheck(maxCards: number): Promise<Locator[]> {
+    await this._waitForMissionCards();
     const allCards = await this.missionsPage.missionCard.all();
-    const values: string[] = [];
+    return allCards.slice(0, Math.min(allCards.length, maxCards));
+  }
 
-    const cardsToCheck = allCards.slice(0, Math.min(allCards.length, 10));
+  private async _waitForMissionCards() {
+    await this.missionsPage.missionCard.first().waitFor({ state: "visible" });
+  }
 
-    let currentGroupValue: string | null = null;
+  private async _verifyAllCardsContainVehicleType(vehicleType: string) {
+    const cardsToCheck = await this._getCardsToCheck(10);
 
-    for (const card of cardsToCheck) {
-      const value = await getValue(card);
-
-      if (currentGroupValue === null) {
-        currentGroupValue = value;
-      } else if (value !== currentGroupValue) {
-        currentGroupValue = value;
-        if (values.includes(value)) {
-          throw new Error(
-            `Grouping sort failed: Found group value "${value}" which already appeared earlier in the list.`
-          );
-        }
-      }
-      values.push(value);
+    for (let i = 0; i < cardsToCheck.length; i++) {
+      const vehicleText = await cardsToCheck[i]
+        .locator('[data-field="vehicle-type"], .vehicle-type')
+        .textContent();
+      expect(
+        vehicleText,
+        `Mission card ${i + 1} vehicle type should be ${vehicleType}`
+      ).toContain(vehicleType);
     }
   }
 
-  private async _verifyNumericSort(
-    getValue: (card: Locator) => Promise<number>,
-    order: "ascending" | "descending"
-  ) {
-    await this.missionsPage.missionCard.first().waitFor({ state: "visible" });
-    const allCards = await this.missionsPage.missionCard.all();
-    const scores: number[] = [];
+  private async _verifyMultipleSelectionSupport(vehicleList: string[]) {
+    const isSelect = await this.missionsPage.vehicleFilterDropdown.evaluate(
+      (el) => el.tagName === "SELECT"
+    );
 
-    const cardsToCheck = allCards.slice(0, Math.min(allCards.length, 10));
-
-    for (const card of cardsToCheck) {
-      const score = await getValue(card);
-
-      if (scores.length > 0) {
-        const lastScore = scores[scores.length - 1];
-        if (order === "descending" && score > lastScore) {
-          throw new Error(
-            `Numeric sort failed (${order}): Found score ${score} which is greater than the previous score ${lastScore}.`
-          );
-        }
-        if (order === "ascending" && score < lastScore) {
-          throw new Error(
-            `Numeric sort failed (${order}): Found score ${score} which is less than the previous score ${lastScore}.`
-          );
-        }
-      }
-      scores.push(score);
+    if (isSelect) {
+      await this._verifySelectMultipleSupport(vehicleList);
+    } else {
+      await this._verifyAriaMultipleSupport(vehicleList);
     }
+  }
+
+  private async _verifySelectMultipleSupport(vehicleList: string[]) {
+    await expect(this.missionsPage.vehicleFilterDropdown).toHaveAttribute(
+      "multiple",
+      /.*/i
+    );
+
+    for (const vehicle of vehicleList.slice(0, 2)) {
+      await this.missionsPage.vehicleFilterDropdown.selectOption({
+        label: vehicle,
+      });
+    }
+
+    const selectedOptions =
+      await this.missionsPage.vehicleFilterDropdown.evaluate(
+        (select: HTMLSelectElement) =>
+          Array.from(select.selectedOptions).map((option) => option.text)
+      );
+    expect(selectedOptions.length).toBeGreaterThan(1);
+  }
+
+  private async _verifyAriaMultipleSupport(vehicleList: string[]) {
+    await expect(this.missionsPage.vehicleFilterDropdown).toHaveAttribute(
+      "aria-multiselectable",
+      "true",
+      { timeout: 100 }
+    );
+
+    for (const vehicle of vehicleList.slice(0, 2)) {
+      await this.missionsPage.vehicleFilterDropdown.click();
+      const option = this.page.locator(
+        `[role="option"]:has-text("${vehicle}")`
+      );
+      await expect(option).toBeVisible();
+      await option.click();
+    }
+
+    const activeSelections = this.page.locator(
+      '[role="option"][aria-selected="true"], [data-selected="true"]'
+    );
+    const activeCount = await activeSelections.count();
+    expect(activeCount).toBeGreaterThan(1);
+  }
+
+  private _getExpectedMissionPath(missionName: string): string {
+    return `/missions/${missionName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  }
+
+  private async _verifyMetricDisplayed(metric: string) {
+    await this.assertionHelper.validateBooleanCheck(
+      () =>
+        this.missionsPage
+          .getMetricValue(metric)
+          .then((v) => v !== "" && v.length > 0),
+      `Metric '${metric}' value is not displayed or is empty.`
+    );
+  }
+
+  private async _verifyDetailVisible(locator: Locator, description: string) {
+    await expect(locator, `${description} should be visible`).toBeVisible();
+  }
+
+  private async _verifyAllCardsHaveStatus(
+    cards: Locator[],
+    expectedStatus: string
+  ) {
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i];
+      const isStatusCorrect = await card
+        .locator(
+          `text=/${expectedStatus}/i, [data-status="${expectedStatus.toLowerCase()}"]`
+        )
+        .isVisible();
+
+      expect(
+        isStatusCorrect,
+        `Mission card ${i + 1} status should be "${expectedStatus}"`
+      ).toBeTruthy();
+    }
+  }
+
+  private async _verifySortWithStrategy(strategy: SortStrategy) {
+    await this._waitForMissionCards();
+    const allCards = await this.missionsPage.missionCard.all();
+    const cardsToCheck = allCards.slice(0, Math.min(allCards.length, 10));
+    await strategy.verify(cardsToCheck);
   }
 }

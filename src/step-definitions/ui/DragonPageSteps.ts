@@ -4,7 +4,7 @@ import { DataTable } from "playwright-bdd";
 import { DragonPage } from "../../pages/ui/DragonPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { SharedPageSteps } from "./SharedPageSteps";
-import { DracoSpecTable } from "../../pages/types/Types";
+import { DracoSpecTable } from "../../utils/types/Types";
 
 @Fixture("dragonPageSteps")
 export class DragonPageSteps {
@@ -31,8 +31,8 @@ export class DragonPageSteps {
 
   @Then("the text should confirm Dragon can carry up to {int} passengers")
   async verifyPassengerCapacity(capacity: number) {
-    await expect(this.dragonPage.passengerCapacityText).toBeVisible();
-    await expect(this.dragonPage.passengerCapacityText).toContainText(
+    await this.verifyTextVisibilityAndContent(
+      this.dragonPage.passengerCapacityText,
       capacity.toString()
     );
   }
@@ -50,16 +50,15 @@ export class DragonPageSteps {
   @Then("the page should display key technical specifications, including:")
   async verifyTechnicalSpecs(table: DataTable) {
     const rows = table.hashes();
-    for (const row of rows) {
-      await this.assertionHelper.validateBooleanCheck(
-        () =>
-          this.dragonPage.isSpecDetailDisplayed(
-            row["Specification Field"],
-            row["Detail"]
-          ),
-        `Specification '${row["Specification Field"]}' with detail '${row["Detail"]}' is not displayed as expected.`
-      );
-    }
+    await this.validateTableData(
+      rows,
+      (row) =>
+        this.dragonPage.isSpecDetailDisplayed(
+          row["Specification Field"],
+          row["Detail"]
+        ),
+      "Specification"
+    );
   }
 
   @Then("the page should display clear **metric and imperial** measurements")
@@ -74,24 +73,32 @@ export class DragonPageSteps {
     await expect(this.dragonPage.inFlightAbortDetails).toBeVisible();
   }
 
+  @Then(
+    "the text should specify the escape performance is approximately **half a mile in less than {int} seconds**"
+  )
+  async verifyEscapePerformanceWithParameter(seconds: number) {
+    await expect(this.dragonPage.superDracoSection).toContainText(
+      `half a mile in less than ${seconds} seconds`
+    );
+  }
+
   @When("the user reads about landing systems")
   async readAboutLandingSystems() {
-    await this.dragonPage.landingSystemSection.scrollIntoViewIfNeeded();
+    await this.scrollToElement(this.dragonPage.landingSystemSection);
   }
 
   @Then("the information should confirm the use of:")
   async verifyParachuteDetails(table: DataTable) {
     const rows = table.hashes();
-    for (const row of rows) {
-      await this.assertionHelper.validateBooleanCheck(
-        () =>
-          this.dragonPage.isParachuteDetailListed(
-            row["Parachute Type"],
-            row["Quantity"]
-          ),
-        `Parachute type '${row["Parachute Type"]}' with quantity '${row["Quantity"]}' is not listed as expected.`
-      );
-    }
+    await this.validateTableData(
+      rows,
+      (row) =>
+        this.dragonPage.isParachuteDetailListed(
+          row["Parachute Type"],
+          row["Quantity"]
+        ),
+      "Parachute type"
+    );
   }
 
   @Then(
@@ -100,6 +107,16 @@ export class DragonPageSteps {
   async verifyWaterLandingDesignation() {
     await expect(this.dragonPage.landingSystemSection).toContainText(
       "water landing"
+    );
+  }
+
+  @Then(
+    "the page should clearly explain Dragon's multi-stage parachute landing mechanism"
+  )
+  async verifyMultiStageParachuteMechanism() {
+    await this.assertionHelper.validateBooleanCheck(
+      () => this.dragonPage.isMultiStageLandingMechanismExplained(),
+      "The multi-stage parachute landing mechanism explanation is not clear or missing."
     );
   }
 
@@ -119,6 +136,24 @@ export class DragonPageSteps {
   }
 
   @Then(
+    "the video should visually showcase Dragon's **launch, docking, and ocean landing operations**"
+  )
+  async verifyVideoShowcasesOperations() {
+    await this.assertionHelper.validateBooleanCheck(
+      () => this.dragonPage.isVideoContentShowcased("launch", "ocean landing"),
+      "Video does not visually showcase launch, docking, and ocean landing."
+    );
+  }
+
+  @Then("the video should highlight **crew operations** inside the capsule")
+  async verifyVideoHighlightsCrewOperations() {
+    await this.assertionHelper.validateBooleanCheck(
+      () => this.dragonPage.isVideoContentHighlightingCrewOps(),
+      "Video does not highlight crew operations inside the capsule."
+    );
+  }
+
+  @Then(
     "the page should explain that Dragon is available to serve **commercial astronauts and private customers**"
   )
   async verifyCommercialCustomers() {
@@ -126,7 +161,7 @@ export class DragonPageSteps {
   }
 
   @Then("a description of Dragon's full capabilities should be displayed")
-  async aDescriptionOfDragonsFullCapabilitiesShouldBeDisplayed() {
+  async verifyFullCapabilitiesDisplayed() {
     await this.assertionHelper.validateBooleanCheck(
       () => this.dragonPage.isFullCapabilitiesDisplayed(),
       "Full capabilities summary (e.g., passenger/cargo) is not fully displayed."
@@ -134,24 +169,21 @@ export class DragonPageSteps {
   }
 
   @When("the user reviews the capabilities section")
-  async theUserReviewsTheCapabilitiesSection() {
-    await this.dragonPage.capabilitiesSection.scrollIntoViewIfNeeded();
+  async reviewCapabilitiesSection() {
+    await this.scrollToElement(this.dragonPage.capabilitiesSection);
   }
 
   @Then(
     "the page should explain that Dragon restored the American ability to launch astronauts from US soil"
   )
-  async thePageShouldExplainThatDragonRestoredTheAmericanAbility() {
+  async verifyCrewLaunchRestoreText() {
     await expect(this.dragonPage.crewLaunchRestoreText).toBeVisible();
   }
 
   @Then(
     "it should mention that this capability was absent between {int} and {int}"
   )
-  async itShouldMentionThatThisCapabilityWasAbsentBetween(
-    year1: number,
-    year2: number
-  ) {
+  async verifyCapabilityGap(year1: number, year2: number) {
     await this.assertionHelper.validateBooleanCheck(
       () => this.dragonPage.isAmericanLaunchRestoredMentioned(year1, year2),
       `The text does not mention the capability gap between ${year1} and ${year2}.`
@@ -161,7 +193,7 @@ export class DragonPageSteps {
   @Then(
     "the page should highlight Dragon's role in the **first private spaceflight** \\(Inspiration4 or equivalent)"
   )
-  async thePageShouldHighlightDragonsRoleInTheFirstPrivateSpaceflight() {
+  async verifyInspiration4Highlight() {
     await this.assertionHelper.validateBooleanCheck(
       () => this.dragonPage.isInspiration4Highlighted(),
       "The first private spaceflight (Inspiration4) is not highlighted."
@@ -169,45 +201,45 @@ export class DragonPageSteps {
   }
 
   @When("the user scrolls to the propulsion systems section")
-  async theUserScrollsToThePropulsionSystemsSection() {
+  async scrollToPropulsionSystems() {
     await this.dragonPage.scrollToPropulsionSection();
   }
 
   @Then("the page should display Draco thruster specifications")
-  async thePageShouldDisplayDracoThrusterSpecifications() {
+  async verifyDracoSpecsVisible() {
     await expect(this.dragonPage.dracoSpecsSection).toBeVisible();
   }
 
   @Then("the information should accurately list:")
-  async theInformationShouldAccuratelyList(dataTable: DataTable) {
+  async verifyDracoSpecifications(dataTable: DataTable) {
     const specs = dataTable.hashes() as DracoSpecTable;
-    for (const spec of specs) {
-      const field = spec["Specification Field"];
-      const detail = spec["Value Detail"];
-      await this.assertionHelper.validateBooleanCheck(
-        () => this.dragonPage.isDracoSpecDetailDisplayed(field, detail),
-        `Draco spec detail: Field '${field}' does not show value '${detail}'.`
-      );
-    }
+    await this.validateTableData(
+      specs,
+      (spec) =>
+        this.dragonPage.isDracoSpecDetailDisplayed(
+          spec["Specification Field"],
+          spec["Value Detail"]
+        ),
+      "Draco spec detail"
+    );
   }
 
   @When("the user reviews the SuperDraco section")
-  async theUserReviewsTheSuperDracoSection() {
-    await this.dragonPage.superDracoSection.scrollIntoViewIfNeeded();
+  async reviewSuperDracoSection() {
+    await this.scrollToElement(this.dragonPage.superDracoSection);
   }
 
   @Then("the page should display details on the launch escape system:")
-  async thePageShouldDisplayDetailsOnTheLaunchEscapeSystem(
-    dataTable: DataTable
-  ) {
+  async verifySuperDracoLaunchEscapeDetails(dataTable: DataTable) {
     const details = dataTable.hashes();
-    for (const detailRow of details) {
-      const detail = detailRow["Detail"];
-      await this.assertionHelper.validateBooleanCheck(
-        () => this.dragonPage.isSuperDracoLaunchEscapeDetailDisplayed(detail),
-        `SuperDraco detail: '${detail}' is not clearly displayed in the launch escape system section.`
-      );
-    }
+    await this.validateTableData(
+      details,
+      (detailRow) =>
+        this.dragonPage.isSuperDracoLaunchEscapeDetailDisplayed(
+          detailRow["Detail"]
+        ),
+      "SuperDraco detail"
+    );
   }
 
   @Then(
@@ -219,54 +251,15 @@ export class DragonPageSteps {
     );
   }
 
-  @Then(
-    "the text should specify the escape performance is approximately **half a mile in less than {int} seconds**"
-  )
-  async theTextShouldSpecifyTheEscapePerformanceIsApproximately(
-    seconds: number
-  ) {
-    await expect(this.dragonPage.superDracoSection).toContainText(
-      `half a mile in less than ${seconds} seconds`
-    );
-  }
-
-  @Then(
-    "the page should clearly explain Dragon's multi-stage parachute landing mechanism"
-  )
-  async thePageShouldClearlyExplainDragonsMultiStageParachuteLandingMechanism() {
-    await this.assertionHelper.validateBooleanCheck(
-      () => this.dragonPage.isMultiStageLandingMechanismExplained(),
-      "The multi-stage parachute landing mechanism explanation is not clear or missing."
-    );
-  }
-
-  @Then(
-    "the video should visually showcase Dragon's **launch, docking, and ocean landing operations**"
-  )
-  async theVideoShouldVisuallyShowcaseDragonsOperations() {
-    await this.assertionHelper.validateBooleanCheck(
-      () => this.dragonPage.isVideoContentShowcased("launch", "ocean landing"),
-      "Video does not visually showcase launch, docking, and ocean landing."
-    );
-  }
-
-  @Then("the video should highlight **crew operations** inside the capsule")
-  async theVideoShouldHighlightCrewOperationsInsideTheCapsule() {
-    await this.assertionHelper.validateBooleanCheck(
-      () => this.dragonPage.isVideoContentHighlightingCrewOps(),
-      "Video does not highlight crew operations inside the capsule."
-    );
-  }
-
   @When("the user reviews the full mission description")
-  async theUserReviewsTheFullMissionDescription() {
-    await this.dragonPage.fullMissionDescription.scrollIntoViewIfNeeded();
+  async reviewFullMissionDescription() {
+    await this.scrollToElement(this.dragonPage.fullMissionDescription);
   }
 
   @Then(
     "the capability for Earth orbit missions, including the ISS, should be mentioned"
   )
-  async theCapabilityForEarthOrbitMissionsIncludingTheISSShouldBeMentioned() {
+  async verifyISSCapabilityMentioned() {
     await this.assertionHelper.validateBooleanCheck(
       () => this.dragonPage.isISSCapabilityMentioned(),
       "Earth orbit/ISS mission capability is not mentioned."
@@ -276,10 +269,35 @@ export class DragonPageSteps {
   @Then(
     "the option for specialized **missions beyond Low Earth Orbit \\(LEO)** should be described"
   )
-  async theOptionForSpecializedMissionsBeyondLowEarthOrbitLEOShouldBeDescribed() {
+  async verifyBeyondLEOMissionDescribed() {
     await this.assertionHelper.validateBooleanCheck(
       () => this.dragonPage.isBeyondLEOMissionDescribed(),
       "Missions beyond Low Earth Orbit (LEO) are not described."
     );
+  }
+
+  private async verifyTextVisibilityAndContent(
+    element: any,
+    expectedText: string
+  ) {
+    await expect(element).toBeVisible();
+    await expect(element).toContainText(expectedText);
+  }
+
+  private async scrollToElement(element: any) {
+    await element.scrollIntoViewIfNeeded();
+  }
+
+  private async validateTableData<T>(
+    data: T[],
+    validationFn: (item: T) => Promise<boolean>,
+    itemType: string
+  ) {
+    for (const item of data) {
+      await this.assertionHelper.validateBooleanCheck(
+        () => validationFn(item),
+        `${itemType} '${JSON.stringify(item)}' is not displayed as expected.`
+      );
+    }
   }
 }

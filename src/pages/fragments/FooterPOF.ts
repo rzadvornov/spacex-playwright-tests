@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import { BoundingBox } from "../types/Types";
+import { BoundingBox } from "../../utils/types/Types";
 
 export class FooterPOF {
   readonly footer: Locator;
@@ -32,26 +32,32 @@ export class FooterPOF {
       .first();
   }
 
-  private getPage(): Page {
-    return this.footer.page();
-  }
-
   private async waitForHoverTransition(): Promise<void> {
-    await this.getPage().waitForTimeout(100);
+    await this.footer.page().waitForTimeout(100);
   }
 
-  private async getElementStyles(
-    element: Locator
-  ): Promise<CSSStyleDeclaration> {
-    return await element.evaluate((el: Element) => window.getComputedStyle(el));
+  private async getStyleValue(
+    element: Locator,
+    property: string
+  ): Promise<string> {
+    return await element.evaluate(
+      (el: Element, prop) => {
+        return window.getComputedStyle(el)[prop as any]; 
+      },
+      property
+    );
+  }
+
+  private async getNumericStyleValue(
+    element: Locator,
+    property: string
+  ): Promise<number> {
+    const value = await this.getStyleValue(element, property);
+    return parseFloat(value) || 0;
   }
 
   private async getBoundingBox(element: Locator): Promise<BoundingBox | null> {
     return await element.boundingBox();
-  }
-
-  private parseStyleValue(value: string): number {
-    return parseFloat(value) || 0;
   }
 
   private getFooterLink(linkText: string): Locator {
@@ -59,38 +65,10 @@ export class FooterPOF {
       .getByRole("link", { name: linkText, exact: true })
       .first();
   }
-
+  
   async scrollToFooter(): Promise<void> {
     await this.footer.scrollIntoViewIfNeeded();
     await this.footer.waitFor({ state: "visible" });
-  }
-
-  async checkFooterLinksExist(links: string[]): Promise<boolean> {
-    if (links.length === 0) {
-      return true;
-    }
-
-    for (const linkText of links) {
-      const link = this.getFooterLink(linkText);
-      if (!(await link.isVisible())) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  async isSocialMediaSectionVisible(): Promise<boolean> {
-    return await this.socialMediaSection.isVisible();
-  }
-
-  async isTwitterButtonVisible(): Promise<boolean> {
-    return await this.twitterButton.isVisible();
-  }
-
-  async getCopyrightText(): Promise<string> {
-    const text = await this.copyrightText.textContent();
-    return text?.trim() ?? "";
   }
 
   async clickFooterLink(linkText: string): Promise<void> {
@@ -116,17 +94,54 @@ export class FooterPOF {
     await this.waitForHoverTransition();
   }
 
+  async hoverOverTwitterButton(): Promise<void> {
+    await this.twitterButton.hover();
+    this.hoveredElement = this.twitterButton;
+    await this.waitForHoverTransition();
+  }
+
+  async unhoverTwitterButton(): Promise<void> {
+    await this.footer.hover();
+    this.hoveredElement = null;
+    await this.waitForHoverTransition();
+  }
+
+  async checkFooterLinksExist(links: string[]): Promise<boolean> {
+    if (links.length === 0) {
+      return true;
+    }
+    
+    const visibilityChecks = links.map((linkText) =>
+      this.getFooterLink(linkText).isVisible()
+    );
+
+    return (await Promise.all(visibilityChecks)).every((v) => v);
+  }
+
+  async isSocialMediaSectionVisible(): Promise<boolean> {
+    return await this.socialMediaSection.isVisible();
+  }
+
+  async isTwitterButtonVisible(): Promise<boolean> {
+    return await this.twitterButton.isVisible();
+  }
+
+  async getCopyrightText(): Promise<string> {
+    const text = await this.copyrightText.textContent();
+    return text?.trim() ?? "";
+  }
+
   async isTwitterButtonClickable(): Promise<boolean> {
     return await this.twitterButton.isEnabled();
   }
 
   async isTwitterButtonRounded(): Promise<boolean> {
-    const borderRadius = await this.twitterButton.evaluate((el: Element) => {
-      const style = window.getComputedStyle(el);
-      return style.borderRadius;
-    });
+    const borderRadius = await this.getStyleValue(
+      this.twitterButton,
+      "borderRadius"
+    );
 
-    const borderRadiusValue = this.parseStyleValue(borderRadius);
+    const borderRadiusValue = parseFloat(borderRadius) || 0;
     return borderRadius.includes("50%") || borderRadiusValue > 10;
   }
 
@@ -135,13 +150,13 @@ export class FooterPOF {
   }
 
   async hasTwitterButtonConsistentStyle(): Promise<boolean> {
-    const [buttonStyle, iconStyle] = await Promise.all([
-      this.getElementStyles(this.twitterButton),
-      this.getElementStyles(this.twitterIcon),
+    const [buttonBg, iconColor] = await Promise.all([
+      this.getStyleValue(this.twitterButton, "backgroundColor"),
+      this.getStyleValue(this.twitterIcon, "color"),
     ]);
 
-    const hasBackground = buttonStyle.backgroundColor !== "rgba(0, 0, 0, 0)";
-    const hasIconColor = iconStyle.color !== "rgba(0, 0, 0, 0)";
+    const hasBackground = buttonBg !== "rgba(0, 0, 0, 0)";
+    const hasIconColor = iconColor !== "rgba(0, 0, 0, 0)";
 
     return hasBackground && hasIconColor;
   }
@@ -160,17 +175,19 @@ export class FooterPOF {
   }
 
   async hasProperHorizontalSpacing(): Promise<boolean> {
-    const footerStyle = await this.getElementStyles(this.footer);
-    const gap = this.parseStyleValue(footerStyle.gap);
-    const paddingLeft = this.parseStyleValue(footerStyle.paddingLeft);
+    const [gap, paddingLeft] = await Promise.all([
+      this.getNumericStyleValue(this.footer, "gap"),
+      this.getNumericStyleValue(this.footer, "paddingLeft"),
+    ]);
 
     return gap > 20 || paddingLeft > 20;
   }
 
   async hasProperVerticalPadding(): Promise<boolean> {
-    const paddingTop = await this.footer.evaluate((el: Element) => {
-      return parseFloat(window.getComputedStyle(el).paddingTop);
-    });
+    const paddingTop = await this.getNumericStyleValue(
+        this.footer,
+        "paddingTop"
+    );
 
     return paddingTop > 15;
   }
@@ -181,15 +198,19 @@ export class FooterPOF {
   }
 
   async hasFooterLinkHoverEffect(): Promise<boolean> {
-    if (!this.hoveredElement) {
-      return false;
-    }
+    const element = this.hoveredElement;
+    if (!element) return false;
+    
+    await this.unhoverFooterLink();
+    const defaultColor = await this.getStyleValue(element, "color");
 
-    const styleBefore = await this.getElementStyles(this.hoveredElement);
-    await this.hoveredElement.hover();
-    const styleAfter = await this.getElementStyles(this.hoveredElement);
+    await element.hover();
+    await this.waitForHoverTransition();
+    const hoverColor = await this.getStyleValue(element, "color");
 
-    return styleBefore.color !== styleAfter.color;
+    await this.unhoverFooterLink();
+    
+    return defaultColor !== hoverColor;
   }
 
   async isFooterLinkCursorPointer(): Promise<boolean> {
@@ -197,23 +218,9 @@ export class FooterPOF {
       return false;
     }
 
-    const cursor = await this.hoveredElement.evaluate((el: Element) => {
-      return window.getComputedStyle(el).cursor;
-    });
+    const cursor = await this.getStyleValue(this.hoveredElement, "cursor");
 
     return cursor === "pointer";
-  }
-
-  async hoverOverTwitterButton(): Promise<void> {
-    await this.twitterButton.hover();
-    this.hoveredElement = this.twitterButton;
-    await this.waitForHoverTransition();
-  }
-
-  async unhoverTwitterButton(): Promise<void> {
-    await this.footer.hover();
-    this.hoveredElement = null;
-    await this.waitForHoverTransition();
   }
 
   async getFooterLinkCount(): Promise<number> {
@@ -225,32 +232,31 @@ export class FooterPOF {
   }
 
   async isFooterSticky(): Promise<boolean> {
-    const position = await this.footer.evaluate((el: Element) => {
-      return window.getComputedStyle(el).position;
-    });
+    const position = await this.getStyleValue(this.footer, "position");
 
     return position === "fixed" || position === "sticky";
   }
 
   async getFooterBackgroundColor(): Promise<string> {
-    return await this.footer.evaluate((el: Element) => {
-      return window.getComputedStyle(el).backgroundColor;
-    });
+    return await this.getStyleValue(this.footer, "backgroundColor");
   }
 
   async areFooterLinksAccessible(): Promise<boolean> {
     const links = await this.footerLinksSection.getByRole("link").all();
+    
+    if (links.length === 0) return false;
 
-    for (const link of links) {
-      const isVisible = await link.isVisible();
-      const isEnabled = await link.isEnabled();
-      const hasText = !!(await link.textContent())?.trim();
+    const checks = links.map(async (link) => {
+      const [isVisible, isEnabled, textContent] = await Promise.all([
+        link.isVisible(),
+        link.isEnabled(),
+        link.textContent(),
+      ]);
+      const hasText = !!textContent?.trim();
 
-      if (!isVisible || !isEnabled || !hasText) {
-        return false;
-      }
-    }
+      return isVisible && isEnabled && hasText;
+    });
 
-    return links.length > 0;
+    return (await Promise.all(checks)).every((result) => result);
   }
 }

@@ -1,11 +1,42 @@
 import { Locator, Page } from "@playwright/test";
-import {
-  ElementAccessibilityInfo,
-  MediaAccessibilityInfo,
-} from "../types/Types";
+import { ElementAccessibilityInfo, MediaAccessibilityInfo } from "../../utils/types/Types";
 
 export class AccessibilityPOF {
   readonly page: Page;
+
+  private static calculateContrastRatio(selector: string): number {
+    const element = document.querySelector(selector) as HTMLElement;
+    if (!element) return 0;
+
+    const style = window.getComputedStyle(element);
+    const textColor = style.color;
+    const bgColor = style.backgroundColor;
+
+    const getLuminance = (color: string): number => {
+      const rgb = color.match(/\d+/g);
+      if (!rgb || rgb.length < 3) return 0;
+
+      const [r, g, b] = rgb.map(Number).map((val) => {
+        val = val / 255;
+        // Standard formula for sRGB to linear-light luminance
+        return val <= 0.03928
+          ? val / 12.92
+          : Math.pow((val + 0.055) / 1.055, 2.4);
+      });
+
+      // WCAG Luminance formula
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+
+    const textLuminance = getLuminance(textColor);
+    const bgLuminance = getLuminance(bgColor);
+
+    const lighter = Math.max(textLuminance, bgLuminance);
+    const darker = Math.min(textLuminance, bgLuminance);
+
+    // WCAG Contrast Ratio formula
+    return (lighter + 0.05) / (darker + 0.05);
+  }
 
   constructor(page: Page) {
     this.page = page;
@@ -53,12 +84,9 @@ export class AccessibilityPOF {
     let hasH1 = false;
 
     for (const heading of headings) {
-      const tagName = await heading.evaluate((el: Element) =>
-        el.tagName.toLowerCase()
-      );
-      const level = parseInt(tagName.replace("h", ""), 10);
+      const { level, isH1 } = await this.getHeadingLevel(heading);
 
-      if (level === 1) hasH1 = true;
+      if (isH1) hasH1 = true;
 
       if (currentLevel > 0 && level > currentLevel + 1) {
         return false;
@@ -67,6 +95,16 @@ export class AccessibilityPOF {
     }
 
     return hasH1;
+  }
+
+  private async getHeadingLevel(
+    heading: Locator
+  ): Promise<{ level: number; isH1: boolean }> {
+    return await heading.evaluate((el: Element) => {
+      const tagName = el.tagName.toLowerCase();
+      const level = parseInt(tagName.replace("h", ""), 10);
+      return { level, isH1: level === 1 };
+    });
   }
 
   public async hasSectionHeadings(minCount: number = 3): Promise<boolean> {
@@ -144,14 +182,12 @@ export class AccessibilityPOF {
     return await element.evaluate((el: Element) => {
       const style = window.getComputedStyle(el);
 
-      const hasOutline =
+      const outlineExists =
         style.outlineStyle !== "none" && parseFloat(style.outlineWidth) > 0;
-      const hasBoxShadow = style.boxShadow !== "none";
-      const hasBorderChange =
-        parseFloat(style.borderWidth) > 0 &&
-        style.borderColor !== "transparent";
+      const hasBoxShadow =
+        style.boxShadow !== "none" && !style.boxShadow.includes("inset");
 
-      return hasOutline || hasBoxShadow || hasBorderChange;
+      return outlineExists || hasBoxShadow;
     });
   }
 
@@ -180,6 +216,7 @@ export class AccessibilityPOF {
     const links = await this.page
       .locator('a:visible, [role="button"]:visible')
       .all();
+
     const genericTexts = new Set([
       "click here",
       "read more",
@@ -203,24 +240,55 @@ export class AccessibilityPOF {
     return { nonDescriptiveLinkCount };
   }
 
+  public async getElementContrastRatio(selector: string): Promise<number> {
+    return await this.page.evaluate(
+      AccessibilityPOF.calculateContrastRatio,
+      selector
+    );
+  }
+
+  public async checkElementColorContrast(
+    selector: string,
+    minRatio: number = 4.5
+  ): Promise<boolean> {
+    const contrastRatio = await this.getElementContrastRatio(selector);
+    return contrastRatio >= minRatio;
+  }
+
+  public async checkMultipleElementsContrast(
+    selectors: string[],
+    minRatio: number = 4.5
+  ): Promise<{
+    passed: number;
+    failed: number;
+    details: Record<string, boolean>;
+  }> {
+    const results: Record<string, boolean> = {};
+    let passed = 0;
+    let failed = 0;
+
+    for (const selector of selectors) {
+      const hasGoodContrast = await this.checkElementColorContrast(
+        selector,
+        minRatio
+      );
+      results[selector] = hasGoodContrast;
+
+      if (hasGoodContrast) {
+        passed++;
+      } else {
+        failed++;
+      }
+    }
+
+    return { passed, failed, details: results };
+  }
+
   public async checkMinimumColorContrast(
     minRatio: number = 4.5
   ): Promise<boolean> {
-    return await this.page.evaluate((ratio) => {
-      const body = document.body;
-      const style = window.getComputedStyle(body);
-
-      const textColor = style.color;
-      const bgColor = style.backgroundColor;
-
-      const isLightText =
-        textColor.includes("255") || textColor.includes("white");
-      const isDarkBg = bgColor.includes("0") || bgColor.includes("black");
-      const isDarkText = textColor.includes("0") || textColor.includes("black");
-      const isLightBg = bgColor.includes("255") || bgColor.includes("white");
-
-      return (isLightText && isDarkBg) || (isDarkText && isLightBg);
-    }, minRatio);
+    const bodyContrast = await this.getElementContrastRatio("body");
+    return bodyContrast >= minRatio;
   }
 
   public async checkImageAccessibility(): Promise<{ missingAltCount: number }> {
@@ -229,7 +297,7 @@ export class AccessibilityPOF {
 
     for (const img of images) {
       const alt = await img.getAttribute("alt");
-      if (alt === null) {
+      if (alt === null || alt.trim() === "") {
         missingAltCount++;
       }
     }
@@ -256,10 +324,8 @@ export class AccessibilityPOF {
         const hasControls = await media.evaluate(
           (el: HTMLMediaElement) => el.controls
         );
-        const hasCaptions =
-          mediaType === "video"
-            ? (await media.locator('track[kind="captions"]').count()) > 0
-            : true;
+
+        const hasCaptions = await this.checkMediaCaptions(media, mediaType);
 
         return { hasControls, hasCaptions };
       })
@@ -273,6 +339,16 @@ export class AccessibilityPOF {
       hasCaptions: allHaveCaptions,
       isKeyboardAccessible: true,
     };
+  }
+
+  private async checkMediaCaptions(
+    media: Locator,
+    mediaType: "video" | "audio"
+  ): Promise<boolean> {
+    if (mediaType === "video") {
+      return (await media.locator('track[kind="captions"]').count()) > 0;
+    }
+    return true;
   }
 
   public async checkMotionAccessibility(): Promise<{
@@ -294,47 +370,57 @@ export class AccessibilityPOF {
     };
   }
 
-  private async checkAutoAdvanceContent(): Promise<boolean> {
-    return await this.page.evaluate(() => {
-      const autoAdvanceSelectors = [
-        ".carousel[data-autoplay]",
-        ".slider[data-autoplay]",
-        "[autoplay]",
-        "[data-auto-advance]",
-      ];
+  private static checkAutoAdvanceLogic(): boolean {
+    const autoAdvanceSelectors = [
+      ".carousel[data-autoplay]",
+      ".slider[data-autoplay]",
+      "[autoplay]",
+      "[data-auto-advance]",
+    ];
+    return !autoAdvanceSelectors.some((selector) =>
+      document.querySelector(selector)
+    );
+  }
 
-      return !autoAdvanceSelectors.some((selector) =>
-        document.querySelector(selector)
-      );
-    });
+  private async checkAutoAdvanceContent(): Promise<boolean> {
+    return await this.page.evaluate(AccessibilityPOF.checkAutoAdvanceLogic);
+  }
+
+  private static checkParallaxLogic(): boolean {
+    const parallaxSelectors = [
+      ".parallax",
+      "[data-parallax]",
+      '[style*="parallax"]',
+    ];
+    return !parallaxSelectors.some((selector) =>
+      document.querySelector(selector)
+    );
   }
 
   private async checkParallaxEffects(): Promise<boolean> {
-    return await this.page.evaluate(() => {
-      const parallaxSelectors = [
-        ".parallax",
-        "[data-parallax]",
-        '[style*="parallax"]',
-      ];
-      return !parallaxSelectors.some((selector) =>
-        document.querySelector(selector)
+    return await this.page.evaluate(AccessibilityPOF.checkParallaxLogic);
+  }
+
+  private static checkAggressiveAnimationsLogic(): boolean {
+    const elements = Array.from(document.querySelectorAll("*"));
+
+    return elements.some((el) => {
+      const style = window.getComputedStyle(el);
+
+      const animationDuration = parseFloat(style.animationDuration) || 0;
+      const transitionDuration = parseFloat(style.transitionDuration) || 0;
+
+      return (
+        (animationDuration > 0 && animationDuration < 0.3) ||
+        (transitionDuration > 0 && transitionDuration < 0.3)
       );
     });
   }
 
   private async checkAggressiveAnimations(): Promise<boolean> {
-    return await this.page.evaluate(() => {
-      const elements = Array.from(document.querySelectorAll("*"));
-
-      return elements.some((el) => {
-        const style = window.getComputedStyle(el);
-
-        const animationDuration = parseFloat(style.animationDuration) || 0;
-        const transitionDuration = parseFloat(style.transitionDuration) || 0;
-
-        return animationDuration < 0.3 || transitionDuration < 0.3;
-      });
-    });
+    return await this.page.evaluate(
+      AccessibilityPOF.checkAggressiveAnimationsLogic
+    );
   }
 
   public async checkFlashingContent(): Promise<boolean> {
@@ -346,32 +432,38 @@ export class AccessibilityPOF {
     return !hasFlashingClasses && !hasRapidAnimations;
   }
 
+  private static checkFlashingCSSClassesLogic(): boolean {
+    const flashingSelectors = [
+      ".blink",
+      ".flash",
+      ".flicker",
+      '[class*="blink"]',
+      '[class*="flash"]',
+    ];
+    return flashingSelectors.some((selector) =>
+      document.querySelector(selector)
+    );
+  }
+
   private async checkFlashingCSSClasses(): Promise<boolean> {
-    return await this.page.evaluate(() => {
-      const flashingSelectors = [
-        ".blink",
-        ".flash",
-        ".flicker",
-        '[class*="blink"]',
-        '[class*="flash"]',
-      ];
-      return flashingSelectors.some((selector) =>
-        document.querySelector(selector)
-      );
+    return await this.page.evaluate(
+      AccessibilityPOF.checkFlashingCSSClassesLogic
+    );
+  }
+
+  private static checkRapidAnimationsLogic(): boolean {
+    const elements = Array.from(document.querySelectorAll("*"));
+
+    return elements.some((el) => {
+      const style = window.getComputedStyle(el);
+      const animationDuration = parseFloat(style.animationDuration) || 0;
+
+      return animationDuration > 0 && animationDuration < 0.2;
     });
   }
 
   private async checkRapidAnimations(): Promise<boolean> {
-    return await this.page.evaluate(() => {
-      const elements = Array.from(document.querySelectorAll("*"));
-
-      return elements.some((el) => {
-        const style = window.getComputedStyle(el);
-        const animationDuration = parseFloat(style.animationDuration) || 0;
-
-        return animationDuration > 0 && animationDuration < 0.2;
-      });
-    });
+    return await this.page.evaluate(AccessibilityPOF.checkRapidAnimationsLogic);
   }
 
   public async submitFormWithInvalidData(

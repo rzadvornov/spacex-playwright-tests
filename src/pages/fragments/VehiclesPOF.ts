@@ -1,6 +1,6 @@
 import { Locator, Page } from "@playwright/test";
 import { BasePage } from "../base/BasePage";
-import { BoundingBox, CardSpacing, VehicleCard } from "../types/Types";
+import { VehicleCard, CardSpacing } from "../../utils/types/Types";
 
 export class VehiclesPOF extends BasePage {
   private static readonly MIN_SPACING = 20;
@@ -25,6 +25,25 @@ export class VehiclesPOF extends BasePage {
     this.researchCard = this.vehiclesSection.locator(
       '[data-test="research-card"]'
     );
+  }
+
+  private getVehicleCard(vehicleName: string): Locator {
+    const normalizedName = vehicleName.toLowerCase();
+
+    switch (normalizedName) {
+      case VehiclesPOF.VEHICLE_NAMES.DRAGON:
+        return this.dragonCard;
+      case VehiclesPOF.VEHICLE_NAMES.STARSHIP:
+        return this.starshipCard;
+      case VehiclesPOF.VEHICLE_NAMES.RESEARCH:
+        return this.researchCard;
+      default:
+        throw new Error(
+          `Unknown vehicle card: '${vehicleName}'. Available options: ${Object.values(
+            VehiclesPOF.VEHICLE_NAMES
+          ).join(", ")}`
+        );
+    }
   }
 
   async scrollToVehiclesSection(): Promise<void> {
@@ -53,25 +72,6 @@ export class VehiclesPOF extends BasePage {
       description: description?.trim() || "",
       learnMoreLink: learnMoreLink || "",
     };
-  }
-
-  private getVehicleCard(vehicleName: string): Locator {
-    const normalizedName = vehicleName.toLowerCase();
-
-    switch (normalizedName) {
-      case VehiclesPOF.VEHICLE_NAMES.DRAGON:
-        return this.dragonCard;
-      case VehiclesPOF.VEHICLE_NAMES.STARSHIP:
-        return this.starshipCard;
-      case VehiclesPOF.VEHICLE_NAMES.RESEARCH:
-        return this.researchCard;
-      default:
-        throw new Error(
-          `Unknown vehicle card: '${vehicleName}'. Available options: ${Object.values(
-            VehiclesPOF.VEHICLE_NAMES
-          ).join(", ")}`
-        );
-    }
   }
 
   async verifyVehicleMediaExists(vehicleName: string): Promise<boolean> {
@@ -128,13 +128,11 @@ export class VehiclesPOF extends BasePage {
         return "left";
       } else if (backgroundPosition.includes("right")) {
         return "right";
-      } else {
-        const rect = element.getBoundingClientRect();
-        const computedStyle = window.getComputedStyle(element);
-        const isRTL = computedStyle.direction === "rtl";
-
-        return isRTL ? "left" : "right";
       }
+
+      const isRTL = style.direction === "rtl";
+
+      return isRTL ? "left" : "right";
     });
   }
 
@@ -154,60 +152,63 @@ export class VehiclesPOF extends BasePage {
   }
 
   async verifyCardSpacing(): Promise<CardSpacing> {
-    const cards = [this.dragonCard, this.starshipCard, this.researchCard];
+    const cardSelectors = [
+      '[data-test="dragon-card"]',
+      '[data-test="starship-card"]',
+      '[data-test="research-card"]',
+    ];
 
-    const boundingBoxes = await Promise.all(
-      cards.map((card) => card.boundingBox())
-    );
+    return await this.vehiclesSection.evaluate((section, minSpacing) => {
+      const cards = Array.from(
+        section.querySelectorAll(cardSelectors.join(","))
+      ) as HTMLElement[];
 
-    const allCardsVisible = boundingBoxes.every((box) => box !== null);
-    if (!allCardsVisible) {
-      return { vertical: false, horizontal: false };
-    }
+      const visibleCards = cards.filter(
+        (card) => card.offsetWidth > 0 && card.offsetHeight > 0
+      );
 
-    const verticalSpacingResults = await this.checkVerticalSpacing(
-      boundingBoxes as BoundingBox[]
-    );
-    const horizontalSpacingResults = await this.checkHorizontalSpacing(cards);
+      if (visibleCards.length < 2) {
+        return { horizontal: true, vertical: true };
+      }
 
-    return {
-      vertical: verticalSpacingResults.every(Boolean),
-      horizontal: horizontalSpacingResults.every(Boolean),
-    };
-  }
+      const rects = visibleCards.map((card) => card.getBoundingClientRect());
 
-  private async checkVerticalSpacing(
-    boundingBoxes: BoundingBox[]
-  ): Promise<boolean[]> {
-    return boundingBoxes.slice(1).map((currentBox, index) => {
-      const previousBox = boundingBoxes[index];
-      const verticalGap = currentBox.y - (previousBox.y + previousBox.height);
-      return verticalGap >= VehiclesPOF.MIN_SPACING;
-    });
-  }
+      let minHorizontalSpacing = Infinity;
+      let minVerticalSpacing = Infinity;
 
-  private async checkHorizontalSpacing(cards: Locator[]): Promise<boolean[]> {
-    return await Promise.all(
-      cards.map(async (card) => {
-        const [textContentBox, mediaBox] = await Promise.all([
-          card.locator('[data-test="vehicle-content"]').boundingBox(),
-          card.locator('[data-test="vehicle-media"]').boundingBox(),
-        ]);
+      for (let i = 0; i < rects.length - 1; i++) {
+        const current = rects[i];
+        const next = rects[i + 1];
 
-        if (!textContentBox || !mediaBox) {
-          return false;
+        if (Math.abs(current.top - next.top) < 5) {
+          const hSpacing = next.left - current.right;
+          if (hSpacing > 0) {
+            minHorizontalSpacing = Math.min(minHorizontalSpacing, hSpacing);
+          }
         }
 
-        const horizontalGap = Math.abs(mediaBox.x - textContentBox.x);
-        return horizontalGap >= VehiclesPOF.MIN_SPACING;
-      })
-    );
+        if (next.top > current.bottom + 5) {
+          const vSpacing = next.top - current.bottom;
+          if (vSpacing > 0) {
+            minVerticalSpacing = Math.min(minVerticalSpacing, vSpacing);
+          }
+        }
+      }
+
+      const horizontal =
+        minHorizontalSpacing === Infinity || minHorizontalSpacing >= minSpacing;
+      const vertical =
+        minVerticalSpacing === Infinity || minVerticalSpacing >= minSpacing;
+
+      return { horizontal, vertical };
+    }, VehiclesPOF.MIN_SPACING);
   }
 
   async getAllVehicleCardsContent(): Promise<
     Record<string, VehicleCard | null>
   > {
     const vehicleNames = Object.values(VehiclesPOF.VEHICLE_NAMES);
+
     const results = await Promise.all(
       vehicleNames.map((name) => this.getVehicleCardContent(name))
     );
@@ -242,17 +243,18 @@ export class VehiclesPOF extends BasePage {
       backgroundPosition: "left" | "right";
     };
   }> {
-    const [dragonMediaType, dragonBackgroundPosition] = await Promise.all([
+    const [
+      dragonMediaType,
+      dragonBackgroundPosition,
+      starshipMediaType,
+      starshipBackgroundPosition,
+      researchMediaType,
+      researchBackgroundPosition,
+    ] = await Promise.all([
       this.verifyVehicleMediaType(VehiclesPOF.VEHICLE_NAMES.DRAGON),
       this.checkBackgroundPosition(VehiclesPOF.VEHICLE_NAMES.DRAGON),
-    ]);
-
-    const [starshipMediaType, starshipBackgroundPosition] = await Promise.all([
       this.verifyVehicleMediaType(VehiclesPOF.VEHICLE_NAMES.STARSHIP),
       this.checkBackgroundPosition(VehiclesPOF.VEHICLE_NAMES.STARSHIP),
-    ]);
-
-    const [researchMediaType, researchBackgroundPosition] = await Promise.all([
       this.verifyVehicleMediaType(VehiclesPOF.VEHICLE_NAMES.RESEARCH),
       this.checkBackgroundPosition(VehiclesPOF.VEHICLE_NAMES.RESEARCH),
     ]);
