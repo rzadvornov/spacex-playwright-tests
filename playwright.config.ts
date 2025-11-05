@@ -10,7 +10,7 @@ defineBddConfig({
 
   // The directory where Playwright-BDD will generate the runnable .spec.ts files.
   // This MUST match the 'testDir' in your Playwright configuration.
-  outputDir: "/tests",
+  outputDir: "./tests",
 });
 
 /**
