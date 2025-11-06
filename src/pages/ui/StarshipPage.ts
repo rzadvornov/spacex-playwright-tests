@@ -1,6 +1,6 @@
 import { Page, Locator } from "@playwright/test";
-import { SpaceXPage } from "../base/SpaceXPage";
 import { HeroPOF } from "../fragments/HeroPOF";
+import { SpaceXPage } from "../base/SpaceXPage";
 
 export class StarshipPage extends SpaceXPage {
   readonly hero: HeroPOF;

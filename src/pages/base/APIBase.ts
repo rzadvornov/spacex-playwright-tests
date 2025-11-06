@@ -1,0 +1,102 @@
+import { APIRequestContext, APIResponse } from '@playwright/test';
+
+/**
+ * @typedef {Object.<string, string>} Headers
+ * @description Type definition for HTTP headers object.
+ */
+
+/**
+ * @class
+ * @classdesc Base class for API interaction using Playwright's APIRequestContext.
+ * Provides common methods for managing response, status, and body.
+ */
+export class ApiBase {
+    /**
+     * @protected
+     * @type {APIResponse | null}
+     * @description The last received API response, or null if no request has been made.
+     */
+    protected response: APIResponse | null = null;
+
+    /**
+     * @protected
+     * @type {APIRequestContext}
+     * @description Playwright's APIRequestContext instance for making HTTP requests.
+     */
+    protected request: APIRequestContext;
+
+    /**
+     * @constructor
+     * @param {APIRequestContext} request - The Playwright APIRequestContext instance.
+     * @description Initializes the API base class. The request object is already configured 
+     * with the correct baseURL from playwright.config.ts.
+     */
+    constructor(request: APIRequestContext) {
+        this.request = request;
+        
+        console.log(`ApiBase initialized. Relying on 'request' fixture for base URL.`);
+    }
+    
+    /**
+     * @public
+     * @returns {APIResponse | null}
+     * @description Gets the last received API response object.
+     */
+    public getResponse(): APIResponse | null {
+        return this.response;
+    }
+
+    /**
+     * @public
+     * @async
+     * @returns {Promise<number>} The HTTP status code of the last response.
+     * @throws {Error} If no response is available.
+     * @description Gets the status code of the last received API response.
+     */
+    public async getStatusCode(): Promise<number> {
+        if (!this.response) {
+            throw new Error('No response available');
+        }
+        return this.response.status();
+    }
+
+    /**
+     * @public
+     * @async
+     * @returns {Promise<any>} The JSON body of the last response.
+     * @throws {Error} If no response is available.
+     * @description Parses and returns the JSON body of the last received API response.
+     */
+    public async getResponseBody(): Promise<any> {
+        if (!this.response) {
+            throw new Error('No response available');
+        }
+        return await this.response.json();
+    }
+
+    /**
+     * @public
+     * @async
+     * @returns {Promise<string>} The text body of the last response.
+     * @throws {Error} If no response is available.
+     * @description Returns the raw text body of the last received API response.
+     */
+    public async getResponseText(): Promise<string> {
+        if (!this.response) {
+            throw new Error('No response available');
+        }
+        return await this.response.text();
+    }
+
+    /**
+     * @protected
+     * @returns {Headers} A record of default headers.
+     * @description Provides a set of default headers for typical JSON API requests.
+     */
+    protected getDefaultHeaders(): Record<string, string> {
+        return {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        };
+    }
+}

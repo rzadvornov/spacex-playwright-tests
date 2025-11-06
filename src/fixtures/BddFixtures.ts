@@ -1,3 +1,4 @@
+import { BaseUrlFixtures, test as customBaseTest } from "./BaseUrlFixtures";
 import { test as base } from "playwright-bdd";
 import { HomePage } from "../pages/ui/HomePage";
 import { HumanSpaceflightPage } from "../pages/ui/HumanSpaceflightPage";
@@ -97,7 +98,7 @@ import { TimelineResponsiveSteps } from "../step-definitions/ui/timeline/Timelin
 import { TimelineVisualSteps } from "../step-definitions/ui/timeline/TimelineVisualSteps";
 import { HomePageMetadataSteps } from "../step-definitions/ui/home/HomePageMetadataSteps";
 
-export const test = base.extend<BddFixtures & ConsoleErrorFixture>({
+export const test = base.extend<BddFixtures & ConsoleErrorFixture & BaseUrlFixtures>({
   sharedPageSteps: [
     async ({ page }, use) => {
       const sharedSteps = new SharedPageSteps(page);

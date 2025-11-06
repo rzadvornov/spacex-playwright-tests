@@ -19,8 +19,9 @@
   "homepage": "https://github.com/rzadvornov/spacex-playwright-tests#readme",
   "devDependencies": {
     "@eslint/js": "^9.37.0",
-    "@playwright/test": "^1.55.1",
+    "@playwright/test": "^1.56.1",
     "@types/node": "^24.6.2",
+    "allure-playwright": "^3.4.2",
     "eslint": "^9.37.0",
     "i": "^0.3.7",
     "npm": "^11.6.2",

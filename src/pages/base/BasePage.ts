@@ -2,9 +2,8 @@ import { Page, Locator, ConsoleMessage } from "@playwright/test";
 import { AccessibilityTools } from "../../utils/AccessibilityTools";
 import { PerformanceMetrics } from "../../utils/types/Types";
 
-export abstract class BasePage {
+export class BasePage {
   readonly page: Page;
-  readonly baseURL: string;
   protected consoleErrors: string[] = [];
   
   private readonly accessibilityTools: AccessibilityTools; 
@@ -15,16 +14,13 @@ export abstract class BasePage {
 
   constructor(page: Page) {
     this.page = page;
-    this.baseURL = this.getBaseURL();
     this.setupErrorListeners();
     
     this.accessibilityTools = new AccessibilityTools(page, this.DEFAULT_TIMEOUT); 
   }
 
-  private getBaseURL(): string {
-    return (
-      (this.page.context() as any)._options?.baseURL || "https://www.spacex.com"
-    );
+  public get baseURL(): string {
+    return (this.page.context() as any)._options.baseURL as string;
   }
 
   protected setupErrorListeners(): void {
@@ -100,7 +96,6 @@ export abstract class BasePage {
    * Retrieves the collected console errors from the current page session.
    */
   getConsoleErrors(): string[] {
-    // Return a shallow copy to prevent external modification of the internal state
     return [...this.consoleErrors]; 
   }
 
