@@ -187,6 +187,5 @@ export class NavigationAccessibilitySteps {
       ).toBeTruthy();
     }
   }
-
   
 }

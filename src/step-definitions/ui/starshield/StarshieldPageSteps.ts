@@ -1,4 +1,4 @@
-import { expect, Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { StarshieldPage } from "../../../services/ui/StarshieldPage";
 import { SharedPageSteps } from "../SharedPageSteps";
@@ -8,7 +8,6 @@ import { AssertionHelper } from "../../../utils/AssertionHelper";
 @Fixture("starshieldPageSteps")
 export class StarshieldPageSteps {
   constructor(
-    private page: Page,
     private starshieldPage: StarshieldPage,
     private sharedContext: SharedContext,
     private sharedPageSteps: SharedPageSteps,

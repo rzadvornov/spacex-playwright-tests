@@ -1,5 +1,5 @@
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
-import { Page, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { AboutPage } from "../../services/ui/AboutPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { DataTable } from "playwright-bdd";

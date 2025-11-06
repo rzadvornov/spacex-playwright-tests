@@ -145,11 +145,10 @@ export const test = base.extend<
     await use(aboutPage);
   },
   aboutPageSteps: [
-    async ({ page, aboutPage, assertionHelper }, use) => {
-      const aboutSharedPageSteps = new SharedPageSteps(page);
+    async ({ aboutPage, sharedPageSteps, assertionHelper }, use) => {
       const aboutPageSteps = new AboutPageSteps(
         aboutPage,
-        aboutSharedPageSteps,
+        sharedPageSteps,
         assertionHelper
       );
       await use(aboutPageSteps);
@@ -198,7 +197,7 @@ export const test = base.extend<
     { scope: "test" },
   ],
   apiSharedSteps: [
-    async ({ request }, use) => { 
+    async ({ request }, use) => {
       const apiSharedSteps = new APISharedSteps(request);
       await use(apiSharedSteps);
     },
@@ -439,15 +438,20 @@ export const test = base.extend<
   ],
   humanSpaceflightCoreSteps: [
     async (
-      { page, humanSpaceflightPage, sharedContext, assertionHelper },
+      {
+        page,
+        humanSpaceflightPage,
+        sharedContext,
+        sharedPageSteps,
+        assertionHelper,
+      },
       use
     ) => {
-      const humanSpaceflightSharedPageSteps = new SharedPageSteps(page);
       const humanSpaceflightCoreSteps = new HumanSpaceflightCoreSteps(
         page,
         humanSpaceflightPage,
         sharedContext,
-        humanSpaceflightSharedPageSteps,
+        sharedPageSteps,
         assertionHelper
       );
       await use(humanSpaceflightCoreSteps);
@@ -495,13 +499,15 @@ export const test = base.extend<
     { scope: "test" },
   ],
   homePageCoreSteps: [
-    async ({ page, homePage, sharedContext, assertionHelper }, use) => {
-      const homePageSharedPageSteps = new SharedPageSteps(page);
+    async (
+      { page, homePage, sharedContext, sharedPageSteps, assertionHelper },
+      use
+    ) => {
       const homePageCoreSteps = new HomePageCoreSteps(
         page,
         homePage,
         sharedContext,
-        homePageSharedPageSteps,
+        sharedPageSteps,
         assertionHelper
       );
       await use(homePageCoreSteps);
@@ -576,12 +582,14 @@ export const test = base.extend<
     await use(careersPage);
   },
   careersPageSteps: [
-    async ({ page, careersPage, sharedContext, assertionHelper }, use) => {
-      const careersSharedPageSteps = new SharedPageSteps(page);
+    async (
+      { careersPage, sharedContext, sharedPageSteps, assertionHelper },
+      use
+    ) => {
       const careersPageSteps = new CareersPageSteps(
         careersPage,
         sharedContext,
-        careersSharedPageSteps,
+        sharedPageSteps,
         assertionHelper
       );
       await use(careersPageSteps);
@@ -593,12 +601,11 @@ export const test = base.extend<
     await use(dragonPage);
   },
   dragonPageSteps: [
-    async ({ page, dragonPage, assertionHelper }, use) => {
-      const dragonSharedPageSteps = new SharedPageSteps(page);
+    async ({ dragonPage, sharedPageSteps, assertionHelper }, use) => {
       const dragonPageSteps = new DragonPageSteps(
         dragonPage,
         assertionHelper,
-        dragonSharedPageSteps
+        sharedPageSteps
       );
       await use(dragonPageSteps);
     },
@@ -609,12 +616,11 @@ export const test = base.extend<
     await use(falcon9Page);
   },
   falcon9PageSteps: [
-    async ({ page, falcon9Page, assertionHelper }, use) => {
-      const falcon9SharedPageSteps = new SharedPageSteps(page);
+    async ({ falcon9Page, sharedPageSteps, assertionHelper }, use) => {
       const falcon9PageSteps = new Falcon9PageSteps(
         falcon9Page,
         assertionHelper,
-        falcon9SharedPageSteps
+        sharedPageSteps
       );
       await use(falcon9PageSteps);
     },
@@ -625,12 +631,11 @@ export const test = base.extend<
     await use(falconHeavyPage);
   },
   falconHeavyPageSteps: [
-    async ({ page, falconHeavyPage, assertionHelper }, use) => {
-      const falconHeavySharedPageSteps = new SharedPageSteps(page);
+    async ({ falconHeavyPage, sharedPageSteps, assertionHelper }, use) => {
       const falconHeavyPageSteps = new FalconHeavyPageSteps(
         falconHeavyPage,
         assertionHelper,
-        falconHeavySharedPageSteps
+        sharedPageSteps
       );
       await use(falconHeavyPageSteps);
     },
@@ -645,12 +650,14 @@ export const test = base.extend<
     await use(missionsPage);
   },
   missionsSteps: [
-    async ({ page, missionsPage, assertionHelper, sharedContext }, use) => {
-      const missionsSharedPageSteps = new SharedPageSteps(page);
+    async (
+      { page, missionsPage, assertionHelper, sharedPageSteps, sharedContext },
+      use
+    ) => {
       const missionsSteps = new MissionsSteps(
         page,
         missionsPage,
-        missionsSharedPageSteps,
+        sharedPageSteps,
         assertionHelper,
         sharedContext
       );
@@ -663,11 +670,10 @@ export const test = base.extend<
     await use(ridesharePage);
   },
   ridesharePageSteps: [
-    async ({ page, ridesharePage, assertionHelper }, use) => {
-      const ridesSharedPageSteps = new SharedPageSteps(page);
+    async ({ ridesharePage, sharedPageSteps, assertionHelper }, use) => {
       const ridesharePageSteps = new RidesharePageSteps(
         ridesharePage,
-        ridesSharedPageSteps,
+        sharedPageSteps,
         assertionHelper
       );
       await use(ridesharePageSteps);
@@ -683,13 +689,14 @@ export const test = base.extend<
     await use(starshieldPage);
   },
   starshieldPageSteps: [
-    async ({ page, starshieldPage, sharedContext, assertionHelper }, use) => {
-      const starshieldSharedPageSteps = new SharedPageSteps(page);
+    async (
+      { starshieldPage, sharedContext, sharedPageSteps, assertionHelper },
+      use
+    ) => {
       const starshieldPageSteps = new StarshieldPageSteps(
-        page,
         starshieldPage,
         sharedContext,
-        starshieldSharedPageSteps,
+        sharedPageSteps,
         assertionHelper
       );
       await use(starshieldPageSteps);
@@ -709,12 +716,13 @@ export const test = base.extend<
     await use(updatesPage);
   },
   updatesPageSteps: [
-    async ({ page, updatesPage, viewportUtility, assertionHelper }, use) => {
-      const updatesSharedPageSteps = new SharedPageSteps(page);
+    async (
+      { updatesPage, sharedPageSteps, viewportUtility, assertionHelper },
+      use
+    ) => {
       const updatesPageSteps = new UpdatesPageSteps(
-        page,
         updatesPage,
-        updatesSharedPageSteps,
+        sharedPageSteps,
         assertionHelper,
         viewportUtility
       );
@@ -801,15 +809,21 @@ export const test = base.extend<
   ],
   starshieldNavigationSteps: [
     async (
-      { page, starshieldPage, sharedContext, assertionHelper, viewportUtility },
+      {
+        page,
+        starshieldPage,
+        sharedContext,
+        sharedPageSteps,
+        assertionHelper,
+        viewportUtility,
+      },
       use
     ) => {
-      const starshieldSharedPageSteps = new SharedPageSteps(page);
       const starshieldNavigationSteps = new StarshieldNavigationSteps(
         page,
         starshieldPage,
         sharedContext,
-        starshieldSharedPageSteps,
+        sharedPageSteps,
         assertionHelper,
         viewportUtility
       );
@@ -841,11 +855,10 @@ export const test = base.extend<
     { scope: "test" },
   ],
   starshipBasicSteps: [
-    async ({ page, starshipPage, assertionHelper }, use) => {
-      const starshipSharedPageSteps = new SharedPageSteps(page);
+    async ({ starshipPage, sharedPageSteps, assertionHelper }, use) => {
       const starshipBasicSteps = new StarshipBasicSteps(
         starshipPage,
-        starshipSharedPageSteps,
+        sharedPageSteps,
         assertionHelper
       );
       await use(starshipBasicSteps);
@@ -885,11 +898,13 @@ export const test = base.extend<
     { scope: "test" },
   ],
   suppliersPageBasicSteps: [
-    async ({ page, suppliersPage, assertionHelper, viewportUtility }, use) => {
-      const suppliersSharedPageSteps = new SharedPageSteps(page);
+    async (
+      { suppliersPage, sharedPageSteps, assertionHelper, viewportUtility },
+      use
+    ) => {
       const suppliersPageBasicSteps = new SuppliersPageBasicSteps(
         suppliersPage,
-        suppliersSharedPageSteps,
+        sharedPageSteps,
         assertionHelper,
         viewportUtility
       );
