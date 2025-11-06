@@ -3,7 +3,6 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { MissionsPage } from "../../services/ui/MissionsPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { Page } from "@playwright/test";
-import { SharedPageSteps } from "./SharedPageSteps";
 import { SharedContext, SortStrategy } from "../../utils/types/Types";
 import { NumericSortStrategy } from "../../utils/strategies/NumericSortStrategy";
 import { GroupingSortStrategy } from "../../utils/strategies/GroupingSortStrategy";
@@ -13,7 +12,6 @@ export class MissionsSteps {
   constructor(
     private page: Page,
     private missionsPage: MissionsPage,
-    private sharedPageSteps: SharedPageSteps,
     private assertionHelper: AssertionHelper,
     private sharedContext: SharedContext
   ) {}

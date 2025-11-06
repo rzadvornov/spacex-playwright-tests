@@ -11,7 +11,6 @@ import {
 import { CoreRequirement, CriticalContent } from "../../../utils/types/Types";
 import { CoreRequirementStrategyManager } from "../../../utils/strategies/CoreRequirementStrategyManager";
 import { CriticalContentStrategyManager } from "../../../utils/strategies/CriticalContentStrategyManager";
-import { SharedPageSteps } from "../SharedPageSteps";
 
 @Fixture("homePageCoreSteps")
 export class HomePageCoreSteps {
@@ -26,7 +25,6 @@ export class HomePageCoreSteps {
     private page: Page,
     private homePage: HomePage,
     private sharedContext: CustomTestArgs["sharedContext"],
-    private sharedPageSteps: SharedPageSteps,
     private assertionHelper: AssertionHelper
   ) {
     this.coreRequirementManager = new CoreRequirementStrategyManager();

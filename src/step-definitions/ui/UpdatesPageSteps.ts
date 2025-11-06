@@ -2,14 +2,12 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { UpdatesPage } from "../../services/ui/UpdatesPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { ViewportUtility } from "../../utils/ViewportUtility";
-import { SharedPageSteps } from "./SharedPageSteps";
 import { DataTable } from "playwright-bdd";
 
 @Fixture("updatesPageSteps")
 export class UpdatesPageSteps {
   constructor(
     private updatesPage: UpdatesPage,
-    private sharedPageSteps: SharedPageSteps,
     private assertionHelper: AssertionHelper,
     private viewportUtility: ViewportUtility
   ) {}

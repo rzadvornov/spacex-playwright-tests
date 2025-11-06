@@ -8,13 +8,11 @@ import {
   FalconSpecTable,
   RideshareSpecTable,
 } from "../../utils/types/Types";
-import { SharedPageSteps } from "./SharedPageSteps";
 
 @Fixture("ridesharePageSteps")
 export class RidesharePageSteps {
   constructor(
     private ridesharePage: RidesharePage,
-    private sharedPageSteps: SharedPageSteps,
     private assertionHelper: AssertionHelper
   ) {}
 

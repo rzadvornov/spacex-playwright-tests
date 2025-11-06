@@ -3,7 +3,6 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { FalconHeavyPage } from "../../services/ui/FalconHeavyPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
-import { SharedPageSteps } from "./SharedPageSteps";
 import { AttributeDetailVerificationStrategy } from "../../utils/strategies/AttributeDetailVerificationStrategy";
 import { TechnicalSpecVerificationStrategy } from "../../utils/strategies/TechnicalSpecVerificationStrategy";
 import {
@@ -16,9 +15,7 @@ import {
 export class FalconHeavyPageSteps {
   constructor(
     private falconHeavyPage: FalconHeavyPage,
-    private assertionHelper: AssertionHelper,
-    private sharedPageSteps: SharedPageSteps
-  ) {}
+    private assertionHelper: AssertionHelper  ) {}
 
   @Given("a user navigates to the Falcon Heavy page")
   async navigateToFalconHeavyPage() {

@@ -3,7 +3,6 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../../services/ui/HumanSpaceflightPage";
 import { CustomTestArgs } from "../../../fixtures/BddFixtures";
-import { SharedPageSteps } from "../SharedPageSteps";
 import { AssertionHelper } from "../../../utils/AssertionHelper";
 import { parseCoreValues } from "../../../utils/types/TypeGuards";
 import { CoreValue, CoreRequirementStrategy } from "../../../utils/types/Types";
@@ -14,7 +13,6 @@ export class HumanSpaceflightCoreSteps {
     private page: Page,
     private humanSpaceflightPage: HumanSpaceflightPage,
     private sharedContext: CustomTestArgs["sharedContext"],
-    private sharedPageSteps: SharedPageSteps,
     private assertionHelper: AssertionHelper
   ) {}
 

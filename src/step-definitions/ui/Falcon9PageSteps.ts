@@ -3,7 +3,6 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { Falcon9Page } from "../../services/ui/Falcon9Page";
 import { AssertionHelper } from "../../utils/AssertionHelper";
-import { SharedPageSteps } from "./SharedPageSteps";
 import { EngineSpecValidator } from "../../utils/strategies/EngineSpecValidator";
 import { MerlinMainEngineSpecValidator } from "../../utils/strategies/MerlinMainEngineSpecValidator";
 import { MerlinVacuumSpecValidator } from "../../utils/strategies/MerlinVacuumSpecValidator";
@@ -20,8 +19,7 @@ export class Falcon9PageSteps {
 
   constructor(
     private falcon9Page: Falcon9Page,
-    private assertionHelper: AssertionHelper,
-    private sharedPageSteps: SharedPageSteps
+    private assertionHelper: AssertionHelper
   ) {
     this.merlinMainEngineValidator = new MerlinMainEngineSpecValidator(
       falcon9Page

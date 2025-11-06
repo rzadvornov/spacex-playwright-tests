@@ -2,7 +2,6 @@ import { expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { CareersPage } from "../../services/ui/CareersPage";
-import { SharedPageSteps } from "./SharedPageSteps";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { FilterStrategyFactory } from "../../utils/strategies/FilterStrategyFactory";
 import {
@@ -20,7 +19,6 @@ export class CareersPageSteps {
   constructor(
     private careersPage: CareersPage,
     private sharedContext: SharedContext,
-    private sharedPageSteps: SharedPageSteps,
     private assertionHelper: AssertionHelper
   ) {}
 

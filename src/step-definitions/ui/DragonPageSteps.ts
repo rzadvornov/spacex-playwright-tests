@@ -3,16 +3,13 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { DragonPage } from "../../services/ui/DragonPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
-import { SharedPageSteps } from "./SharedPageSteps";
 import { DracoSpecTable } from "../../utils/types/Types";
 
 @Fixture("dragonPageSteps")
 export class DragonPageSteps {
   constructor(
     private dragonPage: DragonPage,
-    private assertionHelper: AssertionHelper,
-    private sharedPageSteps: SharedPageSteps
-  ) {}
+    private assertionHelper: AssertionHelper  ) {}
 
   @Given("a user navigates to the Dragon page")
   async navigateToDragonPage() {

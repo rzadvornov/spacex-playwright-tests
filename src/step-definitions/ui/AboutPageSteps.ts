@@ -3,7 +3,6 @@ import { expect } from "@playwright/test";
 import { AboutPage } from "../../services/ui/AboutPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { DataTable } from "playwright-bdd";
-import { SharedPageSteps } from "./SharedPageSteps";
 import {
   TwoColumnTable,
   AchievementTable,
@@ -18,7 +17,6 @@ import {
 export class AboutPageSteps {
   constructor(
     private aboutPage: AboutPage,
-    private sharedPageSteps: SharedPageSteps,
     private assertionHelper: AssertionHelper
   ) {}
 

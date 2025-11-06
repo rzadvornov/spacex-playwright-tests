@@ -1,7 +1,6 @@
 import { expect, Page } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { StarshieldPage } from "../../../services/ui/StarshieldPage";
-import { SharedPageSteps } from "../SharedPageSteps";
 import { SharedContext } from "../../../utils/types/Types";
 import { AssertionHelper } from "../../../utils/AssertionHelper";
 import { ViewportUtility } from "../../../utils/ViewportUtility";
@@ -12,7 +11,6 @@ export class StarshieldNavigationSteps {
     protected page: Page,
     protected starshieldPage: StarshieldPage,
     protected sharedContext: SharedContext,
-    protected sharedPageSteps: SharedPageSteps,
     protected assertionHelper: AssertionHelper,
     protected viewportUtility: ViewportUtility
   ) {}
