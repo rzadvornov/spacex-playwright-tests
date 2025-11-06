@@ -98,6 +98,8 @@ import { TimelineResponsiveSteps } from "../step-definitions/ui/timeline/Timelin
 import { TimelineVisualSteps } from "../step-definitions/ui/timeline/TimelineVisualSteps";
 import { HomePageMetadataSteps } from "../step-definitions/ui/home/HomePageMetadataSteps";
 import { StarlinkSteps } from "../step-definitions/api/StarlinkSteps";
+import { ShipsSteps } from "../step-definitions/api/ShipsSteps";
+import { APISharedSteps } from "../step-definitions/api/APISharedSteps";
 
 export const test = base.extend<
   BddFixtures & ConsoleErrorFixture & BaseUrlFixtures
@@ -195,10 +197,24 @@ export const test = base.extend<
     },
     { scope: "test" },
   ],
+  apiSharedSteps: [
+    async ({ request }, use) => { 
+      const apiSharedSteps = new APISharedSteps(request);
+      await use(apiSharedSteps);
+    },
+    { scope: "test" },
+  ],
   starlinkSteps: [
-    async ({ request }, use) => {
-      const starlinkSteps = new StarlinkSteps(request);
+    async ({ apiSharedSteps }, use) => {
+      const starlinkSteps = new StarlinkSteps(apiSharedSteps);
       await use(starlinkSteps);
+    },
+    { scope: "test" },
+  ],
+  shipsSteps: [
+    async ({ apiSharedSteps }, use) => {
+      const shipsSteps = new ShipsSteps(apiSharedSteps);
+      await use(shipsSteps);
     },
     { scope: "test" },
   ],

@@ -10,7 +10,7 @@ import { APIRequestContext, APIResponse } from '@playwright/test';
  * @classdesc Base class for API interaction using Playwright's APIRequestContext.
  * Provides common methods for managing response, status, and body.
  */
-export class ApiBase {
+export abstract class APIBase {
     /**
      * @protected
      * @type {APIResponse | null}
@@ -49,9 +49,7 @@ export class ApiBase {
     /**
      * @public
      * @async
-     * @returns {Promise<number>} The HTTP status code of the last response.
-     * @throws {Error} If no response is available.
-     * @description Gets the status code of the last received API response.
+     * @returns {Promise<number>} The HTTP status code of the last received API response.
      */
     public async getStatusCode(): Promise<number> {
         if (!this.response) {
@@ -99,4 +97,17 @@ export class ApiBase {
             'Accept': 'application/json'
         };
     }
+
+    /**
+     * Handles both list (id === undefined) and detail (id is a string) GET requests.
+     * @param id The resource ID for a detail request, or undefined for a list request.
+     */
+    public abstract makeGetRequest(id: string | undefined): Promise<void>;
+
+    /**
+     * Handles POST requests, typically for creating a resource or querying with a body.
+     * @param endpoint The specific path within the service (e.g., 'query' or 'create').
+     * @param body The JSON payload for the request.
+     */
+    public abstract makePostRequest(endpoint: string, body: any): Promise<void>;
 }

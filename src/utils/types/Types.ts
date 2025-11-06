@@ -91,6 +91,8 @@ import { TimelineResponsiveSteps } from "../../step-definitions/ui/timeline/Time
 import { TimelineVisualSteps } from "../../step-definitions/ui/timeline/TimelineVisualSteps";
 import { HomePageMetadataSteps } from "../../step-definitions/ui/home/HomePageMetadataSteps";
 import { StarlinkSteps } from "../../step-definitions/api/StarlinkSteps";
+import { ShipsSteps } from "../../step-definitions/api/ShipsSteps";
+import { APISharedSteps } from "../../step-definitions/api/APISharedSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -860,7 +862,9 @@ export interface BddFixtures {
   suppliersPageRegistrationSteps: SuppliersPageRegistrationSteps;
   suppliersPageResourcesSteps: SuppliersPageResourcesSteps;
   suppliersPageTechnicalSteps: SuppliersPageTechnicalSteps;
+  apiSharedSteps: APISharedSteps;
   starlinkSteps: StarlinkSteps;
+  shipsSteps: ShipsSteps;
   timelineContentSteps: TimelineContentSteps;
   timelineCoreSteps: TimelineCoreSteps;
   timelineNavigationSteps: TimelineNavigationSteps;

@@ -5,21 +5,21 @@ Feature: SpaceX Ships API
   So that I can track their operational status, locations, and mission deployments.
 
   Background:
-    Given the SpaceX API base URL is "https://api.spacexdata.com/v4"
+    Given the SpaceX "Ships" API is available
 
   @Smoke @GET @List
   Scenario: Retrieve the list of all Ships
     When I make a GET request to "/ships"
     Then the response status code should be 200
     And the response should be a valid JSON array
-    And each ship should have: id, name, type, active, home_port
+    And each response item should have the following properties: id, name, type, active, home_port
 
   @Smoke @GET @ID
   Scenario: Retrieve a single Ship by a valid ID
     Given a valid ship ID "5ea6ed2e080df4000697c908" is available
     When I make a GET request to "/ships/5ea6ed2e080df4000697c908"
     Then the response status code should be 200
-    And the ship ID should match the requested ID
+    And the response ID should match the requested ID
 
   @Regression @POST @Query @Filtering
   Scenario Outline: Filter Ships by key attribute: name, type, or active status
@@ -52,6 +52,7 @@ Feature: SpaceX Ships API
   @Regression @Integration @Launches
   Scenario: Ship correctly links to associated Launches
     Given a valid ship ID "5ea6ed2e080df4000697c908" is available
-    When I retrieve the ship data
-    Then the response should contain a launches array
+    When I make a GET request to "/ships/5ea6ed2e080df4000697c908"
+    Then the response status code should be 200
+    And the response should contain a launches array
     And all launch IDs in the array should be valid and linkable

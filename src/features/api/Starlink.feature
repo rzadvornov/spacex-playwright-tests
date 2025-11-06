@@ -5,21 +5,21 @@ Feature: SpaceX Starlink API
   So that I can access constellation data, launch details, and spatial parameters.
 
   Background:
-    Given the SpaceX Starlink API is available
+    Given the SpaceX "Starlink" API is available
 
   @Smoke @GET @List
   Scenario: Retrieve the list of all Starlink satellites
     When I make a GET request to "/starlink"
     Then the response status code should be 200
     And the response should be a valid JSON array
-    And each satellite should have: id, version, launch, velocity_kms
+    And each response item should have the following properties: id, version, launch, velocity_kms
 
   @Smoke @GET @ID
   Scenario: Retrieve a single Starlink satellite by a valid ID
     Given a valid Starlink satellite ID "5eed770f096e59000697b50d" is available
     When I make a GET request to "/starlink/5eed770f096e59000697b50d"
     Then the response status code should be 200
-    And the satellite ID should match the requested ID
+    And the response ID should match the requested ID
     And the response should contain spacetrack information
 
   @Regression @POST @Query @Filtering
@@ -61,5 +61,6 @@ Feature: SpaceX Starlink API
   Scenario: Starlink fields are present and valid
     Given a valid Starlink satellite ID "5eed770f096e59000697b50d" is available
     When I make a GET request to "/starlink/5eed770f096e59000697b50d"
-    Then the version field should be a non-empty string or null
-    And the spaceTrack object should contain: CCSDS_ID, EPOCH, MEAN_MOTION
+    Then the response status code should be 200
+    And the version field should be a non-empty string or null
+    And the spaceTrack object should contain TLE data

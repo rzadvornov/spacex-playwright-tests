@@ -7,6 +7,7 @@ defineBddConfig({
 
   // Specify the paths to your Step Definition files (.ts)
   require: [
+    "src/utils/types/ParameterTypes.ts",
     "src/fixtures/BddFixtures.ts",
     "src/step-definitions/**/*.ts",
     "src/step-definitions/**/**/*.ts",
@@ -56,7 +57,7 @@ export default defineConfig({
       testMatch: "src/features/ui/**/*.spec.ts",
     },
     {
-      name: "Mobile Tablet", // Renamed to be unique
+      name: "Mobile Tablet",
       use: { ...devices["iPad"] },
       testMatch: "src/features/ui/**/*.spec.ts",
     },
@@ -64,6 +65,10 @@ export default defineConfig({
       name: "API",
       use: {
         baseURL: process.env.API_BASE_URL || "https://api.spacexdata.com/v4",
+        extraHTTPHeaders: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
       },
       testMatch: "src/features/api/**/*.spec.ts",
     },
