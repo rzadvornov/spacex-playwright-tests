@@ -2,7 +2,7 @@ import {
   SpecVerificationStrategy,
   TechnicalSpecTable,
 } from "../../utils/types/Types";
-import { FalconHeavyPage } from "../../pages/ui/FalconHeavyPage";
+import { FalconHeavyPage } from "../../services/ui/FalconHeavyPage";
 
 export class TechnicalSpecVerificationStrategy
   implements SpecVerificationStrategy

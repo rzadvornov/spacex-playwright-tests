@@ -1,7 +1,7 @@
 import { Page, expect } from "@playwright/test";
 import { DataTable } from "playwright-bdd";
 import { Then, Fixture, When } from "playwright-bdd/decorators";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 import {
   UniquenessCheck,
   HeadingInfo,

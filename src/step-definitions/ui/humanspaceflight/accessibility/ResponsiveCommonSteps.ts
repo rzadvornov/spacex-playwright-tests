@@ -1,8 +1,11 @@
 import { Page, expect } from "@playwright/test";
 import { When, Then, Fixture } from "playwright-bdd/decorators";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 import { DataTable } from "playwright-bdd";
-import { AnyObject, ResponsiveRequirements } from "../../../../utils/types/Types";
+import {
+  AnyObject,
+  ResponsiveRequirements,
+} from "../../../../utils/types/Types";
 
 @Fixture("responsiveCommonSteps")
 export class ResponsiveCommonSteps {
@@ -12,7 +15,7 @@ export class ResponsiveCommonSteps {
 
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage,
+    private humanSpaceflightPage: HumanSpaceflightPage
   ) {}
 
   @When("I test the responsive design across multiple viewports")
@@ -28,7 +31,7 @@ export class ResponsiveCommonSteps {
       const hasHorizontalScroll = await this.page.evaluate(() => {
         return document.body.scrollWidth > window.innerWidth;
       });
-      
+
       const isLayoutStable = await this.page.evaluate(() => {
         const main = document.querySelector("main");
         return main ? main.getBoundingClientRect().width > 0 : false;
@@ -59,25 +62,37 @@ export class ResponsiveCommonSteps {
       );
 
       const checks = await this.performBasicChecks();
-      
+
       if (width <= 375) {
-        mobileOptimized = mobileOptimized && checks.isStable && !checks.hasHorizontalScroll;
+        mobileOptimized =
+          mobileOptimized && checks.isStable && !checks.hasHorizontalScroll;
       } else if (width <= 768) {
-        tabletOptimized = tabletOptimized && checks.isStable && !checks.hasHorizontalScroll;
+        tabletOptimized =
+          tabletOptimized && checks.isStable && !checks.hasHorizontalScroll;
       } else {
-        desktopOptimized = desktopOptimized && checks.isStable && !checks.hasHorizontalScroll;
+        desktopOptimized =
+          desktopOptimized && checks.isStable && !checks.hasHorizontalScroll;
       }
     }
-    
-    expect(mobileOptimized, "Design should be optimized for mobile").toBeTruthy();
-    expect(tabletOptimized, "Design should be optimized for tablet").toBeTruthy();
-    expect(desktopOptimized, "Design should be optimized for desktop").toBeTruthy();
+
+    expect(
+      mobileOptimized,
+      "Design should be optimized for mobile"
+    ).toBeTruthy();
+    expect(
+      tabletOptimized,
+      "Design should be optimized for tablet"
+    ).toBeTruthy();
+    expect(
+      desktopOptimized,
+      "Design should be optimized for desktop"
+    ).toBeTruthy();
   }
 
   @Then("all responsive breakpoints should function correctly")
   async checkBreakpoints() {
     const breakpoints = [375, 768, 1024, 1200];
-    
+
     for (const width of breakpoints) {
       await this.setViewportSize(width);
       await this.page.waitForTimeout(
@@ -106,11 +121,18 @@ export class ResponsiveCommonSteps {
 
       const checks = await this.performBasicChecks();
       contentConsistency = contentConsistency && checks.hasContent;
-      functionalityConsistency = functionalityConsistency && checks.isFunctional;
+      functionalityConsistency =
+        functionalityConsistency && checks.isFunctional;
     }
-    
-    expect(contentConsistency, "Content should be consistent across devices").toBeTruthy();
-    expect(functionalityConsistency, "Functionality should be consistent across devices").toBeTruthy();
+
+    expect(
+      contentConsistency,
+      "Content should be consistent across devices"
+    ).toBeTruthy();
+    expect(
+      functionalityConsistency,
+      "Functionality should be consistent across devices"
+    ).toBeTruthy();
   }
 
   @When("I test responsive behavior for {string}")
@@ -124,7 +146,7 @@ export class ResponsiveCommonSteps {
       );
 
       const sectionChecks = await this.checkSectionAdaptability(section);
-      
+
       expect(
         sectionChecks.isAdapted,
         `${section} should adapt to ${width}px viewport`
@@ -139,7 +161,7 @@ export class ResponsiveCommonSteps {
   @Then("the {string} should maintain functionality across viewports")
   async checkSectionFunctionality(section: string) {
     const viewports = [375, 768, 1920];
-    
+
     for (const width of viewports) {
       await this.setViewportSize(width);
       await this.page.waitForTimeout(
@@ -147,7 +169,7 @@ export class ResponsiveCommonSteps {
       );
 
       const sectionChecks = await this.checkSectionAdaptability(section);
-      
+
       expect(
         sectionChecks.interactiveElements,
         `${section} interactive elements should work at ${width}px`
@@ -179,7 +201,7 @@ export class ResponsiveCommonSteps {
         hasHorizontalScroll,
         isStable,
         hasContent,
-        isFunctional
+        isFunctional,
       };
     });
   }
@@ -192,19 +214,20 @@ export class ResponsiveCommonSteps {
           isAdapted: false,
           isFunctional: false,
           interactiveElements: false,
-          contentAccessible: false
+          contentAccessible: false,
         };
       }
 
       const rect = sectionEl.getBoundingClientRect();
-      const interactiveElements = sectionEl.querySelectorAll("button, a, input");
+      const interactiveElements =
+        sectionEl.querySelectorAll("button, a, input");
       const hasContent = sectionEl.textContent?.trim().length > 0;
 
       return {
         isAdapted: rect.width > 0 && rect.width <= window.innerWidth,
         isFunctional: interactiveElements.length > 0,
         interactiveElements: interactiveElements.length > 0,
-        contentAccessible: hasContent
+        contentAccessible: hasContent,
       };
     }, section);
   }

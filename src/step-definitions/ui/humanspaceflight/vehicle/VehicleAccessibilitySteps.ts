@@ -2,7 +2,7 @@ import { Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { VehicleBaseSteps } from "./VehicleBaseSteps";
 import { Page, expect } from "@playwright/test";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 
 @Fixture("vehicleAccessibilitySteps")
 export class VehicleAccessibilitySteps extends VehicleBaseSteps {
@@ -186,7 +186,7 @@ export class VehicleAccessibilitySteps extends VehicleBaseSteps {
         await this.validateScreenReaderSupport();
         break;
       case "Touch":
-        await this.validateTouchSupport();
+        await this.validateInteractiveTouchSupport();
         break;
       default:
         throw new Error(`Unknown accessibility method: ${Method}`);
@@ -211,7 +211,7 @@ export class VehicleAccessibilitySteps extends VehicleBaseSteps {
     }).toBeGreaterThan(0);
   }
 
-  private async validateTouchSupport(): Promise<void> {
+  private async validateInteractiveTouchSupport(): Promise<void> {
     const buttons = this.page.locator('button, [role="button"]');
     const buttonCount = await buttons.count();
     expect(buttonCount, {

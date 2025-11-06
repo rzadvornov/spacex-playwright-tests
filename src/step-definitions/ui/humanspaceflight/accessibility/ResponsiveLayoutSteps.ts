@@ -1,9 +1,12 @@
 import { Page, expect } from "@playwright/test";
 import { Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 import { AssertionHelper } from "../../../../utils/AssertionHelper";
-import { ResponsiveRequirements, AnyObject } from "../../../../utils/types/Types";
+import {
+  ResponsiveRequirements,
+  AnyObject,
+} from "../../../../utils/types/Types";
 
 @Fixture("responsiveLayoutSteps")
 export class ResponsiveLayoutSteps {

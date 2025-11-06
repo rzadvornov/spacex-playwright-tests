@@ -1,7 +1,7 @@
 import { expect, Page } from "@playwright/test";
 import { Then, When, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { HomePage } from "../../../pages/ui/HomePage";
+import { HomePage } from "../../../services/ui/HomePage";
 import { parseNavigationLinks } from "../../../utils/types/TypeGuards";
 import { NavigationLink, RedirectionTable } from "../../../utils/types/Types";
 

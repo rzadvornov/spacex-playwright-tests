@@ -5,7 +5,7 @@ Feature: SpaceX Starlink API
   So that I can access constellation data, launch details, and spatial parameters.
 
   Background:
-    Given the SpaceX API base URL is "https://api.spacexdata.com/v4"
+    Given the SpaceX Starlink API is available
 
   @Smoke @GET @List
   Scenario: Retrieve the list of all Starlink satellites

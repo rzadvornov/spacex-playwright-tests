@@ -1,13 +1,13 @@
 import { Page, expect } from "@playwright/test";
 import { Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 
 @Fixture("responsiveImageSteps")
 export class ResponsiveImageSteps {
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage,
+    private humanSpaceflightPage: HumanSpaceflightPage
   ) {}
 
   @Then("responsive images should be properly configured:")

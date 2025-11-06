@@ -1,8 +1,11 @@
 import { Then, Fixture } from "playwright-bdd/decorators";
 import { expect, Page } from "@playwright/test";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
-import { HotspotRequirement, HotspotContent } from "../../../../utils/types/Types";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
+import {
+  HotspotRequirement,
+  HotspotContent,
+} from "../../../../utils/types/Types";
 
 @Fixture("theSuitesHotspotSteps")
 export class TheSuitesHotspotSteps {

@@ -1,4 +1,4 @@
-import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../services/ui/HumanSpaceflightPage";
 
 export class InteractionHandler {
   private strategies: Map<string, (cardName: string) => Promise<void>>;

@@ -1,7 +1,7 @@
 import { Page, expect, Locator } from "@playwright/test";
 import { Then, Fixture, When } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 import {
   parseAccessibilityRequirements,
   parseFormElementExpectations,
@@ -639,5 +639,4 @@ export class FormAccessibilitySteps {
       "Error instructions should explain how to fix the error"
     ).toBeTruthy();
   }
-
 }

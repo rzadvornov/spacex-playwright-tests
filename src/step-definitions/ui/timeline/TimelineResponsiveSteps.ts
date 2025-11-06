@@ -1,8 +1,12 @@
 import { When, Then, Fixture } from "playwright-bdd/decorators";
 import { expect, Page } from "@playwright/test";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../pages/ui/HumanSpaceflightPage";
-import { CoreRequirement, PerformanceTarget, ResourceOptimization } from "../../../utils/types/Types";
+import { HumanSpaceflightPage } from "../../../services/ui/HumanSpaceflightPage";
+import {
+  CoreRequirement,
+  PerformanceTarget,
+  ResourceOptimization,
+} from "../../../utils/types/Types";
 
 @Fixture("timelineResponsiveSteps")
 export class TimelineResponsiveSteps {
@@ -93,61 +97,61 @@ export class TimelineResponsiveSteps {
   }
 
   @Then("the timeline should meet performance targets:")
-    async checkPerformanceTargets(dataTable: DataTable) {
-      const targets = this.parseDataTable<PerformanceTarget>(dataTable);
-  
-      for (const target of targets) {
-        await this.validatePerformanceTarget(target);
-      }
+  async checkPerformanceTargets(dataTable: DataTable) {
+    const targets = this.parseDataTable<PerformanceTarget>(dataTable);
+
+    for (const target of targets) {
+      await this.validatePerformanceTarget(target);
     }
-  
-    @Then("resource optimization should be verified:")
-    async checkResourceOptimization(dataTable: DataTable) {
-      const optimizations = this.parseDataTable<ResourceOptimization>(dataTable);
-  
-      for (const optimization of optimizations) {
-        await this.validateResourceOptimization(optimization);
-      }
+  }
+
+  @Then("resource optimization should be verified:")
+  async checkResourceOptimization(dataTable: DataTable) {
+    const optimizations = this.parseDataTable<ResourceOptimization>(dataTable);
+
+    for (const optimization of optimizations) {
+      await this.validateResourceOptimization(optimization);
     }
-  
-    private async validatePerformanceTarget(
-      target: PerformanceTarget
-    ): Promise<void> {
-      const { Metric } = target;
-  
-      switch (Metric) {
-        case "Initial Load":
-          await expect(this.humanSpaceflightPage.timeline.timelineSection, {
-            message: "Timeline section should load",
-          }).toBeVisible();
-          break;
-        case "Image Loading":
-          const imagesLoaded =
-            await this.humanSpaceflightPage.timeline.areBackgroundImagesLoaded();
-          expect(imagesLoaded, {
-            message: "Images should load successfully",
-          }).toBeTruthy();
-          break;
-        default:
-          throw new Error(`Unknown performance metric: ${Metric}`);
-      }
+  }
+
+  private async validatePerformanceTarget(
+    target: PerformanceTarget
+  ): Promise<void> {
+    const { Metric } = target;
+
+    switch (Metric) {
+      case "Initial Load":
+        await expect(this.humanSpaceflightPage.timeline.timelineSection, {
+          message: "Timeline section should load",
+        }).toBeVisible();
+        break;
+      case "Image Loading":
+        const imagesLoaded =
+          await this.humanSpaceflightPage.timeline.areBackgroundImagesLoaded();
+        expect(imagesLoaded, {
+          message: "Images should load successfully",
+        }).toBeTruthy();
+        break;
+      default:
+        throw new Error(`Unknown performance metric: ${Metric}`);
     }
-  
-    private async validateResourceOptimization(
-      optimization: ResourceOptimization
-    ): Promise<void> {
-      const { "Resource Type": resourceType } = optimization;
-  
-      switch (resourceType) {
-        case "Images":
-          const imagesLoaded =
-            await this.humanSpaceflightPage.timeline.areBackgroundImagesLoaded();
-          expect(imagesLoaded, { message: "Images should be optimized" }).toBe(
-            true
-          );
-          break;
-        default:
-          throw new Error(`Unknown resource type: ${resourceType}`);
-      }
+  }
+
+  private async validateResourceOptimization(
+    optimization: ResourceOptimization
+  ): Promise<void> {
+    const { "Resource Type": resourceType } = optimization;
+
+    switch (resourceType) {
+      case "Images":
+        const imagesLoaded =
+          await this.humanSpaceflightPage.timeline.areBackgroundImagesLoaded();
+        expect(imagesLoaded, { message: "Images should be optimized" }).toBe(
+          true
+        );
+        break;
+      default:
+        throw new Error(`Unknown resource type: ${resourceType}`);
     }
+  }
 }

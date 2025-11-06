@@ -1,11 +1,20 @@
 import { Page, expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../services/ui/HumanSpaceflightPage";
 import { ViewportUtility } from "../../../utils/ViewportUtility";
 import { CustomTestArgs } from "../../../fixtures/BddFixtures";
-import { parseLayoutRequirements, parseSpacingRequirements, parseStyleRequirements } from "../../../utils/types/TypeGuards";
-import { LayoutRequirement, SpacingRequirement, StyleRequirement, BoundingBox } from "../../../utils/types/Types";
+import {
+  parseLayoutRequirements,
+  parseSpacingRequirements,
+  parseStyleRequirements,
+} from "../../../utils/types/TypeGuards";
+import {
+  LayoutRequirement,
+  SpacingRequirement,
+  StyleRequirement,
+  BoundingBox,
+} from "../../../utils/types/Types";
 import { LayoutValidatorFactory } from "../../../utils/strategies/LayoutValidatorFactory";
 import { SpacingValidatorFactory } from "../../../utils/strategies/SpacingValidatorFactory";
 import { StyleValidatorFactory } from "../../../utils/strategies/StyleValidatorFactory";

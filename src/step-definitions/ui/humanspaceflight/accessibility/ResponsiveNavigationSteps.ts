@@ -1,12 +1,10 @@
 import { expect } from "@playwright/test";
 import { When, Then, Fixture } from "playwright-bdd/decorators";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 
 @Fixture("responsiveNavigationSteps")
 export class ResponsiveNavigationSteps {
-  constructor(
-    private humanSpaceflightPage: HumanSpaceflightPage,
-  ) {}
+  constructor(private humanSpaceflightPage: HumanSpaceflightPage) {}
 
   @Then("the header navigation should collapse")
   async checkNavigationCollapse() {

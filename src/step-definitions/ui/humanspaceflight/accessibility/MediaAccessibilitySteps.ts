@@ -1,14 +1,14 @@
 import { Page, expect } from "@playwright/test";
 import { When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 import { parseAccessibilityRequirements } from "../../../../utils/types/Types";
 
 @Fixture("mediaAccessibilitySteps")
 export class MediaAccessibilitySteps {
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage,
+    private humanSpaceflightPage: HumanSpaceflightPage
   ) {}
 
   @When("I play video in the media carousel")

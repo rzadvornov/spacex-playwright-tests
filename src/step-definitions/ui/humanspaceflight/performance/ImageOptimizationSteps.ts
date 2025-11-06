@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import { Then, Fixture } from "playwright-bdd/decorators";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 import type { ImageInfo } from "../../../../utils/types/Types";
 import { DataTable } from "playwright-bdd";
 
@@ -11,9 +11,7 @@ export class ImageOptimizationSteps {
     MIN_COMPRESSION_RATIO: 0.8,
   } as const;
 
-  constructor(
-    private humanSpaceflightPage: HumanSpaceflightPage
-  ) {}
+  constructor(private humanSpaceflightPage: HumanSpaceflightPage) {}
 
   @Then("all images should be optimized for web")
   async checkImagesOptimized() {

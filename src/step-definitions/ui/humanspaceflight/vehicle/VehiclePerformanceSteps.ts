@@ -2,7 +2,7 @@ import { Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { VehicleBaseSteps } from "./VehicleBaseSteps";
 import { Page, expect } from "@playwright/test";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 
 @Fixture("vehiclePerformanceSteps")
 export class VehiclePerformanceSteps extends VehicleBaseSteps {

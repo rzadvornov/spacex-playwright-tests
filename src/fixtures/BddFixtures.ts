@@ -1,32 +1,32 @@
-import { BaseUrlFixtures, test as customBaseTest } from "./BaseUrlFixtures";
+import { BaseUrlFixtures } from "./BaseUrlFixtures";
 import { test as base } from "playwright-bdd";
-import { HomePage } from "../pages/ui/HomePage";
-import { HumanSpaceflightPage } from "../pages/ui/HumanSpaceflightPage";
+import { HomePage } from "../services/ui/HomePage";
+import { HumanSpaceflightPage } from "../services/ui/HumanSpaceflightPage";
 import { DestinationsSteps } from "../step-definitions/ui/humanspaceflight/DestinationsSteps";
 import { SharedPageSteps } from "../step-definitions/ui/SharedPageSteps";
 import { MediaCarouselSteps } from "../step-definitions/ui/humanspaceflight/MediaCarouselSteps";
 import { OurMissionsSteps } from "../step-definitions/ui/humanspaceflight/ourmissions/OurMissionsSteps";
 import { AssertionHelper } from "../utils/AssertionHelper";
 import { ViewportUtility } from "../utils/ViewportUtility";
-import { AboutPage } from "../pages/ui/AboutPage";
+import { AboutPage } from "../services/ui/AboutPage";
 import { AboutPageSteps } from "../step-definitions/ui/AboutPageSteps";
-import { CareersPage } from "../pages/ui/CareersPage";
+import { CareersPage } from "../services/ui/CareersPage";
 import { CareersPageSteps } from "../step-definitions/ui/CareersPageSteps";
-import { DragonPage } from "../pages/ui/DragonPage";
+import { DragonPage } from "../services/ui/DragonPage";
 import { DragonPageSteps } from "../step-definitions/ui/DragonPageSteps";
-import { Falcon9Page } from "../pages/ui/Falcon9Page";
+import { Falcon9Page } from "../services/ui/Falcon9Page";
 import { Falcon9PageSteps } from "../step-definitions/ui/Falcon9PageSteps";
-import { FalconHeavyPage } from "../pages/ui/FalconHeavyPage";
+import { FalconHeavyPage } from "../services/ui/FalconHeavyPage";
 import { FalconHeavyPageSteps } from "../step-definitions/ui/FalconHeavyPageSteps";
-import { MissionsPage } from "../pages/ui/MissionsPage";
+import { MissionsPage } from "../services/ui/MissionsPage";
 import { MissionsSteps } from "../step-definitions/ui/MissionsPageSteps";
-import { RidesharePage } from "../pages/ui/RidesharePage";
+import { RidesharePage } from "../services/ui/RidesharePage";
 import { RidesharePageSteps } from "../step-definitions/ui/RidesharePageSteps";
-import { StarshieldPage } from "../pages/ui/StarshieldPage";
+import { StarshieldPage } from "../services/ui/StarshieldPage";
 import { StarshieldPageSteps } from "../step-definitions/ui/starshield/StarshieldPageSteps";
-import { StarshipPage } from "../pages/ui/StarshipPage";
-import { SuppliersPage } from "../pages/ui/SuppliersPage";
-import { UpdatesPage } from "../pages/ui/UpdatesPage";
+import { StarshipPage } from "../services/ui/StarshipPage";
+import { SuppliersPage } from "../services/ui/SuppliersPage";
+import { UpdatesPage } from "../services/ui/UpdatesPage";
 import { UpdatesPageSteps } from "../step-definitions/ui/UpdatesPageSteps";
 import { FooterSteps } from "../step-definitions/ui/humanspaceflight/FooterSteps";
 import {
@@ -97,8 +97,11 @@ import { TimelineNavigationSteps } from "../step-definitions/ui/timeline/Timelin
 import { TimelineResponsiveSteps } from "../step-definitions/ui/timeline/TimelineResponsiveSteps";
 import { TimelineVisualSteps } from "../step-definitions/ui/timeline/TimelineVisualSteps";
 import { HomePageMetadataSteps } from "../step-definitions/ui/home/HomePageMetadataSteps";
+import { StarlinkSteps } from "../step-definitions/api/StarlinkSteps";
 
-export const test = base.extend<BddFixtures & ConsoleErrorFixture & BaseUrlFixtures>({
+export const test = base.extend<
+  BddFixtures & ConsoleErrorFixture & BaseUrlFixtures
+>({
   sharedPageSteps: [
     async ({ page }, use) => {
       const sharedSteps = new SharedPageSteps(page);
@@ -189,6 +192,13 @@ export const test = base.extend<BddFixtures & ConsoleErrorFixture & BaseUrlFixtu
         humanSpaceflightPage
       );
       await use(mediaAccessibilitySteps);
+    },
+    { scope: "test" },
+  ],
+  starlinkSteps: [
+    async ({ request }, use) => {
+      const starlinkSteps = new StarlinkSteps(request);
+      await use(starlinkSteps);
     },
     { scope: "test" },
   ],

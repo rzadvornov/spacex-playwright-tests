@@ -1,9 +1,13 @@
 import { expect, Page } from "@playwright/test";
 import { Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { HomePage } from "../../../pages/ui/HomePage";
-import { parseMetadataItems, parseSocialMediaTags } from "../../../types/TypeGuards";
-import { MetadataItem, SocialMediaTag, MetadataTable } from "../../../utils/types/Types";
+import { HomePage } from "../../../services/ui/HomePage";
+import {
+  MetadataItem,
+  SocialMediaTag,
+  MetadataTable,
+} from "../../../utils/types/Types";
+import { parseMetadataItems, parseSocialMediaTags } from "../../../utils/types/TypeGuards";
 
 @Fixture("homePageMetadataSteps")
 export class HomePageMetadataSteps {
@@ -45,7 +49,9 @@ export class HomePageMetadataSteps {
     expect(title).toContain(expectedContent);
   }
 
-  private async validateDescriptionMeta(expectedContent: string): Promise<void> {
+  private async validateDescriptionMeta(
+    expectedContent: string
+  ): Promise<void> {
     const metaDescription = await this.page.getAttribute(
       'meta[name="description"]',
       "content"
@@ -113,13 +119,17 @@ export class HomePageMetadataSteps {
     await this.validateMetadataConfiguration(metas);
   }
 
-  private async validateMetadataConfiguration(metas: MetadataTable): Promise<void> {
+  private async validateMetadataConfiguration(
+    metas: MetadataTable
+  ): Promise<void> {
     for (const meta of metas) {
       await this.validateSingleMetadataConfiguration(meta);
     }
   }
 
-  private async validateSingleMetadataConfiguration(meta: MetadataTable[0]): Promise<void> {
+  private async validateSingleMetadataConfiguration(
+    meta: MetadataTable[0]
+  ): Promise<void> {
     const metaNameOrProp = meta["Meta Name/Property"];
     const expectedContent = meta["Value Contains"];
 

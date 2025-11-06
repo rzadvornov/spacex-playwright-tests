@@ -1,16 +1,17 @@
 import { expect } from "@playwright/test";
 import { Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
-import { OurMissionsPOF } from "../../../../pages/fragments/OurMissionsPOF";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
+import { OurMissionsPOF } from "../../../../services/fragments/OurMissionsPOF";
 import { CoreElement, StructureCheck } from "../../../../utils/types/Types";
-import { parseCoreElements, parseStructureChecks } from "../../../../utils/types/TypeGuards";
+import {
+  parseCoreElements,
+  parseStructureChecks,
+} from "../../../../utils/types/TypeGuards";
 
 @Fixture("ourMissionsContentSteps")
 export class OurMissionsContentSteps {
-  constructor(
-    private humanSpaceflightPage: HumanSpaceflightPage
-  ) {}
+  constructor(private humanSpaceflightPage: HumanSpaceflightPage) {}
 
   @Then("the cargo and science capabilities should list more than {int} items")
   async checkCargoScienceCount(count: number) {
@@ -98,7 +99,10 @@ export class OurMissionsContentSteps {
       },
       "Default Tab": async () => {
         const isActive = await ourMissionsPOF.isTabActive(element.Content!);
-        expect(isActive, `Default tab "${element.Content}" should be active`).toBeTruthy();
+        expect(
+          isActive,
+          `Default tab "${element.Content}" should be active`
+        ).toBeTruthy();
       },
     };
 

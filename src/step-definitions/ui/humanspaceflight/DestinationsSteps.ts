@@ -1,13 +1,17 @@
 import { Page, expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../services/ui/HumanSpaceflightPage";
 import { ViewportUtility } from "../../../utils/ViewportUtility";
 import { AssertionHelper } from "../../../utils/AssertionHelper";
 import { HoverStateStrategy } from "../../../utils/strategies/HoverStateStrategy";
 import { InteractiveStateContext } from "../../../utils/strategies/InteractiveStateContext";
 import { RegularStateStrategy } from "../../../utils/strategies/RegularStateStrategy";
-import { parseDestinationInfo, parseBackgroundCharacteristics, parseInteractiveStates } from "../../../utils/types/TypeGuards";
+import {
+  parseDestinationInfo,
+  parseBackgroundCharacteristics,
+  parseInteractiveStates,
+} from "../../../utils/types/TypeGuards";
 import { DestinationInfo, InteractiveState } from "../../../utils/types/Types";
 
 @Fixture("destinationsSteps")

@@ -1,7 +1,7 @@
 import { Fixture, Then, When } from "playwright-bdd/decorators";
 import { expect, Page } from "@playwright/test";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 import { InteractionHandler } from "../../../../utils/strategies/InteractionHandler";
 import { SystemResponseValidator } from "../../../../utils/strategies/SystemResponseValidator";
 import { CoreElementValidator } from "../../../../utils/strategies/CoreElementValidator";

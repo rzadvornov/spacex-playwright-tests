@@ -1,7 +1,7 @@
 import { Page, expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../services/ui/HumanSpaceflightPage";
 import { CustomTestArgs } from "../../../fixtures/BddFixtures";
 import { MobileAction, MobileActionStrategy } from "../../../utils/types/Types";
 import { parseMobileActions } from "../../../utils/types/TypeGuards";

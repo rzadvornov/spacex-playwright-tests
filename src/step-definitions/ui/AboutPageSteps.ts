@@ -1,10 +1,18 @@
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { Page, expect } from "@playwright/test";
-import { AboutPage } from "../../pages/ui/AboutPage";
+import { AboutPage } from "../../services/ui/AboutPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { DataTable } from "playwright-bdd";
 import { SharedPageSteps } from "./SharedPageSteps";
-import { TwoColumnTable, AchievementTable, FacilityTable, InitiativeTable, PartnershipTable, DivisionTable, ResourceTable } from "../../utils/types/Types";
+import {
+  TwoColumnTable,
+  AchievementTable,
+  FacilityTable,
+  InitiativeTable,
+  PartnershipTable,
+  DivisionTable,
+  ResourceTable,
+} from "../../utils/types/Types";
 
 @Fixture("aboutPageSteps")
 export class AboutPageSteps {

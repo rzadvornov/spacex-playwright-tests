@@ -1,8 +1,12 @@
 import { Then, Fixture } from "playwright-bdd/decorators";
 import { expect, Page } from "@playwright/test";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../pages/ui/HumanSpaceflightPage";
-import { TypographyRequirement, TextScenario, CoreRequirement } from "../../../utils/types/Types";
+import { HumanSpaceflightPage } from "../../../services/ui/HumanSpaceflightPage";
+import {
+  TypographyRequirement,
+  TextScenario,
+  CoreRequirement,
+} from "../../../utils/types/Types";
 
 @Fixture("timelineContentSteps")
 export class TimelineContentSteps {
@@ -86,47 +90,47 @@ export class TimelineContentSteps {
   }
 
   @Then("the timeline section should meet accessibility standards:")
-    async checkAccessibilityStandards(dataTable: DataTable) {
-      const standards = this.parseDataTable<CoreRequirement>(dataTable);
-      const accessibility =
-        await this.humanSpaceflightPage.timeline.getAccessibilityStatus();
-  
-      for (const standard of standards) {
-        await this.validateAccessibilityStandard(standard, accessibility);
-      }
+  async checkAccessibilityStandards(dataTable: DataTable) {
+    const standards = this.parseDataTable<CoreRequirement>(dataTable);
+    const accessibility =
+      await this.humanSpaceflightPage.timeline.getAccessibilityStatus();
+
+    for (const standard of standards) {
+      await this.validateAccessibilityStandard(standard, accessibility);
     }
-  
-    private async validateAccessibilityStandard(
-      standard: CoreRequirement,
-      accessibility: any
-    ): Promise<void> {
-      const { Element } = standard;
-  
-      switch (Element) {
-        case "Navigation":
-          expect(accessibility.isKeyboardNavigable, {
-            message: "Should be keyboard navigable",
-          }).toBeTruthy();
-          break;
-        case "Button Labels":
-          expect(accessibility.hasAriaLabels, {
-            message: "Should have ARIA labels",
-          }).toBeTruthy();
-          break;
-        case "Focus States":
-          await this.validateFocusStates();
-          break;
-        default:
-          throw new Error(`Unknown accessibility standard: ${Element}`);
-      }
+  }
+
+  private async validateAccessibilityStandard(
+    standard: CoreRequirement,
+    accessibility: any
+  ): Promise<void> {
+    const { Element } = standard;
+
+    switch (Element) {
+      case "Navigation":
+        expect(accessibility.isKeyboardNavigable, {
+          message: "Should be keyboard navigable",
+        }).toBeTruthy();
+        break;
+      case "Button Labels":
+        expect(accessibility.hasAriaLabels, {
+          message: "Should have ARIA labels",
+        }).toBeTruthy();
+        break;
+      case "Focus States":
+        await this.validateFocusStates();
+        break;
+      default:
+        throw new Error(`Unknown accessibility standard: ${Element}`);
     }
-  
-    private async validateFocusStates(): Promise<void> {
-      const focusableCount = await this.page
-        .locator("button, [tabindex]")
-        .count();
-      expect(focusableCount, {
-        message: "Should have focusable elements",
-      }).toBeGreaterThan(0);
-    }
+  }
+
+  private async validateFocusStates(): Promise<void> {
+    const focusableCount = await this.page
+      .locator("button, [tabindex]")
+      .count();
+    expect(focusableCount, {
+      message: "Should have focusable elements",
+    }).toBeGreaterThan(0);
+  }
 }

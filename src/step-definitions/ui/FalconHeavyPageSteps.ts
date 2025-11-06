@@ -1,12 +1,16 @@
 import { expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { FalconHeavyPage } from "../../pages/ui/FalconHeavyPage";
+import { FalconHeavyPage } from "../../services/ui/FalconHeavyPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { SharedPageSteps } from "./SharedPageSteps";
 import { AttributeDetailVerificationStrategy } from "../../utils/strategies/AttributeDetailVerificationStrategy";
 import { TechnicalSpecVerificationStrategy } from "../../utils/strategies/TechnicalSpecVerificationStrategy";
-import { TechnicalSpecTable, AttributeDetailTable, SpecVerificationStrategy } from "../../utils/types/Types";
+import {
+  TechnicalSpecTable,
+  AttributeDetailTable,
+  SpecVerificationStrategy,
+} from "../../utils/types/Types";
 
 @Fixture("falconHeavyPageSteps")
 export class FalconHeavyPageSteps {

@@ -5,7 +5,7 @@ import {
   LayoutShiftEntry,
   ResourceTimingInfo,
 } from "../../../../utils/types/Types";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 
 @Fixture("responsivePerformanceSteps")
 export class ResponsivePerformanceSteps {
@@ -15,7 +15,10 @@ export class ResponsivePerformanceSteps {
     MAX_ANIMATION_DURATION: 300,
   } as const;
 
-  constructor(private page: Page, private humanSpaceflightPage: HumanSpaceflightPage) {}
+  constructor(
+    private page: Page,
+    private humanSpaceflightPage: HumanSpaceflightPage
+  ) {}
 
   @Then("layout shifts should be minimal during viewport changes")
   async checkLayoutShifts() {

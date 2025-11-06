@@ -1,11 +1,19 @@
 import { expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { CareersPage } from "../../pages/ui/CareersPage";
+import { CareersPage } from "../../services/ui/CareersPage";
 import { SharedPageSteps } from "./SharedPageSteps";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { FilterStrategyFactory } from "../../utils/strategies/FilterStrategyFactory";
-import { SharedContext, CategoryTable, OptionTable, ValueTable, BenefitTable, DevTable, FAQTable } from "../../utils/types/Types";
+import {
+  SharedContext,
+  CategoryTable,
+  OptionTable,
+  ValueTable,
+  BenefitTable,
+  DevTable,
+  FAQTable,
+} from "../../utils/types/Types";
 
 @Fixture("careersPageSteps")
 export class CareersPageSteps {
@@ -49,7 +57,10 @@ export class CareersPageSteps {
     );
   }
 
-  private async _verifyElementVisible(element: any, errorMessage?: string): Promise<void> {
+  private async _verifyElementVisible(
+    element: any,
+    errorMessage?: string
+  ): Promise<void> {
     await expect(element, errorMessage).toBeVisible();
   }
 
@@ -58,7 +69,10 @@ export class CareersPageSteps {
     await this._verifyHeadlineText(text1, text2);
   }
 
-  private async _verifyHeadlineText(text1: string, text2: string): Promise<void> {
+  private async _verifyHeadlineText(
+    text1: string,
+    text2: string
+  ): Promise<void> {
     await this.assertionHelper.validateBooleanCheck(
       () => this.careersPage.checkHeadlineText(text1, text2),
       `Headline mentioning "${text1}" and "${text2}" is not visible.`
@@ -77,7 +91,9 @@ export class CareersPageSteps {
     );
   }
 
-  @Then("the content should emphasize **direct contribution to making humanity multiplanetary**")
+  @Then(
+    "the content should emphasize **direct contribution to making humanity multiplanetary**"
+  )
   async theContentShouldEmphasizeMultiplanetary() {
     await this._verifyMissionAlignmentText();
   }
@@ -112,7 +128,9 @@ export class CareersPageSteps {
     await this._verifyFirstJobListingVisible();
   }
 
-  @Then("search results should show **position title, department, and location**")
+  @Then(
+    "search results should show **position title, department, and location**"
+  )
   async searchResultsShouldShowPositionTitleDepartmentAndLocation() {
     await this._verifyJobListingDetails();
   }
@@ -123,17 +141,24 @@ export class CareersPageSteps {
     await expect(firstListing).not.toBeEmpty();
   }
 
-  @Then("the application option should be immediately available for each listing")
+  @Then(
+    "the application option should be immediately available for each listing"
+  )
   async theApplicationOptionShouldBeImmediatelyAvailableForEachListing() {
     await this._verifyFirstJobListingVisible();
   }
 
-  @When("the user selects a department filter {string} and a type filter {string}")
+  @When(
+    "the user selects a department filter {string} and a type filter {string}"
+  )
   async theUserSelectsAFilter(department: string, type: string) {
     await this._applyDepartmentAndTypeFilters(department, type);
   }
 
-  private async _applyDepartmentAndTypeFilters(department: string, type: string): Promise<void> {
+  private async _applyDepartmentAndTypeFilters(
+    department: string,
+    type: string
+  ): Promise<void> {
     await this.careersPage.jobFilterPanel.scrollIntoViewIfNeeded();
     await this.careersPage.applyFilters(department, type);
 
@@ -161,7 +186,7 @@ export class CareersPageSteps {
 
   @When("the user selects a location filter {string}")
   async theUserSelectsALocationFilter(location: string) {
-    const strategy = FilterStrategyFactory.getStrategy('location');
+    const strategy = FilterStrategyFactory.getStrategy("location");
     await strategy.applyFilter(this.careersPage, location);
   }
 
@@ -172,7 +197,7 @@ export class CareersPageSteps {
 
   @When("the user filters by experience level {string}")
   async theUserFiltersByExperienceLevelEntryLevel(level: string) {
-    const strategy = FilterStrategyFactory.getStrategy('experience');
+    const strategy = FilterStrategyFactory.getStrategy("experience");
     await strategy.applyFilter(this.careersPage, level);
   }
 
@@ -186,7 +211,9 @@ export class CareersPageSteps {
     await this.careersPage.jobFilterPanel.scrollIntoViewIfNeeded();
   }
 
-  @Then("senior and managerial positions with required experience should be clearly displayed")
+  @Then(
+    "senior and managerial positions with required experience should be clearly displayed"
+  )
   async seniorAndManagerialPositionsShouldBeClearlyDisplayed() {
     await this._verifyFirstJobListingVisible();
   }
@@ -241,12 +268,15 @@ export class CareersPageSteps {
     await this._verifyDataTableItems(
       opportunities,
       "Development Opportunity",
-      (opportunity) => this.careersPage.checkDevelopmentOpportunity(opportunity),
+      (opportunity) =>
+        this.careersPage.checkDevelopmentOpportunity(opportunity),
       "development opportunity"
     );
   }
 
-  @Then("a dedicated **FAQ section** should be available, addressing topics like:")
+  @Then(
+    "a dedicated **FAQ section** should be available, addressing topics like:"
+  )
   async aDedicatedFAQSectionShouldBeAvailable(dataTable: DataTable) {
     const topics = dataTable.hashes() as FAQTable;
     await this._verifyDataTableItems(
@@ -282,7 +312,9 @@ export class CareersPageSteps {
     await this._verifyElementVisible(this.careersPage.jobDetailsPage);
   }
 
-  @Then("the page should clearly detail **Qualifications, Responsibilities, and Application Instructions**")
+  @Then(
+    "the page should clearly detail **Qualifications, Responsibilities, and Application Instructions**"
+  )
   async thePageShouldClearlyDetailQualsResponsibilitiesAndInstructions() {
     await this._verifyJobDetailsVisible();
   }
@@ -299,7 +331,9 @@ export class CareersPageSteps {
     await this.careersPage.applyNowButton.click();
   }
 
-  @Then("the **application form should appear**, requiring marked fields and offering resume\\/CV upload")
+  @Then(
+    "the **application form should appear**, requiring marked fields and offering resume\\/CV upload"
+  )
   async theApplicationFormShouldAppear() {
     await this._verifyElementVisible(
       this.careersPage.applicationForm,
@@ -341,7 +375,9 @@ export class CareersPageSteps {
     await section.scrollIntoViewIfNeeded();
   }
 
-  @Then("an **Equal Opportunity Employment statement** should be prominently displayed.")
+  @Then(
+    "an **Equal Opportunity Employment statement** should be prominently displayed."
+  )
   async anEqualOpportunityEmploymentStatementShouldBeProminentlyDisplayed() {
     await this._verifyElementVisible(
       this.careersPage.eoeStatement,
@@ -349,7 +385,9 @@ export class CareersPageSteps {
     );
   }
 
-  @Then("a **Diversity and Inclusion commitment** should be clearly highlighted")
+  @Then(
+    "a **Diversity and Inclusion commitment** should be clearly highlighted"
+  )
   async aDiversityAndInclusionCommitmentShouldBeClearlyHighlighted() {
     await this._verifyElementVisible(
       this.careersPage.diversitySection,
@@ -357,7 +395,9 @@ export class CareersPageSteps {
     );
   }
 
-  @Then("resources for underrepresented groups or diversity statistics should be shared")
+  @Then(
+    "resources for underrepresented groups or diversity statistics should be shared"
+  )
   async resourcesForUnderrepresentedGroupsShouldBeShared() {
     await this._verifyElementVisible(
       this.careersPage.diversitySection,
@@ -365,7 +405,9 @@ export class CareersPageSteps {
     );
   }
 
-  @Then("details about the **Employee Referral Program** \\(bonuses, submission process) should be displayed")
+  @Then(
+    "details about the **Employee Referral Program** \\(bonuses, submission process) should be displayed"
+  )
   async detailsAboutTheEmployeeReferralProgramShouldBeDisplayed() {
     await this._verifyElementVisible(
       this.careersPage.referralSection,
@@ -373,7 +415,9 @@ export class CareersPageSteps {
     );
   }
 
-  @Then("a **Job Alert subscription option** should be available, allowing users to set preferences \\(location, role type).")
+  @Then(
+    "a **Job Alert subscription option** should be available, allowing users to set preferences \\(location, role type)."
+  )
   async aJobAlertSubscriptionOptionShouldBeAvailable() {
     await this._verifyJobAlertOptionVisible();
   }
@@ -397,7 +441,9 @@ export class CareersPageSteps {
     await this._scrollToSection(this.careersPage.applicationPortal);
   }
 
-  @Then("the **current application status** \\(e.g., Submitted, Under Review) should be displayed")
+  @Then(
+    "the **current application status** \\(e.g., Submitted, Under Review) should be displayed"
+  )
   async theCurrentApplicationStatusShouldBeDisplayed() {
     await this._verifyElementVisible(
       this.careersPage.applicationPortal,

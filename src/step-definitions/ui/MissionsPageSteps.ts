@@ -1,6 +1,6 @@
 import { expect, Locator } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
-import { MissionsPage } from "../../pages/ui/MissionsPage";
+import { MissionsPage } from "../../services/ui/MissionsPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { Page } from "@playwright/test";
 import { SharedPageSteps } from "./SharedPageSteps";

@@ -1,5 +1,5 @@
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
-import { SuppliersPage } from "../../../pages/ui/SuppliersPage";
+import { SuppliersPage } from "../../../services/ui/SuppliersPage";
 import { AssertionHelper } from "../../../utils/AssertionHelper";
 import { ViewportUtility } from "../../../utils/ViewportUtility";
 import { SharedPageSteps } from "../SharedPageSteps";

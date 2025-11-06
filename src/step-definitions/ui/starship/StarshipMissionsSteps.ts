@@ -1,5 +1,5 @@
 import { When, Then, Fixture } from "playwright-bdd/decorators";
-import { StarshipPage } from "../../../pages/ui/StarshipPage";
+import { StarshipPage } from "../../../services/ui/StarshipPage";
 import { AssertionHelper } from "../../../utils/AssertionHelper";
 import { DataTable } from "playwright-bdd";
 

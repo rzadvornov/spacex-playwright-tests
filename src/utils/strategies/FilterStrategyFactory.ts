@@ -1,5 +1,5 @@
 import { FilterStrategy } from "../../utils/types/Types";
-import { CareersPage } from "../../pages/ui/CareersPage";
+import { CareersPage } from "../../services/ui/CareersPage";
 
 class DepartmentFilterStrategy implements FilterStrategy {
   async applyFilter(

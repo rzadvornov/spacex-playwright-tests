@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { RidesharePage } from "../../pages/ui/RidesharePage";
+import { RidesharePage } from "../../services/ui/RidesharePage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import {
   DocumentationTable,

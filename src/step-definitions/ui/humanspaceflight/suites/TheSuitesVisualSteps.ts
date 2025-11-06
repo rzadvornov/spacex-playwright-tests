@@ -1,7 +1,7 @@
 import { Then, Fixture } from "playwright-bdd/decorators";
 import { expect } from "@playwright/test";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 import { VisualStandard, SuitInfo } from "../../../../utils/types/Types";
 
 @Fixture("theSuitesVisualSteps")
@@ -10,9 +10,7 @@ export class TheSuitesVisualSteps {
     SAMPLE_HOTSPOTS: 3,
   } as const;
 
-  constructor(
-    private humanSpaceflightPage: HumanSpaceflightPage
-  ) {}
+  constructor(private humanSpaceflightPage: HumanSpaceflightPage) {}
 
   @Then("the suit display should meet visual standards:")
   async checkVisualStandards(dataTable: DataTable) {

@@ -1,8 +1,11 @@
 import { Page, expect } from "@playwright/test";
 import { DataTable } from "playwright-bdd";
 import { When, Then, Fixture } from "playwright-bdd/decorators";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
-import { RequiredMobileOptimizationResult, MobileRequirement } from "../../../../utils/types/Types";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
+import {
+  RequiredMobileOptimizationResult,
+  MobileRequirement,
+} from "../../../../utils/types/Types";
 
 @Fixture("accessibilityMobileSteps")
 export class AccessibilityMobileSteps {

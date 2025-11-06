@@ -1,6 +1,6 @@
 import { Page, expect } from "@playwright/test";
 import { When, Then, Fixture } from "playwright-bdd/decorators";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 
 @Fixture("responsiveViewportSteps")
 export class ResponsiveViewportSteps {

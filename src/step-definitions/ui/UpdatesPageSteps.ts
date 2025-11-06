@@ -1,5 +1,5 @@
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
-import { UpdatesPage } from "../../pages/ui/UpdatesPage";
+import { UpdatesPage } from "../../services/ui/UpdatesPage";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { ViewportUtility } from "../../utils/ViewportUtility";
 import { Page } from "@playwright/test";
@@ -259,7 +259,9 @@ export class UpdatesPageSteps {
     );
   }
 
-  @Then("relevant operational details \\(e.g., orbit raises, minor anomalies, storm impacts) should be mentioned")
+  @Then(
+    "relevant operational details \\(e.g., orbit raises, minor anomalies, storm impacts) should be mentioned"
+  )
   async verifyOperationalDetails(): Promise<void> {
     const hasOperational =
       (await this.updatesPage.findUpdateByKeyword("orbit")) ||
@@ -292,7 +294,9 @@ export class UpdatesPageSteps {
     );
   }
 
-  @Then("the filter should be visually indicated as active \\(e.g., a button state change)")
+  @Then(
+    "the filter should be visually indicated as active \\(e.g., a button state change)"
+  )
   async verifyFilterActiveState(): Promise<void> {
     const activeFilter = await this.updatesPage.getActiveFilter();
     await this.assertionHelper.validateBooleanCheck(

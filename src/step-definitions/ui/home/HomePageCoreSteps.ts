@@ -1,7 +1,7 @@
 import { Page, expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { HomePage } from "../../../pages/ui/HomePage";
+import { HomePage } from "../../../services/ui/HomePage";
 import { CustomTestArgs } from "../../../fixtures/BddFixtures";
 import { AssertionHelper } from "../../../utils/AssertionHelper";
 import {

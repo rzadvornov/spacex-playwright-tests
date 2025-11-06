@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../services/ui/HumanSpaceflightPage";
 import { LayoutSpacingStyleValidator } from "../types/Types";
 
 class BackgroundStyleValidator implements LayoutSpacingStyleValidator {

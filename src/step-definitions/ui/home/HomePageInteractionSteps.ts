@@ -1,6 +1,6 @@
 import { expect, Page } from "@playwright/test";
 import { When, Then, Fixture } from "playwright-bdd/decorators";
-import { HomePage } from "../../../pages/ui/HomePage";
+import { HomePage } from "../../../services/ui/HomePage";
 import { AssertionHelper } from "../../../utils/AssertionHelper";
 
 @Fixture("homePageInteractionSteps")

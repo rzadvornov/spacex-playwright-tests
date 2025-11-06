@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../services/ui/HumanSpaceflightPage";
 import { LayoutSpacingStyleValidator } from "../types/Types";
 
 class HorizontalSpacingValidator implements LayoutSpacingStyleValidator {
@@ -35,7 +35,10 @@ class OverallSpacingValidator implements LayoutSpacingStyleValidator {
 }
 
 export class SpacingValidatorFactory {
-  private static readonly validators: Record<string, LayoutSpacingStyleValidator> = {
+  private static readonly validators: Record<
+    string,
+    LayoutSpacingStyleValidator
+  > = {
     Horizontal: new HorizontalSpacingValidator(),
     Vertical: new VerticalSpacingValidator(),
     Overall: new OverallSpacingValidator(),

@@ -1,6 +1,6 @@
 import { Then, Fixture, When } from "playwright-bdd/decorators";
 import { expect } from "@playwright/test";
-import { SuppliersPage } from "../../../pages/ui/SuppliersPage";
+import { SuppliersPage } from "../../../services/ui/SuppliersPage";
 import { AssertionHelper } from "../../../utils/AssertionHelper";
 import { ViewportUtility } from "../../../utils/ViewportUtility";
 import { DataTable } from "playwright-bdd";

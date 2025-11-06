@@ -1,6 +1,6 @@
 import { Page, expect } from "@playwright/test";
 import { Then, Fixture } from "playwright-bdd/decorators";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 import { CustomTestArgs } from "../../../../fixtures/BddFixtures";
 import type { PerformanceMetrics } from "../../../../utils/types/Types";
 import { AssertionHelper } from "../../../../utils/AssertionHelper";

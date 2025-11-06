@@ -1,13 +1,13 @@
 import { Page, expect } from "@playwright/test";
 import { Then, Fixture } from "playwright-bdd/decorators";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 import { DataTable } from "playwright-bdd";
 
 @Fixture("seoMetaTagsSteps")
 export class SeoMetaTagsSteps {
   constructor(
     private page: Page,
-    private humanSpaceflightPage: HumanSpaceflightPage,
+    private humanSpaceflightPage: HumanSpaceflightPage
   ) {}
 
   @Then("the meta description should be present and under {int} characters")

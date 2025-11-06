@@ -1,13 +1,16 @@
 import { expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { Falcon9Page } from "../../pages/ui/Falcon9Page";
+import { Falcon9Page } from "../../services/ui/Falcon9Page";
 import { AssertionHelper } from "../../utils/AssertionHelper";
 import { SharedPageSteps } from "./SharedPageSteps";
 import { EngineSpecValidator } from "../../utils/strategies/EngineSpecValidator";
 import { MerlinMainEngineSpecValidator } from "../../utils/strategies/MerlinMainEngineSpecValidator";
 import { MerlinVacuumSpecValidator } from "../../utils/strategies/MerlinVacuumSpecValidator";
-import { SpecValidationStrategy, MerlinSpecTable } from "../../utils/types/Types";
+import {
+  SpecValidationStrategy,
+  MerlinSpecTable,
+} from "../../utils/types/Types";
 
 @Fixture("falcon9PageSteps")
 export class Falcon9PageSteps {

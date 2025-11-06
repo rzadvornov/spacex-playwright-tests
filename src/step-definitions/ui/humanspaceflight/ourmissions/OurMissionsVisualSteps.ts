@@ -1,8 +1,8 @@
 import { expect } from "@playwright/test";
 import { Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
-import { OurMissionsPOF } from "../../../../pages/fragments/OurMissionsPOF";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
+import { OurMissionsPOF } from "../../../../services/fragments/OurMissionsPOF";
 import { Element } from "../../../../utils/types/Types";
 import { parseHeaderElements } from "../../../../utils/types/TypeGuards";
 
@@ -10,9 +10,7 @@ import { parseHeaderElements } from "../../../../utils/types/TypeGuards";
 export class OurMissionsVisualSteps {
   private readonly OPACITY_RANGE = { min: 0.1, max: 1 };
 
-  constructor(
-    private humanSpaceflightPage: HumanSpaceflightPage
-  ) {}
+  constructor(private humanSpaceflightPage: HumanSpaceflightPage) {}
 
   @Then("the primary image should change to reflect {string} mission")
   async checkPrimaryImageChange(missionName: string) {

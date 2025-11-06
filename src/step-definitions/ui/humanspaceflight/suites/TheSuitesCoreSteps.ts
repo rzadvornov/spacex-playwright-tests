@@ -1,7 +1,7 @@
 import { Given, Then, Fixture } from "playwright-bdd/decorators";
 import { expect, Page } from "@playwright/test";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 import { CoreElement, StateChange } from "../../../../utils/types/Types";
 
 @Fixture("theSuitesCoreSteps")

@@ -1,11 +1,14 @@
 import { Page, expect } from "@playwright/test";
 import { Then, Fixture, When, Given } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { parseAccessibilityRequirements, parseVisualElementExpectations } from "../../../../utils/types/TypeGuards";
+import {
+  parseAccessibilityRequirements,
+  parseVisualElementExpectations,
+} from "../../../../utils/types/TypeGuards";
 import { VisualElementValidatorRegistry } from "../../../../utils/strategies/VisualElementValidatorRegistry";
 import { CueValidatorRegistry } from "../../../../utils/strategies/CueValidatorRegistry";
 import { StateCheckerRegistry } from "../../../../utils/strategies/StateCheckerRegistry";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 import { BrowserPreferenceRegistry } from "../../../../utils/strategies/BrowserPreferenceRegistry";
 import { AdaptationCheckerRegistry } from "../../../../utils/strategies/AdaptationCheckerRegistry";
 import { AssertionHelper } from "../../../../utils/AssertionHelper";

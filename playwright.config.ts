@@ -7,7 +7,7 @@ defineBddConfig({
 
   // Specify the paths to your Step Definition files (.ts)
   require: [
-    "src/fixtures/BddFixtures.ts", // Your BDD fixture file
+    "src/fixtures/BddFixtures.ts",
     "src/step-definitions/**/*.ts",
     "src/step-definitions/**/**/*.ts",
     "src/step-definitions/**/**/**/*.ts",

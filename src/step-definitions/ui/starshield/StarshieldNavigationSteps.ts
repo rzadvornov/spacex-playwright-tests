@@ -1,6 +1,6 @@
 import { expect, Page } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
-import { StarshieldPage } from "../../../pages/ui/StarshieldPage";
+import { StarshieldPage } from "../../../services/ui/StarshieldPage";
 import { SharedPageSteps } from "../SharedPageSteps";
 import { SharedContext } from "../../../utils/types/Types";
 import { AssertionHelper } from "../../../utils/AssertionHelper";

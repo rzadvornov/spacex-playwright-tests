@@ -1,5 +1,5 @@
 import { Page, expect } from "@playwright/test";
-import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../services/ui/HumanSpaceflightPage";
 
 export class SystemResponseValidator {
   private strategies: Map<

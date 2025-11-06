@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import { InteractiveStateStrategy } from "../../utils/types/Types";
-import { HumanSpaceflightPage } from "../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../services/ui/HumanSpaceflightPage";
 
 export class HoverStateStrategy implements InteractiveStateStrategy {
   constructor(private humanSpaceflightPage: HumanSpaceflightPage) {}

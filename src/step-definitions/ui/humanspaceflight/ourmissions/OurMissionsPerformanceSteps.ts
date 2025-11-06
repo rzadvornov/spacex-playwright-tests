@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 import { When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
 import { ViewportUtility } from "../../../../utils/ViewportUtility";
 import { BoundingBox } from "../../../../utils/types/Types";
 

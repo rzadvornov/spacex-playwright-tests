@@ -1,7 +1,7 @@
 import { Page, expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
-import { HumanSpaceflightPage } from "../../../pages/ui/HumanSpaceflightPage";
+import { HumanSpaceflightPage } from "../../../services/ui/HumanSpaceflightPage";
 import { parseMediaTiles } from "../../../utils/types/TypeGuards";
 import { BoundingBox, MediaTile } from "../../../utils/types/Types";
 import { ViewportUtility } from "../../../utils/ViewportUtility";
