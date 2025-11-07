@@ -102,6 +102,7 @@ import { LandpadsSteps } from "../../step-definitions/api/LandpadsSteps";
 import { HistorySteps } from "../../step-definitions/api/HistorySteps";
 import { DragonsSteps } from "../../step-definitions/api/DragonsSteps";
 import { CrewSteps } from "../../step-definitions/api/CrewSteps";
+import { CoresSteps } from "../../step-definitions/api/CoresSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -883,6 +884,7 @@ export interface BddFixtures {
   historySteps: HistorySteps;
   dragonsSteps: DragonsSteps;
   crewSteps: CrewSteps;
+  coresSteps: CoresSteps;
   timelineContentSteps: TimelineContentSteps;
   timelineCoreSteps: TimelineCoreSteps;
   timelineNavigationSteps: TimelineNavigationSteps;

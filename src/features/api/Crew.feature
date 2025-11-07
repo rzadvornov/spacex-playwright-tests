@@ -33,7 +33,7 @@ Feature: SpaceX Crew API
       }
       """
     Then the response status code should be 200
-    And all results should have "<Field>" equal to "<Value>"
+    And all crew results should have "<Field>" equal to "<Value>"
 
     Examples:
       | Field  | Value   |

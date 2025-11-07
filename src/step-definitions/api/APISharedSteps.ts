@@ -12,6 +12,7 @@ import { LandpadsAPI } from "../../services/api/LandpadsAPI";
 import { HistoryAPI } from "../../services/api/HistoryAPI";
 import { DragonsAPI } from "../../services/api/DragonsAPI";
 import { CrewAPI } from "../../services/api/CrewAPI";
+import { CoresAPI } from "../../services/api/CoresAPI";
 
 type ApiMap = {
   [key: string]: new (request: APIRequestContext) => APIBase;
@@ -29,6 +30,7 @@ const apiServiceMap: ApiMap = {
   History: HistoryAPI,
   Dragons: DragonsAPI,
   Crew: CrewAPI,
+  Cores: CoresAPI,
 };
 
 @Fixture("apiSharedSteps")

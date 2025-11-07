@@ -120,7 +120,7 @@ export class CrewSteps {
     ).not.toThrow();
   }
   
-  @Then("all results should have {string} equal to {string}")
+  @Then("all crew results should have {string} equal to {string}")
   public async thenAllResultsShouldMatchFilterString(
     field: string,
     expectedValue: string
