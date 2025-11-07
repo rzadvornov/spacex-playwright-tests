@@ -5,7 +5,7 @@ Feature: SpaceX Historical Events API
   So that I can access significant milestones and achievements over time.
 
   Background:
-    Given the SpaceX API base URL is "https://api.spacexdata.com/v4"
+    Given the SpaceX "History" API is available
     And a POST request to "/history/query" is prepared
 
   @Smoke @GET @List

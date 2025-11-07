@@ -9,6 +9,7 @@ import { PayloadsAPI } from "../../services/api/PayloadsAPI";
 import { LaunchpadsAPI } from "../../services/api/LaunchpadsAPI";
 import { LaunchesAPI } from "../../services/api/LaunchesAPI";
 import { LandpadsAPI } from "../../services/api/LandpadsAPI";
+import { HistoryAPI } from "../../services/api/HistoryAPI";
 
 type ApiMap = {
   [key: string]: new (request: APIRequestContext) => APIBase;
@@ -23,6 +24,7 @@ const apiServiceMap: ApiMap = {
   Launchpads: LaunchpadsAPI,
   Launches: LaunchesAPI,
   Landpads: LandpadsAPI,
+  History: HistoryAPI,
 };
 
 @Fixture("apiSharedSteps")
@@ -30,6 +32,7 @@ export class APISharedSteps {
   public activeAPI!: APIBase;
   public queryBody: any = {};
   private resourceId: string = "";
+  public queryEndpoint: string = "";
 
   constructor(private request: APIRequestContext) {}
 
@@ -45,6 +48,11 @@ export class APISharedSteps {
       throw new Error(`API service not found for name: ${apiName}`);
     }
     this.activeAPI = new ApiClass(this.request);
+  }
+
+  @Given("a POST request to {string} is prepared")
+  public async givenPostRequestIsPrepared(endpoint: string): Promise<void> {
+    this.queryEndpoint = endpoint;
   }
 
   @When("I make a GET request to {string}")
@@ -151,11 +159,8 @@ export class APISharedSteps {
     );
     const body = await this.activeAPI.getResponseBody();
 
-    expect(
-      body,
-      "Response body is null or undefined."
-    ).toBeDefined();
-    
+    expect(body, "Response body is null or undefined.").toBeDefined();
+
     expect(
       typeof body,
       `Expected response body to be an object, but got type: ${typeof body}`
