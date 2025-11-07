@@ -4,6 +4,7 @@ import { APIBase } from "../../services/base/APIBase";
 import { StarlinkAPI } from "../../services/api/StarlinkAPI";
 import { ShipsAPI } from "../../services/api/ShipsAPI";
 import { RocketsAPI } from "../../services/api/RocketsAPI";
+import { RoadsterAPI } from "../../services/api/RoadsterAPI";
 
 type ApiMap = {
   [key: string]: new (request: APIRequestContext) => APIBase;
@@ -13,6 +14,7 @@ const apiServiceMap: ApiMap = {
   Starlink: StarlinkAPI,
   Ships: ShipsAPI,
   Rockets: RocketsAPI,
+  Roadster: RoadsterAPI,
 };
 
 @Fixture("apiSharedSteps")
@@ -132,5 +134,28 @@ export class APISharedSteps {
     this.queryBody = JSON.parse(docString);
 
     await this.activeAPI.makePostRequest(endpoint, this.queryBody);
+  }
+
+  @Then("the response should be a valid JSON object")
+  public async thenResponseShouldBeAValidJsonObject(): Promise<void> {
+    expect(this.activeAPI, "Active API not initialized.").toBeInstanceOf(
+      APIBase
+    );
+    const body = await this.activeAPI.getResponseBody();
+
+    expect(
+      body,
+      "Response body is null or undefined."
+    ).toBeDefined();
+    
+    expect(
+      typeof body,
+      `Expected response body to be an object, but got type: ${typeof body}`
+    ).toBe("object");
+
+    expect(
+      Array.isArray(body),
+      "Expected a single JSON object, but got a JSON array."
+    ).toBeFalsy();
   }
 }

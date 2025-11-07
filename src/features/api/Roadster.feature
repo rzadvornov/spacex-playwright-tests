@@ -5,7 +5,8 @@ Feature: SpaceX Roadster API
   So that I can monitor its status and trajectory data
 
   Background:
-    Given the SpaceX API base URL is "https://api.spacexdata.com/v4"
+    # Updated to align with the convention in Ships, Rockets, and Starlink features
+    Given the SpaceX "Roadster" API is available
 
   @Critical @GET @Info
   Scenario: Retrieve complete Roadster information
@@ -18,7 +19,8 @@ Feature: SpaceX Roadster API
   @Regression @GET @Validation @Numeric
   Scenario Outline: Key numeric and orbital fields are present and valid
     When I make a GET request to "/roadster"
-    Then the field "<Field>" should be present
+    Then the response status code should be 200
+    And the field "<Field>" should be present
     And the "<Field>" value should be a "<ValidationType>"
 
     Examples:
@@ -33,5 +35,6 @@ Feature: SpaceX Roadster API
   @Regression @GET @Validation @Links
   Scenario: External links (Wikipedia, video) are present and valid URLs
     When I make a GET request to "/roadster"
-    Then the wikipedia field should be a valid URL
-    And the video field should be a valid URL
+    Then the response status code should be 200
+    And the "wikipedia" field should be a valid URL
+    And the "video" field should be a valid URL
