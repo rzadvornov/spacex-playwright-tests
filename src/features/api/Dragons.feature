@@ -5,18 +5,18 @@ Feature: SpaceX Dragon Spacecraft API
   So that I can access details about design, mass, and capability.
 
   Background:
-    Given the SpaceX API base URL is "https://api.spacexdata.com/v4"
+    Given the SpaceX "Dragons" API is available
 
   @Smoke @GET @List
   Scenario: Retrieve the list of all Dragon types
     When I make a GET request to "/dragons"
     Then the response status code should be 200
     And the response should be a valid JSON array
-    And each dragon should have: id, name, type, active, first_flight
+    And each response item should have the following properties: "id, name, type, active, first_flight"
 
   @Regression @POST @Query @Filtering
   Scenario Outline: Filter Dragon spacecraft by active status
-    When I make a POST request to "/dragons/query" with filter:
+    When I query the Dragons API using POST with filter:
       """
       {
         "query": {
@@ -48,5 +48,5 @@ Feature: SpaceX Dragon Spacecraft API
   Scenario: Dragon pressurized and trunk volumes are non-negative
     Given a valid dragon ID "5e9d058759b1ff74a7ad5f8f" is available
     When I make a GET request to "/dragons/5e9d058759b1ff74a7ad5f8f"
-    Then the pressurized capsule volume should be a non-negative number
-    And the trunk volume should be a non-negative number
+    Then the nested field "cubic_meters" in "pressurized_volume" should be a non-negative number
+    And the nested field "cubic_meters" in "trunk_volume" should be a non-negative number

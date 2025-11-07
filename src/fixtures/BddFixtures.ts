@@ -107,6 +107,7 @@ import { LaunchpadsSteps } from "../step-definitions/api/LaunchpadsSteps";
 import { LaunchesSteps } from "../step-definitions/api/LaunchesSteps";
 import { LandpadsSteps } from "../step-definitions/api/LandpadsSteps";
 import { HistorySteps } from "../step-definitions/api/HistorySteps";
+import { DragonsSteps } from "../step-definitions/api/DragonsSteps";
 
 export const test = base.extend<
   BddFixtures & ConsoleErrorFixture & BaseUrlFixtures
@@ -245,6 +246,13 @@ export const test = base.extend<
     async ({ apiSharedSteps }, use) => {
       const historySteps = new HistorySteps(apiSharedSteps);
       await use(historySteps);
+    },
+    { scope: "test" },
+  ],
+  dragonsSteps: [
+    async ({ apiSharedSteps }, use) => {
+      const dragonsSteps = new DragonsSteps(apiSharedSteps);
+      await use(dragonsSteps);
     },
     { scope: "test" },
   ],
