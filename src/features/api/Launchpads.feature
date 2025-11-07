@@ -46,8 +46,8 @@ Feature: SpaceX Launchpads API
     Given a valid launchpad ID "5e9e4502f509094188566f88" is available
     When I make a GET request to "/launchpads/5e9e4502f509094188566f88"
     Then the response status code should be 200
-    And the latitude should be between -90 and 90
-    And the longitude should be between -180 and 180
+    And the launchpad latitude should be between -90 and 90
+    And the launchpad longitude should be between -180 and 180
 
   @Regression @GET @Validation @Stats
   Scenario: Launchpad successes do not exceed launch attempts

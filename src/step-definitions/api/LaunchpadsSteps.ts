@@ -55,7 +55,7 @@ export class LaunchpadsSteps {
     }
   }
 
-  @Then("the latitude should be between -90 and 90")
+  @Then("the launchpad latitude should be between -90 and 90")
   public async thenLatitudeShouldBeValid(): Promise<void> {
     const body = await this.sharedSteps.activeAPI.getResponseBody();
     const latitude = body.latitude;
@@ -75,7 +75,7 @@ export class LaunchpadsSteps {
     ).toBeLessThanOrEqual(90);
   }
 
-  @Then("the longitude should be between -180 and 180")
+  @Then("the launchpad longitude should be between -180 and 180")
   public async thenLongitudeShouldBeValid(): Promise<void> {
     const body = await this.sharedSteps.activeAPI.getResponseBody();
     const longitude = body.longitude;

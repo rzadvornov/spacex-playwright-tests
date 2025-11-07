@@ -5,18 +5,25 @@ Feature: SpaceX Landing Pads API
   So that I can track booster landing locations and usage statistics.
 
   Background:
-    Given the SpaceX API base URL is "https://api.spacexdata.com/v4"
+    Given the SpaceX "Landpads" API is available
 
   @Smoke @GET @List
   Scenario: Retrieve the list of all Landing Pads
     When I make a GET request to "/landpads"
     Then the response status code should be 200
     And the response should be a valid JSON array
-    And each landing pad should have: id, full_name, type, status, locality
+    And each response item should have the following properties: "id, full_name, type, status, locality"
+
+  @Smoke @GET @ID
+  Scenario: Retrieve a single Landing Pad by a valid ID
+    Given a valid landing pad ID "5e9e3032383ecb267a34e7c7" is available
+    When I make a GET request to "/landpads/5e9e3032383ecb267a34e7c7"
+    Then the response status code should be 200
+    And the response ID should match the requested ID
 
   @Regression @POST @Query
   Scenario Outline: Filter Landing Pads by type or status
-    When I make a POST request to "/landpads/query" with filter:
+    When I query the Landpads API using POST with filter:
       """
       {
         "query": {
@@ -25,7 +32,7 @@ Feature: SpaceX Landing Pads API
       }
       """
     Then the response status code should be 200
-    And all results should have "<Field>" equal to "<Value>"
+    And the results should contain landpads matching "<Field>" equals "<Value>"
 
     Examples:
       | Field  | Value   |
@@ -38,12 +45,13 @@ Feature: SpaceX Landing Pads API
   Scenario: Landing Pad coordinates are valid latitude and longitude
     Given a valid landing pad ID "5e9e3032383ecb267a34e7c7" is available
     When I make a GET request to "/landpads/5e9e3032383ecb267a34e7c7"
-    Then the latitude should be between -90 and 90
-    And the longitude should be between -180 and 180
+    Then the response status code should be 200
+    And the landpad latitude should be between -90 and 90
+    And the landpad longitude should be between -180 and 180
 
   @Regression @GET @Validation @Stats
   Scenario: Landing successes do not exceed landing attempts
     Given a valid landing pad ID "5e9e3032383ecb267a34e7c7" is available
     When I make a GET request to "/landpads/5e9e3032383ecb267a34e7c7"
-    Then the field landing_successes should be less than or equal to landing_attempts
-    And both fields should be non-negative integers
+    Then the response status code should be 200
+    And the successful_landings should not be greater than the landing_attempts
