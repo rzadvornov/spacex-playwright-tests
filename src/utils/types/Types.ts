@@ -97,6 +97,7 @@ import { RocketsSteps } from "../../step-definitions/api/RocketsSteps";
 import { RoadsterSteps } from "../../step-definitions/api/RoadsterSteps";
 import { PayloadsSteps } from "../../step-definitions/api/PayloadsSteps";
 import { LaunchpadsSteps } from "../../step-definitions/api/LaunchpadsSteps";
+import { LaunchesSteps } from "../../step-definitions/api/LaunchesSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -873,6 +874,7 @@ export interface BddFixtures {
   roadsterSteps: RoadsterSteps;
   payloadsSteps: PayloadsSteps;
   launchpadsSteps: LaunchpadsSteps;
+  launchesSteps: LaunchesSteps;
   timelineContentSteps: TimelineContentSteps;
   timelineCoreSteps: TimelineCoreSteps;
   timelineNavigationSteps: TimelineNavigationSteps;

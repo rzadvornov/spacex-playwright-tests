@@ -104,6 +104,7 @@ import { RocketsSteps } from "../step-definitions/api/RocketsSteps";
 import { RoadsterSteps } from "../step-definitions/api/RoadsterSteps";
 import { PayloadsSteps } from "../step-definitions/api/PayloadsSteps";
 import { LaunchpadsSteps } from "../step-definitions/api/LaunchpadsSteps";
+import { LaunchesSteps } from "../step-definitions/api/LaunchesSteps";
 
 export const test = base.extend<
   BddFixtures & ConsoleErrorFixture & BaseUrlFixtures
@@ -221,6 +222,13 @@ export const test = base.extend<
     async ({ apiSharedSteps }, use) => {
       const rocketsSteps = new RocketsSteps(apiSharedSteps);
       await use(rocketsSteps);
+    },
+    { scope: "test" },
+  ],
+  launchesSteps: [
+    async ({ apiSharedSteps }, use) => {
+      const launchesSteps = new LaunchesSteps(apiSharedSteps);
+      await use(launchesSteps);
     },
     { scope: "test" },
   ],
