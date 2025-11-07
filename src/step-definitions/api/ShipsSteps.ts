@@ -15,9 +15,8 @@ export class ShipsSteps {
     this.sharedSteps.setResourceId(shipId);
   }
 
-  @When("I make a POST request to {string} with filter:")
-  public async whenMakePostRequestWithFilter(
-    endpoint: string,
+  @When("I query the Ships API using POST with filter:")
+  public async whenQueryShipsAPIWithFilter(
     docString: string
   ): Promise<void> {
     this.queryBody = JSON.parse(docString);

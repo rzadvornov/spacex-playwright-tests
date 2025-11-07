@@ -93,6 +93,7 @@ import { HomePageMetadataSteps } from "../../step-definitions/ui/home/HomePageMe
 import { StarlinkSteps } from "../../step-definitions/api/StarlinkSteps";
 import { ShipsSteps } from "../../step-definitions/api/ShipsSteps";
 import { APISharedSteps } from "../../step-definitions/api/APISharedSteps";
+import { RocketsSteps } from "../../step-definitions/api/RocketsSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -865,6 +866,7 @@ export interface BddFixtures {
   apiSharedSteps: APISharedSteps;
   starlinkSteps: StarlinkSteps;
   shipsSteps: ShipsSteps;
+  rocketsSteps: RocketsSteps;
   timelineContentSteps: TimelineContentSteps;
   timelineCoreSteps: TimelineCoreSteps;
   timelineNavigationSteps: TimelineNavigationSteps;

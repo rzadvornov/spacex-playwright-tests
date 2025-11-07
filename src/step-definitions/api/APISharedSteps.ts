@@ -3,6 +3,7 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { APIBase } from "../../services/base/APIBase";
 import { StarlinkAPI } from "../../services/api/StarlinkAPI";
 import { ShipsAPI } from "../../services/api/ShipsAPI";
+import { RocketsAPI } from "../../services/api/RocketsAPI";
 
 type ApiMap = {
   [key: string]: new (request: APIRequestContext) => APIBase;
@@ -11,6 +12,7 @@ type ApiMap = {
 const apiServiceMap: ApiMap = {
   Starlink: StarlinkAPI,
   Ships: ShipsAPI,
+  Rockets: RocketsAPI,
 };
 
 @Fixture("apiSharedSteps")
@@ -119,14 +121,16 @@ export class APISharedSteps {
   }
 
   @When("I make a POST request to {string} with body:")
-public async whenMakePostRequestWithBody(
-  endpoint: string, 
-  docString: string
-): Promise<void> {
-    expect(this.activeAPI, "Active API not initialized.").toBeInstanceOf(APIBase);
-    
+  public async whenMakePostRequestWithBody(
+    endpoint: string,
+    docString: string
+  ): Promise<void> {
+    expect(this.activeAPI, "Active API not initialized.").toBeInstanceOf(
+      APIBase
+    );
+
     this.queryBody = JSON.parse(docString);
 
     await this.activeAPI.makePostRequest(endpoint, this.queryBody);
-}
+  }
 }

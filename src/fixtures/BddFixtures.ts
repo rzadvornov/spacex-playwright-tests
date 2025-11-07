@@ -100,6 +100,7 @@ import { HomePageMetadataSteps } from "../step-definitions/ui/home/HomePageMetad
 import { StarlinkSteps } from "../step-definitions/api/StarlinkSteps";
 import { ShipsSteps } from "../step-definitions/api/ShipsSteps";
 import { APISharedSteps } from "../step-definitions/api/APISharedSteps";
+import { RocketsSteps } from "../step-definitions/api/RocketsSteps";
 
 export const test = base.extend<
   BddFixtures & ConsoleErrorFixture & BaseUrlFixtures
@@ -210,6 +211,13 @@ export const test = base.extend<
     async ({ apiSharedSteps }, use) => {
       const shipsSteps = new ShipsSteps(apiSharedSteps);
       await use(shipsSteps);
+    },
+    { scope: "test" },
+  ],
+  rocketsSteps: [
+    async ({ apiSharedSteps }, use) => {
+      const rocketsSteps = new RocketsSteps(apiSharedSteps);
+      await use(rocketsSteps);
     },
     { scope: "test" },
   ],
@@ -852,7 +860,7 @@ export const test = base.extend<
   ],
   suppliersPageBasicSteps: [
     async (
-      { suppliersPage, sharedPageSteps, assertionHelper, viewportUtility },
+      { suppliersPage, assertionHelper, viewportUtility },
       use
     ) => {
       const suppliersPageBasicSteps = new SuppliersPageBasicSteps(

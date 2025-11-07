@@ -12,7 +12,7 @@ Feature: SpaceX Ships API
     When I make a GET request to "/ships"
     Then the response status code should be 200
     And the response should be a valid JSON array
-    And each response item should have the following properties: id, name, type, active, home_port
+    And each response item should have the following properties: "id, name, type, active, home_port"
 
   @Smoke @GET @ID
   Scenario: Retrieve a single Ship by a valid ID
@@ -23,7 +23,7 @@ Feature: SpaceX Ships API
 
   @Regression @POST @Query @Filtering
   Scenario Outline: Filter Ships by key attribute: name, type, or active status
-    When I make a POST request to "/ships/query" with filter:
+    When I query the Ships API using POST with filter:
       """
       {
         "query": {
