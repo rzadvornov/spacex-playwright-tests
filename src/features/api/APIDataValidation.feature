@@ -5,7 +5,7 @@ Feature: API Data Validation
   So that I can rely on the information for my business logic
 
   Background:
-    Given the SpaceX API base URL is "https://api.spacexdata.com/v4"
+    Given the SpaceX "Launches" API is available
 
   @Critical @Schema @Launches
   Scenario: All launches have required, non-null fields
