@@ -5,7 +5,7 @@ Feature: API Performance
   So that my applications remain responsive and provide a good user experience
 
   Background:
-    Given the SpaceX API base URL is "https://api.spacexdata.com/v4"
+    Given the SpaceX "Launches" API is available
 
   @Smoke @GET @Launches @List
   Scenario: Fetching all launches responds quickly

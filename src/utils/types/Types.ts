@@ -106,6 +106,7 @@ import { CoresSteps } from "../../step-definitions/api/CoresSteps";
 import { CompanySteps } from "../../step-definitions/api/CompanySteps";
 import { CapsulesSteps } from "../../step-definitions/api/CapsulesSteps";
 import { APISecuritySteps } from "../../step-definitions/api/APISecuritySteps";
+import { APIPerformanceSteps } from "../../step-definitions/api/APIPerformanceSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -891,6 +892,7 @@ export interface BddFixtures {
   companySteps: CompanySteps;
   capsulesSteps: CapsulesSteps;
   apiSecuritySteps: APISecuritySteps;
+  apiPerformanceSteps: APIPerformanceSteps;
   timelineContentSteps: TimelineContentSteps;
   timelineCoreSteps: TimelineCoreSteps;
   timelineNavigationSteps: TimelineNavigationSteps;
