@@ -5,17 +5,17 @@ Feature: API Security
   So that data integrity is maintained and the service remains operational
 
   Background:
-    Given the SpaceX API base URL is "https://api.spacexdata.com/v4"
+    Given the SpaceX "Launches" API is available
 
   @Critical @HTTPS @Transport
   Scenario: All API access must use HTTPS
-    When I make a GET request to "https://api.spacexdata.com/v4/launches"
+    When I make a GET request to "/launches"
     Then the connection should use HTTPS
     And the certificate should be valid
 
   @Regression @Injection @SQL
   Scenario: API is resilient to SQL injection attempts
-    When I make a POST request to "/launches/query" with a potential SQL injection payload:
+    When I make a POST request to "/launches/query" with body:
       """
       {
         "query": {
@@ -28,7 +28,7 @@ Feature: API Security
 
   @Regression @Validation @Input
   Scenario: API handles invalid input data types gracefully
-    When I make a POST request to "/launches/query" with a type mismatch:
+    When I make a POST request to "/launches/query" with body:
       """
       {
         "query": {

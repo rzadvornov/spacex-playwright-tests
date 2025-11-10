@@ -1,6 +1,7 @@
 import { test as base } from "@playwright/test";
 import { APIBase } from "../services/base/APIBase";
 import { BasePage } from "../services/base/BasePage";
+import { APIBaseFixture } from "../services/base/APIBaseFixture";
 
 export type BaseUrlFixtures = {
   basePage: BasePage;
@@ -23,7 +24,7 @@ export const test = base.extend<BaseUrlFixtures>({
 
   apiBase: [
     async ({ request }, use) => {
-      const apiBase = new APIBase(request);
+      const apiBase = new APIBaseFixture(request); 
       await use(apiBase);
     },
     { scope: "test" },

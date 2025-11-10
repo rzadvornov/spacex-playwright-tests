@@ -112,6 +112,7 @@ import { CrewSteps } from "../step-definitions/api/CrewSteps";
 import { CoresSteps } from "../step-definitions/api/CoresSteps";
 import { CompanySteps } from "../step-definitions/api/CompanySteps";
 import { CapsulesSteps } from "../step-definitions/api/CapsulesSteps";
+import { APISecuritySteps } from "../step-definitions/api/APISecuritySteps";
 
 export const test = base.extend<
   BddFixtures & ConsoleErrorFixture & BaseUrlFixtures
@@ -306,6 +307,13 @@ export const test = base.extend<
     async ({ apiSharedSteps }, use) => {
       const roadsterSteps = new RoadsterSteps(apiSharedSteps);
       await use(roadsterSteps);
+    },
+    { scope: "test" },
+  ],
+  apiSecuritySteps: [
+    async ({ apiSharedSteps }, use) => {
+      const apiSecuritySteps = new APISecuritySteps(apiSharedSteps);
+      await use(apiSecuritySteps);
     },
     { scope: "test" },
   ],
