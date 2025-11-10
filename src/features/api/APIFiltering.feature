@@ -5,12 +5,11 @@ Feature: API Filtering, Querying, and Sorting
   So that I can efficiently retrieve only the information I need
 
   Background:
-    Given the SpaceX API base URL is "https://api.spacexdata.com/v4"
-    And a POST request to a query endpoint is prepared
+    Given the SpaceX "Launches" API is available
 
   @Smoke @POST @Query @Operators
   Scenario Outline: Filter by various operators returns correct subset of results
-    When I make a POST request to "<Endpoint>" with query:
+    When I make a POST request to "<Endpoint>" with following query:
       """
       {
         "query": {
@@ -34,7 +33,7 @@ Feature: API Filtering, Querying, and Sorting
 
   @Regression @POST @Query @Date
   Scenario: Filter by date range (GTE and LTE) is accurate
-    When I make a POST request to "/launches/query" with query:
+    When I make a POST request to "/launches/query" with following query:
       """
       {
         "query": {
@@ -50,7 +49,7 @@ Feature: API Filtering, Querying, and Sorting
 
   @Regression @POST @Query @Compound
   Scenario: Combining multiple AND filter conditions returns correct results
-    When I make a POST request to "/launches/query" with query:
+    When I make a POST request to "/launches/query" with following query:
       """
       {
         "query": {
