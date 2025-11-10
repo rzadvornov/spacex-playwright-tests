@@ -5,7 +5,7 @@ Feature: API Integration and Cross-Endpoint Validation
   So that I can build comprehensive applications with consistent information
 
   Background:
-    Given the SpaceX API base URL is "https://api.spacexdata.com/v4"
+    Given the SpaceX "Launches" API is available
 
   @Critical @Launches @Rockets
   Scenario: Launch data correctly references its Rocket
