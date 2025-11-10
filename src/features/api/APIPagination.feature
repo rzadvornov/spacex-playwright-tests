@@ -5,8 +5,7 @@ Feature: API Pagination
   So that I can efficiently retrieve all data without making overly large requests
 
   Background:
-    Given the SpaceX API base URL is "https://api.spacexdata.com/v4"
-    And a POST request to "/launches/query" is prepared
+    Given the SpaceX "Launches" API is available
 
   @Smoke @POST @Metadata
   Scenario: Default query options return basic pagination metadata
@@ -66,5 +65,6 @@ Feature: API Pagination
         }
       }
       """
-    Then pagination should apply only to filtered results
-    And "totalDocs" should reflect the filtered count
+    Then the response should have maximum 10 items in "docs"
+    And the response should indicate page 1
+    And all capsule results should have "success" equal to true

@@ -153,4 +153,39 @@ export class LaunchesSteps {
       }
     }
   }
+
+  @Then("all capsule results should have {string} equal to {boolean}")
+  public async thenAllLaunchResultsShouldHaveFieldEqualToBoolean(
+    field: string,
+    expectedValueString: string
+  ): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    const results = (Array.isArray(body) ? body : body.docs) || [];
+
+    expect(
+      Array.isArray(results),
+      "Response is not a list or a query result (missing docs array)."
+    ).toBeTruthy();
+
+    const expectedValue = expectedValueString.toLowerCase() === 'true';
+
+    for (const item of results) {
+      expect(
+        item,
+        `Result item is missing the boolean field: ${field}`
+      ).toHaveProperty(field);
+      
+      const actualValue = item[field];
+      
+      expect(
+        typeof actualValue,
+        `Field '${field}' is not a boolean. Found type: ${typeof actualValue}`
+      ).toBe("boolean");
+      
+      expect(
+        actualValue,
+        `Expected item ${field} to be ${expectedValue}, but got ${actualValue}`
+      ).toEqual(expectedValue);
+    }
+  }
 }
