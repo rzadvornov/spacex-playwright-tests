@@ -14,6 +14,7 @@ import { DragonsAPI } from "../../services/api/DragonsAPI";
 import { CrewAPI } from "../../services/api/CrewAPI";
 import { CoresAPI } from "../../services/api/CoresAPI";
 import { CompanyAPI } from "../../services/api/CompanyAPI";
+import { CapsulesAPI } from "../../services/api/CapsulesAPI";
 
 type ApiMap = {
   [key: string]: new (request: APIRequestContext) => APIBase;
@@ -33,6 +34,7 @@ const apiServiceMap: ApiMap = {
   Crew: CrewAPI,
   Cores: CoresAPI,
   Company: CompanyAPI,
+  Capsules: CapsulesAPI,
 };
 
 @Fixture("apiSharedSteps")
@@ -46,6 +48,10 @@ export class APISharedSteps {
 
   public setResourceId(id: string): void {
     this.resourceId = id;
+  }
+
+  public getResourceId(): string | undefined {
+    return this.resourceId;
   }
 
   @Given("the SpaceX {string} API is available")
@@ -178,5 +184,24 @@ export class APISharedSteps {
       Array.isArray(body),
       "Expected a single JSON object, but got a JSON array."
     ).toBeFalsy();
+  }
+
+  @When("I make a GET request with the resource ID")
+  public async whenMakeGetRequestWithResourceId(): Promise<void> {
+    expect(this.activeAPI, "Active API not initialized.").toBeInstanceOf(
+      APIBase
+    );
+    const id = this.getResourceId();
+    expect(
+      id,
+      "Resource ID must be set before making a request with it."
+    ).toBeDefined();
+
+    await this.activeAPI.makeGetRequest(id);
+  }
+
+  @Given("an invalid resource ID {string} is available")
+  public async givenAnInvalidResourceId(id: string): Promise<void> {
+    this.setResourceId(id);
   }
 }

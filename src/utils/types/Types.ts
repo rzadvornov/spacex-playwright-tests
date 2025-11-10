@@ -104,6 +104,7 @@ import { DragonsSteps } from "../../step-definitions/api/DragonsSteps";
 import { CrewSteps } from "../../step-definitions/api/CrewSteps";
 import { CoresSteps } from "../../step-definitions/api/CoresSteps";
 import { CompanySteps } from "../../step-definitions/api/CompanySteps";
+import { CapsulesSteps } from "../../step-definitions/api/CapsulesSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -887,6 +888,7 @@ export interface BddFixtures {
   crewSteps: CrewSteps;
   coresSteps: CoresSteps;
   companySteps: CompanySteps;
+  capsulesSteps: CapsulesSteps;
   timelineContentSteps: TimelineContentSteps;
   timelineCoreSteps: TimelineCoreSteps;
   timelineNavigationSteps: TimelineNavigationSteps;
