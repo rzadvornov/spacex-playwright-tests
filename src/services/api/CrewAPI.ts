@@ -68,4 +68,13 @@ export class CrewAPI extends APIBase {
   ): Promise<void> {
     await this.queryCrew(body);
   }
+
+  /**
+   * Implements the abstract makeDeleteRequest from APIBase.
+   * Handles DELETE requests for querying crews.
+   * @param _endpoint The specific path within the service (ignored, as we use the query method).
+   */
+  public makeDeleteRequest(_endpoint: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
 }

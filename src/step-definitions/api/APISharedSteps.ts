@@ -204,4 +204,33 @@ export class APISharedSteps {
   public async givenAnInvalidResourceId(id: string): Promise<void> {
     this.setResourceId(id);
   }
+
+  @When("I make a DELETE request to {string}")
+  public async whenMakeDeleteRequest(endpoint: string): Promise<void> {
+    expect(
+      this.activeAPI,
+      "Active API not initialized. Cannot make request."
+    ).toBeInstanceOf(APIBase);
+
+    await this.activeAPI.makeDeleteRequest(endpoint);
+  }
+
+  @Then("the response status code should be {int} or {int}")
+  public async thenResponseStatusCodeShouldBeOneOf(
+    code1: number,
+    code2: number
+  ): Promise<void> {
+    expect(
+      this.activeAPI,
+      "Active API not initialized. Cannot retrieve status code."
+    ).toBeInstanceOf(APIBase);
+    const statusCode = this.activeAPI.getStatusCode();
+
+    const isAccepted = await statusCode === code1 || await statusCode === code2;
+
+    expect(
+      isAccepted,
+      `Expected status code to be ${code1} or ${code2}, but got ${statusCode}`
+    ).toBeTruthy();
+  }
 }

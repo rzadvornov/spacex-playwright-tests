@@ -66,4 +66,13 @@ export class RocketsAPI extends APIBase {
   ): Promise<void> {
     await this.queryRockets(body);
   }
+
+  /**
+   * Implements the abstract makeDeleteRequest from APIBase.
+   * Handles DELETE requests for querying roadsters.
+   * @param _endpoint The specific path within the service (ignored, as we use the query method).
+   */
+  public makeDeleteRequest(_endpoint: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
 }

@@ -66,4 +66,13 @@ export class CoresAPI extends APIBase {
   ): Promise<void> {
     await this.queryCores(body);
   }
+
+  /**
+   * Implements the abstract makeDeleteRequest from APIBase.
+   * Handles DELETE requests for querying cores.
+   * @param _endpoint The specific path within the service (ignored, as we use the query method).
+   */
+  public makeDeleteRequest(_endpoint: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
 }

@@ -117,6 +117,7 @@ import { APIPerformanceSteps } from "../step-definitions/api/APIPerformanceSteps
 import { APIPaginationSteps } from "../step-definitions/api/APIPaginationSteps";
 import { APIIntegrationSteps } from "../step-definitions/api/APIIntegrationSteps";
 import { APIFilteringSteps } from "../step-definitions/api/APIFilteringSteps";
+import { APIErrorHandlingSteps } from "../step-definitions/api/APIErrorHandlingSteps";
 
 export const test = base.extend<
   BddFixtures & ConsoleErrorFixture & BaseUrlFixtures
@@ -346,6 +347,13 @@ export const test = base.extend<
     async ({ apiSharedSteps }, use) => {
       const apiFilteringSteps = new APIFilteringSteps(apiSharedSteps);
       await use(apiFilteringSteps);
+    },
+    { scope: "test" },
+  ],
+  apiErrorHandlingSteps: [
+    async ({ apiSharedSteps }, use) => {
+      const apiErrorHandlingSteps = new APIErrorHandlingSteps(apiSharedSteps);
+      await use(apiErrorHandlingSteps);
     },
     { scope: "test" },
   ],

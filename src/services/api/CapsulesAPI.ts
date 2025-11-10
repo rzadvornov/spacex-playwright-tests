@@ -6,6 +6,7 @@ import { APIBase } from "../base/APIBase";
  * @classdesc API methods for the SpaceX Capsules endpoint (/v4/capsules).
  */
 export class CapsulesAPI extends APIBase {
+
   constructor(request: APIRequestContext) {
     super(request);
   }
@@ -67,5 +68,14 @@ export class CapsulesAPI extends APIBase {
     body: string | object
   ): Promise<void> {
     await this.queryCapsules(body);
+  }
+
+  /**
+   * Implements the abstract makeDeleteRequest from APIBase.
+   * Handles DELETE requests for querying capsules.
+   * @param _endpoint The specific path within the service (ignored, as we use the query method).
+   */
+  public makeDeleteRequest(_endpoint: string): Promise<void> {
+    throw new Error("Method not implemented.");
   }
 }

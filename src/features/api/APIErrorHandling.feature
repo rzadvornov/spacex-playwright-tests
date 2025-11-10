@@ -5,7 +5,7 @@ Feature: API Error Handling
   So that I can understand what went wrong with my request and adjust accordingly
 
   Background:
-    Given the SpaceX API base URL is "https://api.spacexdata.com/v4"
+    Given the SpaceX "Launches" API is available
 
   @Smoke @GET @404 @Resource
   Scenario: Handle 404 for non-existent resource by valid endpoint

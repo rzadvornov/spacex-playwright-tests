@@ -45,6 +45,7 @@ export class DragonsAPI extends APIBase {
 
   /**
    * Implements the abstract method for generic GET requests.
+   * @param id The resource ID for a detail request, or undefined for a list request.
    */
   public async makeGetRequest(id: string | undefined): Promise<void> {
     if (id === undefined) {
@@ -56,11 +57,22 @@ export class DragonsAPI extends APIBase {
 
   /**
    * Implements the abstract method for generic POST requests.
+   * @param _endpoint The specific path (should be 'query' for filtering).
+   * @param body The JSON payload for the query.
    */
   public async makePostRequest(
     _endpoint: string,
     body: string | object
   ): Promise<void> {
     await this.queryDragons(body);
+  }
+
+  /**
+   * Implements the abstract makeDeleteRequest from APIBase.
+   * Handles DELETE requests for querying dragons.
+   * @param _endpoint The specific path within the service (ignored, as we use the query method).
+   */
+  public makeDeleteRequest(_endpoint: string): Promise<void> {
+    throw new Error("Method not implemented.");
   }
 }

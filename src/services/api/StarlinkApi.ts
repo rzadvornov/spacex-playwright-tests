@@ -97,4 +97,13 @@ export class StarlinkAPI extends APIBase {
   public async makePostRequest(_endpoint: string, body: any): Promise<void> {
     await this.queryStarlinkSatellites(body);
   }
+
+  /**
+   * Implements the abstract makeDeleteRequest from APIBase.
+   * Handles DELETE requests for querying starlinks.
+   * @param _endpoint The specific path within the service (ignored, as we use the query method).
+   */
+  public makeDeleteRequest(_endpoint: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
 }
