@@ -9,4 +9,4 @@ COPY . .
 
 RUN npx playwright install
 
-CMD ["npx", "playwright", "test"]
+CMD ["sh", "-c", "npx bddgen && npx playwright test"]

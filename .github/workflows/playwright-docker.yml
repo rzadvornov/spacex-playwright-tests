@@ -42,10 +42,10 @@ jobs:
     - name: Run tests in Docker
       run: |
         docker run --rm \
-          -e UI_BASE_URL=${{ vars.UI_BASE_URL || 'https://www.spacex.com' }} \
-          -e API_BASE_URL=${{ vars.API_BASE_URL || 'https://api.spacexdata.com/v4' }} \
+          -e UI_BASE_URL=https://www.spacex.com \
+          -e API_BASE_URL=https://api.spacexdata.com/v4 \
           -v $(pwd)/allure-results:/app/allure-results \
-          spacex-playwright-tests
+          spacex-playwright-tests sh -c "npx bddgen && npx playwright test"
 
     - name: Upload Allure results
       uses: actions/upload-artifact@v4
