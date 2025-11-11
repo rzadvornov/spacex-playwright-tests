@@ -15,6 +15,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Debug - List all files
+      run: |
+        echo "=== Repository structure ==="
+        find . -name "*.ts" -type f | grep -E "(StarlinkAPI|APIBase)" | head -20
+        echo "=== Checking specific paths ==="
+        ls -la src/services/ || echo "src/services/ not found"
+        ls -la src/services/api/ || echo "src/services/api/ not found"
+        ls -la src/services/base/ || echo "src/services/base/ not found"  
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
