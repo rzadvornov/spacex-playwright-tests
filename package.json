@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "End-to-End (E2E) automated tests for the SpaceX website using Playwright. Includes UI, API, functionality, and visual regression testing.",
   "scripts": {
-    "test": "npx playwright test"
+    "test": "npx playwright test",
+    "test:docker": "docker build -t spacex-playwright-tests . && docker run --rm spacex-playwright-tests",
+    "bddgen": "npx bddgen",
+    "allure:generate": "allure generate allure-results --clean -o allure-report",
+    "allure:serve": "allure serve allure-results"
   },
   "repository": {
     "type": "git",

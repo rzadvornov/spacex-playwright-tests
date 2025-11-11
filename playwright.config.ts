@@ -35,7 +35,11 @@ export default defineConfig({
     cucumberReporter("html", {
       outputFile: "cucumber-report/playwright-report.html",
     }),
-    ["allure-playwright"],
+    ["allure-playwright", {
+      outputFolder: "allure-results",
+      detail: true,
+      suiteTitle: false
+    }],
   ],
   
   use: {
