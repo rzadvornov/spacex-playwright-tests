@@ -17,7 +17,6 @@ defineBddConfig({
   // The directory where Playwright-BDD will generate the runnable .spec.ts files.
   // This MUST match the 'testDir' in your Playwright configuration.
   outputDir: "./tests",
-  importTestFrom: 'src/fixtures/BddFixtures.ts',
 });
 
 /**
@@ -28,21 +27,24 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  
+  workers: process.env.CI ? 2 : undefined,
+
   reporter: [
     ["list"],
-    ["html", { open: 'never' }],
+    ["html", { open: "never" }],
     cucumberReporter("html", {
       outputFile: "cucumber-report/playwright-report.html",
     }),
-    ["allure-playwright", {
-      outputFolder: "allure-results",
-      detail: true,
-      suiteTitle: false
-    }],
+    [
+      "allure-playwright",
+      {
+        outputFolder: "allure-results",
+        detail: true,
+        suiteTitle: false,
+      },
+    ],
   ],
-  
+
   use: {
     baseURL: process.env.UI_BASE_URL || "https://www.spacex.com",
 
@@ -71,8 +73,8 @@ export default defineConfig({
       use: {
         baseURL: process.env.API_BASE_URL || "https://api.spacexdata.com/v4",
         extraHTTPHeaders: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
+          Accept: "application/json",
+          "Content-Type": "application/json",
         },
       },
       testMatch: "src/features/api/**/*.spec.js",
