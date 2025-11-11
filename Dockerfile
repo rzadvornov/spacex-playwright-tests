@@ -9,7 +9,4 @@ COPY . .
 
 RUN npx playwright install
 
-# Generate BDD test files
-RUN npx bddgen
-
 CMD ["npx", "playwright", "test"]
