@@ -42,24 +42,26 @@ jobs:
       run: |
         docker run --rm spacex-playwright-tests find . -name "*.spec.ts" 2>/dev/null | head -10 || echo "No spec files found in container"
 
-    - name: Run tests in Docker with debug
+    - name: Run tests in Docker step by step
       run: |
+        # Step 1: Check what's in the container
+        docker run --rm spacex-playwright-tests find . -name "*.feature" | head -5
+        
+        # Step 2: Generate BDD files
+        docker run --rm \
+          -v $(pwd)/tests:/app/tests \
+          spacex-playwright-tests npx bddgen
+        
+        # Step 3: Check generated files
+        echo "=== Generated test files ==="
+        find tests -name "*.spec.js" | head -5
+        
+        # Step 4: Run tests
         docker run --rm \
           -e UI_BASE_URL=https://www.spacex.com \
           -e API_BASE_URL=https://api.spacexdata.com/v4 \
           -v $(pwd)/allure-results:/app/allure-results \
-          spacex-playwright-tests sh -c "
-            echo '=== Before bddgen ==='
-            find . -name '*.spec.js' 2>/dev/null | wc -l
-            echo '=== Generating BDD files ==='
-            npx bddgen
-            echo '=== After bddgen ==='
-            find . -name '*.spec.js' 2>/dev/null | wc -l
-            find . -name '*.spec.js' 2>/dev/null | head -10
-            echo '=== Playwright config check ==='
-            npx playwright test --list
-            echo '=== Running tests ==='
-            npx playwright test
+          spacex-playwright-tests npx playwright test
 
     - name: Upload Allure results
       uses: actions/upload-artifact@v4
