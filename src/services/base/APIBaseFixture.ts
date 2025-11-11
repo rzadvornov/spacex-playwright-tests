@@ -8,6 +8,7 @@ import { APIBase } from "./APIBase";
  * without performing any meaningful resource-specific logic.
  */
 export class APIBaseFixture extends APIBase {
+  
   constructor(request: APIRequestContext) {
     super(request);
   }
@@ -26,10 +27,17 @@ export class APIBaseFixture extends APIBase {
     throw new Error("Cannot make a generic POST request on APIBaseFixture.");
   }
 
-  public async makeDeleteRequest(endpoint: string): Promise<void> {
+  public async makeDeleteRequest(_endpoint: string): Promise<void> {
     console.error(
       "APIBaseFixture.makeDeleteRequest should not be called. Use resource-specific APIs."
     );
     throw new Error("Cannot make a generic DELETE request on APIBaseFixture.");
+  }
+
+  public async makeOptionsRequest(_endpoint: string): Promise<void> {
+    console.error(
+      "APIBaseFixture.makeOptionsRequest should not be called. Use resource-specific APIs."
+    );
+    throw new Error("Method not implemented.");
   }
 }

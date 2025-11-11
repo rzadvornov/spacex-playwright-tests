@@ -117,5 +117,11 @@ export abstract class APIBase {
    * Handles DELETE requests.
    * @param endpoint The specific path within the service (e.g., '/launches/123').
    */
-  public abstract makeDeleteRequest(endpoint: string): Promise<void>;
+    public abstract makeDeleteRequest(endpoint: string): Promise<void>;
+    
+  /**
+   * Handles OPTIONS requests.
+   * @param endpoint The specific path within the service (e.g., '/launches/123').
+   */
+  public abstract makeOptionsRequest(endpoint: string): Promise<void>;  
 }

@@ -5,7 +5,7 @@ Feature: API Caching and Headers
   So that my applications can be efficient, secure, and compliant
 
   Background:
-    Given the SpaceX API base URL is "https://api.spacexdata.com/v4"
+    Given the SpaceX "Launches" API is available
 
   @Smoke @GET @Header @Launches
   Scenario: Verify Content-Type header is JSON

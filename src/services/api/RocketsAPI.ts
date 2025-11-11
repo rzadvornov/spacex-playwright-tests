@@ -75,4 +75,15 @@ export class RocketsAPI extends APIBase {
   public makeDeleteRequest(_endpoint: string): Promise<void> {
     throw new Error("Method not implemented.");
   }
+
+  /**
+   * Implements the abstract method for generic OPTIONS requests.
+   * @param endpoint The specific path within the service (e.g., '/cores').
+   */
+  public async makeOptionsRequest(endpoint: string): Promise<void> {
+    this.response = await this.request.fetch(endpoint, {
+      method: 'OPTIONS',
+      headers: this.getDefaultHeaders(),
+    });
+  }
 }

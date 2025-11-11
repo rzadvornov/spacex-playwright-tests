@@ -112,6 +112,7 @@ import { APIIntegrationSteps } from "../../step-definitions/api/APIIntegrationSt
 import { APIFilteringSteps } from "../../step-definitions/api/APIFilteringSteps";
 import { APIErrorHandlingSteps } from "../../step-definitions/api/APIErrorHandlingSteps";
 import { APIDataValidationSteps } from "../../step-definitions/api/APIDataValidationSteps";
+import { APIHeadersAndCachingSteps } from "../../step-definitions/api/APIHeadersAndCachingSteps";
 
 export type CoreRequirement = Element & Requirement;
 export type CoreValue = Element & Value;
@@ -903,6 +904,7 @@ export interface BddFixtures {
   apiFilteringSteps: APIFilteringSteps;
   apiErrorHandlingSteps: APIErrorHandlingSteps;
   apiDataValidationSteps: APIDataValidationSteps;
+  apiHeadersAndCachingSteps: APIHeadersAndCachingSteps;
   timelineContentSteps: TimelineContentSteps;
   timelineCoreSteps: TimelineCoreSteps;
   timelineNavigationSteps: TimelineNavigationSteps;
