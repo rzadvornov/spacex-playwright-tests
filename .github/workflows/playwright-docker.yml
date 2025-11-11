@@ -30,9 +30,9 @@ jobs:
       run: |
         npx bddgen
         echo "=== Generated test files ==="
-        find tests -name "*.spec.ts" | head -10
+        find tests -name "*.spec.js" | head -10
         echo "=== Test count ==="
-        find tests -name "*.spec.ts" | wc -l
+        find tests -name "*.spec.js" | wc -l
 
     - name: Build Docker image
       run: |
@@ -42,7 +42,7 @@ jobs:
       run: |
         docker run --rm spacex-playwright-tests find . -name "*.spec.ts" 2>/dev/null | head -10 || echo "No spec files found in container"
 
-    - name: Run tests in Docker with detailed output
+    - name: Run tests in Docker with debug
       run: |
         docker run --rm \
           -e UI_BASE_URL=https://www.spacex.com \
@@ -50,12 +50,12 @@ jobs:
           -v $(pwd)/allure-results:/app/allure-results \
           spacex-playwright-tests sh -c "
             echo '=== Before bddgen ==='
-            find . -name '*.spec.ts' 2>/dev/null | wc -l
+            find . -name '*.spec.js' 2>/dev/null | wc -l
             echo '=== Generating BDD files ==='
             npx bddgen
             echo '=== After bddgen ==='
-            find . -name '*.spec.ts' 2>/dev/null | wc -l
-            find . -name '*.spec.ts' 2>/dev/null | head -10
+            find . -name '*.spec.js' 2>/dev/null | wc -l
+            find . -name '*.spec.js' 2>/dev/null | head -10
             echo '=== Playwright config check ==='
             npx playwright test --list
             echo '=== Running tests ==='
