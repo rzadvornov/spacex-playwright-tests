@@ -55,14 +55,13 @@ jobs:
         distribution: 'temurin'
         java-version: '11'
 
-    - name: Install Allure
+    - name: Install Allure Commandline
       run: |
-        sudo apt-get update
-        sudo apt-get install -y allure
+        npm install -g allure-commandline
 
     - name: Generate Allure report
       run: |
-        allure generate allure-results --clean -o allure-report
+        npx allure generate allure-results --clean -o allure-report
 
     - name: Setup Pages
       uses: actions/configure-pages@v4
