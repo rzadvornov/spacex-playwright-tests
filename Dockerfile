@@ -15,5 +15,5 @@ RUN npx playwright install --with-deps && npx bddgen
 # Create allure results directory with proper permissions
 RUN mkdir -p allure-results && chmod 777 allure-results
 
-# Add debug command and run tests with more verbose output
-CMD ["sh", "-c", "echo '=== Starting tests ===' && npx playwright test --reporter=list,allure-playwright --verbose && echo '=== Tests completed ===' && echo '=== Allure results contents ===' && ls -la allure-results/ && echo '=== File count ===' && find allure-results -name '*.json' | wc -l"]
+# Add debug command and run tests with proper options
+CMD ["sh", "-c", "echo '=== Starting tests ===' && npx playwright test --reporter=list && echo '=== Tests completed ===' && echo '=== Allure results contents ===' && ls -la allure-results/ && echo '=== File details ===' && find allure-results -name '*.json' -exec echo 'File: {} - Size: ' -exec wc -c {} \\; && echo '=== First file content sample ===' && find allure-results -name '*.json' | head -1 | xargs head -5"]
