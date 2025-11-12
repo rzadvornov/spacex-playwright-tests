@@ -1,6 +1,6 @@
 import { APIResponse, defineConfig, devices, expect } from "@playwright/test";
 import { cucumberReporter, defineBddConfig } from "playwright-bdd";
-import { z } from 'zod';
+import { z } from "zod";
 
 // Extend Playwright expect with schema validation
 expect.extend({
@@ -63,9 +63,13 @@ export default defineConfig({
     [
       "allure-playwright",
       {
-        outputFolder: "/app/allure-results",
+        outputFolder: "allure-results",
         detail: true,
         suiteTitle: false,
+        environmentInfo: {
+          os_platform: process.platform,
+          node_version: process.version,
+        },
       },
     ],
   ],
