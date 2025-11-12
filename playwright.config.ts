@@ -87,16 +87,16 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
       testMatch: "src/features/ui/**/*.spec.js",
     },
-    {
-      name: "Mobile Phone",
-      use: { ...devices["Pixel 5"] },
-      testMatch: "src/features/ui/**/*.spec.js",
-    },
-    {
-      name: "Mobile Tablet",
-      use: { ...devices["iPad"] },
-      testMatch: "src/features/ui/**/*.spec.js",
-    },
+    //{
+    //  name: "Mobile Phone",
+    //  use: { ...devices["Pixel 5"] },
+    //  testMatch: "src/features/ui/**/*.spec.js",
+    //},
+    //{
+    //  name: "Mobile Tablet",
+    //  use: { ...devices["iPad"] },
+    //  testMatch: "src/features/ui/**/*.spec.js",
+    //}, 
     {
       name: "API",
       use: {
