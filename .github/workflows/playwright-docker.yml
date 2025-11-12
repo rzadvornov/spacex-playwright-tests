@@ -30,6 +30,7 @@ jobs:
             spacex-playwright-tests
 
       - name: Debug Allure results structure
+        if: always()
         run: |
           echo "=== Allure results directory ==="
           ls -la allure-results/ || echo "No allure results directory"
