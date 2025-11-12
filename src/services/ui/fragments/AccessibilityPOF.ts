@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import { ElementAccessibilityInfo, MediaAccessibilityInfo } from "../../utils/types/Types";
+import { ElementAccessibilityInfo, MediaAccessibilityInfo } from "../../../utils/types/Types";
 
 export class AccessibilityPOF {
   readonly page: Page;

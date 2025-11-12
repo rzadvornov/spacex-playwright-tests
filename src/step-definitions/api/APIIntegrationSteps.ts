@@ -1,9 +1,9 @@
 import { expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { APISharedSteps } from "./APISharedSteps";
-import { CoreSchema } from "../../services/schemas/LaunchesSchemas";
-import { LaunchpadSchema } from "../../services/schemas/LaunchpadsSchemas";
-import { RocketSchema } from "../../services/schemas/RocketSchemas";
+import { CoreSchema } from "../../services/api/schemas/CoresSchemas";
+import { LaunchpadSchema } from "../../services/api/schemas/LaunchpadsSchemas";
+import { RocketSchema } from "../../services/api/schemas/RocketSchemas";
 import { formatZodError } from "../../utils/ZodErrorFormatter";
 
 @Fixture("apiIntegrationSteps")

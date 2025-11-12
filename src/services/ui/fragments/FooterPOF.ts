@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import { BoundingBox } from "../../utils/types/Types";
+import { BoundingBox } from "../../../utils/types/Types";
 
 export class FooterPOF {
   readonly footer: Locator;

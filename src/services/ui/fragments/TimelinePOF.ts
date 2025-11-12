@@ -1,6 +1,6 @@
 import { Locator, Page } from "@playwright/test";
-import { BasePage } from "../base/BasePage";
-import { Milestone, MobileResponsiveness, CardsConsistency, TextReadability, AccessibilityStatus } from "../../utils/types/Types";
+import { Milestone, MobileResponsiveness, CardsConsistency, TextReadability, AccessibilityStatus } from "../../../utils/types/Types";
+import { BasePage } from "../../base/BasePage";
 
 export class TimelinePOF extends BasePage {
   private static readonly MOBILE_VIEWPORT = { width: 375, height: 812 };

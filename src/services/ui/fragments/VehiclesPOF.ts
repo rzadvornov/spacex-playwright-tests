@@ -1,6 +1,6 @@
 import { Locator, Page } from "@playwright/test";
-import { BasePage } from "../base/BasePage";
-import { VehicleCard, CardSpacing } from "../../utils/types/Types";
+import { VehicleCard, CardSpacing } from "../../../utils/types/Types";
+import { BasePage } from "../../base/BasePage";
 
 export class VehiclesPOF extends BasePage {
   private static readonly MIN_SPACING = 20;

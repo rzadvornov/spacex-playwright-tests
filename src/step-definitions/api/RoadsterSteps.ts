@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 import { Then, Fixture } from "playwright-bdd/decorators";
 import { APISharedSteps } from "./APISharedSteps";
 import { RoadsterAPI } from "../../services/api/RoadsterAPI";
-import { RoadsterSchema } from "../../services/schemas/RoadsterSchemas";
+import { RoadsterSchema } from "../../services/api/schemas/RoadsterSchemas";
 
 @Fixture("roadsterSteps")
 export class RoadsterSteps {

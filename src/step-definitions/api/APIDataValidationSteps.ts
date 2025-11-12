@@ -2,14 +2,12 @@ import { expect } from "@playwright/test";
 import { Then, Fixture } from "playwright-bdd/decorators";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
-import { CapsuleSchema } from "../../services/schemas/CapsulesSchemas";
-import { CrewMemberSchema } from "../../services/schemas/CrewSchemas";
-import {
-  LaunchSchema,
-  CoreSchema,
-} from "../../services/schemas/LaunchesSchemas";
-import { PayloadSchema } from "../../services/schemas/PayloadsSchemas";
-import { RocketSchema } from "../../services/schemas/RocketSchemas";
+import { CapsuleSchema } from "../../services/api/schemas/CapsulesSchemas";
+import { CoreSchema } from "../../services/api/schemas/CoresSchemas";
+import { CrewMemberSchema } from "../../services/api/schemas/CrewSchemas";
+import { LaunchSchema } from "../../services/api/schemas/LaunchesSchemas";
+import { PayloadSchema } from "../../services/api/schemas/PayloadsSchemas";
+import { RocketSchema } from "../../services/api/schemas/RocketSchemas";
 import { formatZodError } from "../../utils/ZodErrorFormatter";
 
 @Fixture("apiDataValidationSteps")

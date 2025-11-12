@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { ShipsAPI } from "../../services/api/ShipsAPI";
 import { APISharedSteps } from "./APISharedSteps";
-import { ShipPaginatedResponseSchema, ShipArraySchema, ShipSchema } from "../../services/schemas/ShipSchemas";
+import { ShipPaginatedResponseSchema, ShipArraySchema, ShipSchema } from "../../services/api/schemas/ShipSchemas";
 
 @Fixture("shipsSteps")
 export class ShipsSteps {

@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import { EarthImageStyles } from "../../utils/types/Types";
+import { EarthImageStyles } from "../../../utils/types/Types";
 
 export class DestinationsPOF {
   private readonly page: Page;

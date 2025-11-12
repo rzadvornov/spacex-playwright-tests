@@ -3,7 +3,8 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { RocketsAPI } from "../../services/api/RocketsAPI";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
-import { RocketPaginatedResponseSchema, RocketArraySchema, RocketSchema, HeightSchema, DiameterSchema, MassSchema, FirstStageSchema, SecondStageSchema, EnginesSchema, PayloadWeightSchema, LandingLegsSchema } from "../../services/schemas/RocketSchemas";
+import { MassSchema } from "../../services/api/schemas/DragonsSchemas";
+import { RocketPaginatedResponseSchema, RocketArraySchema, RocketSchema, HeightSchema, DiameterSchema, FirstStageSchema, SecondStageSchema, EnginesSchema, PayloadWeightSchema, LandingLegsSchema } from "../../services/api/schemas/RocketSchemas";
 
 @Fixture("rocketsSteps")
 export class RocketsSteps {

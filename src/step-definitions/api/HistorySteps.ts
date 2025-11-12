@@ -3,8 +3,8 @@ import { When, Then, Fixture } from "playwright-bdd/decorators";
 import { HistoryAPI } from "../../services/api/HistoryAPI";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
-import { HistoryPaginatedResponseSchema, HistoryArraySchema, HistoryEventSchema } from "../../services/schemas/HistorySchemas";
-import { LinksSchema } from "../../services/schemas/LaunchesSchemas";
+import { LinksSchema } from "../../services/api/schemas/CompanySchemas";
+import { HistoryPaginatedResponseSchema, HistoryArraySchema, HistoryEventSchema } from "../../services/api/schemas/HistorySchemas";
 
 @Fixture("historySteps")
 export class HistorySteps {

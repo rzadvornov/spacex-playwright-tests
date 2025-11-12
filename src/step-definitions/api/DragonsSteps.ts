@@ -3,9 +3,9 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { DragonsAPI } from "../../services/api/DragonsAPI";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
-import { DragonPaginatedResponseSchema, DragonArraySchema, HeatShieldSchema, ThrusterSchema, PressurizedCapsuleSchema, TrunkSchema, CargoSchema } from "../../services/schemas/DragonsSchemas";
-import { DragonSchema } from "../../services/schemas/PayloadsSchemas";
-import { ThrustSchema } from "../../services/schemas/RocketSchemas";
+import { DragonPaginatedResponseSchema, DragonArraySchema, HeatShieldSchema, ThrusterSchema, PressurizedCapsuleSchema, TrunkSchema, CargoSchema } from "../../services/api/schemas/DragonsSchemas";
+import { DragonSchema } from "../../services/api/schemas/PayloadsSchemas";
+import { ThrustSchema } from "../../services/api/schemas/RocketSchemas";
 
 @Fixture("dragonsSteps")
 export class DragonsSteps {

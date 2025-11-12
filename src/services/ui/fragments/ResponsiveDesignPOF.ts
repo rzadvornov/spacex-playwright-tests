@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import { ResponsiveChecks, InteractionPatterns, LayoutTransitions, PerformanceMetrics, AssetOptimization, AccessibilityCompliance, ResponsiveImages, MobileRequirements, CarouselResponsiveness, SectionAdaptation, FooterResponsiveness, TabletLayout } from "../../utils/types/Types";
+import { ResponsiveChecks, InteractionPatterns, LayoutTransitions, PerformanceMetrics, AssetOptimization, AccessibilityCompliance, ResponsiveImages, MobileRequirements, CarouselResponsiveness, SectionAdaptation, FooterResponsiveness, TabletLayout } from "../../../utils/types/Types";
 
 export class ResponsiveDesignPOF {
   private static readonly MIN_TOUCH_TARGET_SIZE = 44;

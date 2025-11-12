@@ -3,8 +3,8 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { CapsulesAPI } from "../../services/api/CapsulesAPI";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
-import { CapsuleQueryResponseSchema, SingleCapsuleResponseSchema, CapsuleSchema } from "../../services/schemas/CapsulesSchemas";
 import { formatZodError } from "../../utils/ZodErrorFormatter";
+import { CapsuleQueryResponseSchema, SingleCapsuleResponseSchema, CapsuleSchema } from "../../services/api/schemas/CapsulesSchemas";
 
 @Fixture("capsulesSteps")
 export class CapsulesSteps {

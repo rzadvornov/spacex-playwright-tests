@@ -3,8 +3,8 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { CoresAPI } from "../../services/api/CoresAPI";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
-import { CoreQueryResponseSchema, CoreSchema, SingleCoreResponseSchema } from "../../services/schemas/CoresSchemas";
 import { formatZodError } from "../../utils/ZodErrorFormatter";
+import { CoreSchema, CoreQueryResponseSchema, SingleCoreResponseSchema } from "../../services/api/schemas/CoresSchemas";
 
 @Fixture("coresSteps")
 export class CoresSteps {

@@ -3,7 +3,8 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { LaunchpadsAPI } from "../../services/api/LaunchpadsAPI";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
-import { LaunchpadPaginatedResponseSchema, LaunchpadArraySchema, LaunchpadSchema, LocationSchema, StatusSchema } from "../../services/schemas/LaunchpadsSchemas";
+import { LocationSchema, StatusSchema } from "../../services/api/schemas/LandpadsSchemas";
+import { LaunchpadPaginatedResponseSchema, LaunchpadArraySchema, LaunchpadSchema } from "../../services/api/schemas/LaunchpadsSchemas";
 
 @Fixture("launchpadsSteps")
 export class LaunchpadsSteps {

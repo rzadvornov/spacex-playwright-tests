@@ -1,9 +1,10 @@
 import { expect } from "@playwright/test";
 import { When, Then, Fixture } from "playwright-bdd/decorators";
 import { APISharedSteps } from "./APISharedSteps";
-import { CapsuleSchema } from "../../services/schemas/CapsulesSchemas";
-import { CrewMemberSchema } from "../../services/schemas/CrewSchemas";
-import { LaunchSchema, CoreSchema } from "../../services/schemas/LaunchesSchemas";
+import { CapsuleSchema } from "../../services/api/schemas/CapsulesSchemas";
+import { CoreSchema } from "../../services/api/schemas/CoresSchemas";
+import { CrewMemberSchema } from "../../services/api/schemas/CrewSchemas";
+import { LaunchSchema } from "../../services/api/schemas/LaunchesSchemas";
 import { formatZodError } from "../../utils/ZodErrorFormatter";
 
 @Fixture("apiFilteringSteps")

@@ -4,9 +4,9 @@ import { APISharedSteps } from "./APISharedSteps";
 import { CompanyAPI } from "../../services/api/CompanyAPI";
 import { APIBase } from "../../services/base/APIBase";
 import z from "zod";
-import { CompanyInfoSchema, HeadquartersSchema } from "../../services/schemas/CompanySchemas";
-import { LinksSchema } from "../../services/schemas/LaunchesSchemas";
 import { formatZodError } from "../../utils/ZodErrorFormatter";
+import { CompanyInfoSchema, HeadquartersSchema } from "../../services/api/schemas/CompanySchemas";
+import { LinksSchema } from "../../services/api/schemas/LaunchesSchemas";
 
 @Fixture("companySteps")
 export class CompanySteps {

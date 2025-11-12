@@ -1,6 +1,6 @@
 import { Page } from "@playwright/test";
-import { PerformanceMetrics, ImageInfo, ResourceInfo, HeadingInfo, LinkInfo, DuplicateContentResult, MobileOptimizationResult, AccessibilityResult } from "../../utils/types/Types";
 import StatusCode from "status-code-enum";
+import { PerformanceMetrics, ImageInfo, ResourceInfo, HeadingInfo, LinkInfo, DuplicateContentResult, MobileOptimizationResult, AccessibilityResult } from "../../../utils/types/Types";
 
 export class PerformanceSEOPOF {
   readonly page: Page;

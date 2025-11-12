@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import { MissionMetric, MissionTab } from "../../utils/types/Types";
+import { MissionTab, MissionMetric } from "../../../utils/types/Types";
 
 export class OurMissionsPOF {
   readonly page: Page;

@@ -4,8 +4,8 @@ import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPa
 import { ViewportUtility } from "../../../../utils/ViewportUtility";
 import { DataTable } from "playwright-bdd";
 import { MissionMetric } from "../../../../utils/types/Types";
-import { OurMissionsPOF } from "../../../../services/fragments/OurMissionsPOF";
 import { parseMissionMetrics, parseNavigationRequirements } from "../../../../utils/types/TypeGuards";
+import { OurMissionsPOF } from "../../../../services/ui/fragments/OurMissionsPOF";
 
 @Fixture("ourMissionsSteps")
 export class OurMissionsSteps {

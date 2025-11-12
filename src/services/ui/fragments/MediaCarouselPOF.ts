@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test";
-import { MediaTile } from "../../utils/types/Types";
+import { MediaTile } from "../../../utils/types/Types";
 
 export class MediaCarouselPOF {
   readonly page: Page;

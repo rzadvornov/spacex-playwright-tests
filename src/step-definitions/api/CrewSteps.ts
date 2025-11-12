@@ -3,8 +3,8 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { CrewAPI } from "../../services/api/CrewAPI";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
-import { CrewQueryResponseSchema, SingleCrewResponseSchema, CrewMemberSchema } from "../../services/schemas/CrewSchemas";
 import { formatZodError } from "../../utils/ZodErrorFormatter";
+import { CrewMemberSchema, CrewQueryResponseSchema, SingleCrewResponseSchema } from "../../services/api/schemas/CrewSchemas";
 
 const mongoIdRegex = /^[0-9a-fA-F]{24}$/;
 

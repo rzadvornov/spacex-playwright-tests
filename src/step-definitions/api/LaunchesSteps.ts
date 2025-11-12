@@ -3,7 +3,9 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { LaunchesAPI } from "../../services/api/LaunchesAPI";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
-import { LaunchSchema, LaunchPaginatedResponseSchema, LaunchArraySchema, CoreSchema, LinksSchema, FailureSchema, FairingsSchema } from "../../services/schemas/LaunchesSchemas";
+import { LinksSchema } from "../../services/api/schemas/CompanySchemas";
+import { CoreSchema } from "../../services/api/schemas/CoresSchemas";
+import { LaunchSchema, LaunchPaginatedResponseSchema, LaunchArraySchema, FailureSchema, FairingsSchema } from "../../services/api/schemas/LaunchesSchemas";
 
 @Fixture("launchesSteps")
 export class LaunchesSteps {

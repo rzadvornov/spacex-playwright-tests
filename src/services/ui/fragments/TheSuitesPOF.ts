@@ -1,6 +1,6 @@
 import { Locator, Page } from "@playwright/test";
-import { BasePage } from "../base/BasePage";
-import { Position, HotspotDistribution } from "../../utils/types/Types";
+import { Position, HotspotDistribution } from "../../../utils/types/Types";
+import { BasePage } from "../../base/BasePage";
 
 export class TheSuitesPOF extends BasePage {
   private static readonly CALLOUT_WAIT_TIME = 200;

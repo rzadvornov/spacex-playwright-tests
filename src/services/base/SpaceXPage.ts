@@ -1,7 +1,7 @@
 import { BasePage } from "../base/BasePage";
 import { Page, Locator } from "@playwright/test";
-import { HeaderPOF } from "../fragments/HeaderPOF";
-import { FooterPOF } from "../fragments/FooterPOF";
+import { FooterPOF } from "../ui/fragments/FooterPOF";
+import { HeaderPOF } from "../ui/fragments/HeaderPOF";
 
 export abstract class SpaceXPage extends BasePage {
   readonly header: HeaderPOF;

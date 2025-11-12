@@ -3,7 +3,8 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { PayloadsAPI } from "../../services/api/PayloadsAPI";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
-import { PayloadPaginatedResponseSchema, PayloadArraySchema, PayloadSchema, DragonSchema } from "../../services/schemas/PayloadsSchemas";
+import { DragonSchema } from "../../services/api/schemas/DragonsSchemas";
+import { PayloadPaginatedResponseSchema, PayloadArraySchema, PayloadSchema } from "../../services/api/schemas/PayloadsSchemas";
 
 @Fixture("payloadsSteps")
 export class PayloadsSteps {

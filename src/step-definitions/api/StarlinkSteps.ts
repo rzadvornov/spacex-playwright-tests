@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { APISharedSteps } from "./APISharedSteps";
 import { StarlinkAPI } from "../../services/api/StarlinkAPI";
-import { StarlinkPaginatedResponseSchema, StarlinkArraySchema, StarlinkSatelliteSchema, SpaceTrackSchema } from "../../services/schemas/StarlinkSchemas";
+import { StarlinkPaginatedResponseSchema, StarlinkArraySchema, StarlinkSatelliteSchema, SpaceTrackSchema } from "../../services/api/schemas/StarlinkSchemas";
 
 @Fixture("starlinkSteps")
 export class StarlinkSteps {

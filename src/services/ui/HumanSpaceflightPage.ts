@@ -1,15 +1,15 @@
 import { Page } from "@playwright/test";
-import { AccessibilityPOF } from "../fragments/AccessibilityPOF";
-import { DestinationsPOF } from "../fragments/DestinationsPOF";
-import { HeroPOF } from "../fragments/HeroPOF";
-import { MediaCarouselPOF } from "../fragments/MediaCarouselPOF";
-import { OurMissionsPOF } from "../fragments/OurMissionsPOF";
-import { PerformanceSEOPOF } from "../fragments/PerformanceSEOPOF";
-import { ResponsiveDesignPOF } from "../fragments/ResponsiveDesignPOF";
-import { TheSuitesPOF } from "../fragments/TheSuitesPOF";
-import { TimelinePOF } from "../fragments/TimelinePOF";
-import { VehiclesPOF } from "../fragments/VehiclesPOF";
 import { SpaceXPage } from "../base/SpaceXPage";
+import { AccessibilityPOF } from "./fragments/AccessibilityPOF";
+import { DestinationsPOF } from "./fragments/DestinationsPOF";
+import { HeroPOF } from "./fragments/HeroPOF";
+import { MediaCarouselPOF } from "./fragments/MediaCarouselPOF";
+import { OurMissionsPOF } from "./fragments/OurMissionsPOF";
+import { PerformanceSEOPOF } from "./fragments/PerformanceSEOPOF";
+import { ResponsiveDesignPOF } from "./fragments/ResponsiveDesignPOF";
+import { TheSuitesPOF } from "./fragments/TheSuitesPOF";
+import { TimelinePOF } from "./fragments/TimelinePOF";
+import { VehiclesPOF } from "./fragments/VehiclesPOF";
 
 export class HumanSpaceflightPage extends SpaceXPage {
   readonly hero: HeroPOF;

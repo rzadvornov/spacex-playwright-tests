@@ -2,12 +2,12 @@ import { expect } from "@playwright/test";
 import { Then, Fixture, When } from "playwright-bdd/decorators";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
-import { CapsuleQueryResponseSchema } from "../../services/schemas/CapsulesSchemas";
-import { CoreQueryResponseSchema } from "../../services/schemas/CoresSchemas";
-import { CrewQueryResponseSchema } from "../../services/schemas/CrewSchemas";
-import { LaunchPaginatedResponseSchema } from "../../services/schemas/LaunchesSchemas";
-import { RocketPaginatedResponseSchema } from "../../services/schemas/RocketSchemas";
 import { formatZodError } from "../../utils/ZodErrorFormatter";
+import { CapsuleQueryResponseSchema } from "../../services/api/schemas/CapsulesSchemas";
+import { CoreQueryResponseSchema } from "../../services/api/schemas/CoresSchemas";
+import { CrewQueryResponseSchema } from "../../services/api/schemas/CrewSchemas";
+import { LaunchPaginatedResponseSchema } from "../../services/api/schemas/LaunchesSchemas";
+import { RocketPaginatedResponseSchema } from "../../services/api/schemas/RocketSchemas";
 
 @Fixture("apiPaginationSteps")
 export class APIPaginationSteps {

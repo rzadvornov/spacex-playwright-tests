@@ -2,12 +2,12 @@ import { expect } from "@playwright/test";
 import { Then, Fixture } from "playwright-bdd/decorators";
 import { DataTable } from "playwright-bdd";
 import { HumanSpaceflightPage } from "../../../../services/ui/HumanSpaceflightPage";
-import { OurMissionsPOF } from "../../../../services/fragments/OurMissionsPOF";
 import { CoreElement, StructureCheck } from "../../../../utils/types/Types";
 import {
   parseCoreElements,
   parseStructureChecks,
 } from "../../../../utils/types/TypeGuards";
+import { OurMissionsPOF } from "../../../../services/ui/fragments/OurMissionsPOF";
 
 @Fixture("ourMissionsContentSteps")
 export class OurMissionsContentSteps {
