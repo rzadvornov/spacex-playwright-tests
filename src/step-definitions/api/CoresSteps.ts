@@ -3,6 +3,8 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { CoresAPI } from "../../services/api/CoresAPI";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
+import { CoreQueryResponseSchema, CoreSchema, SingleCoreResponseSchema } from "../../services/schemas/CoresSchemas";
+import { formatZodError } from "../../utils/ZodErrorFormatter";
 
 @Fixture("coresSteps")
 export class CoresSteps {
@@ -27,6 +29,28 @@ export class CoresSteps {
     this.coresAPI = this.sharedSteps.activeAPI as CoresAPI;
 
     await this.coresAPI.queryCores(queryBody);
+  }
+
+  @Then("the response should match the core query schema")
+  public async thenResponseShouldMatchCoreQuerySchema(): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    
+    const result = CoreQueryResponseSchema.safeParse(body);
+    expect(
+      result.success,
+      `Response does not match core query schema: ${result.success ? '' : formatZodError(result.error)}`
+    ).toBeTruthy();
+  }
+
+  @Then("the response should match the single core schema")
+  public async thenResponseShouldMatchSingleCoreSchema(): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    
+    const result = SingleCoreResponseSchema.safeParse(body);
+    expect(
+      result.success,
+      `Response does not match single core schema: ${result.success ? '' : formatZodError(result.error)}`
+    ).toBeTruthy();
   }
 
   @Then("all core results should have {string} equal to {string}")
@@ -155,6 +179,41 @@ export class CoresSteps {
       expect(
         conditionMet,
         `Expected core ${field} (${actualValue}) to satisfy the condition ${operator} ${expectedValue}, but it did not.`
+      ).toBeTruthy();
+    }
+  }
+
+  @Then("each core should have valid schema")
+  public async thenEachCoreShouldHaveValidSchema(): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    const cores = body.docs || [body];
+
+    for (const [index, core] of cores.entries()) {
+      const result = CoreSchema.safeParse(core);
+      expect(
+        result.success,
+        `Core at index ${index} has invalid schema: ${result.success ? '' : formatZodError(result.error)}`
+      ).toBeTruthy();
+    }
+  }
+
+  @Then("each core should have required properties")
+  public async thenEachCoreShouldHaveRequiredProperties(): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    const cores = body.docs || [body];
+
+    for (const [index, core] of cores.entries()) {
+      const result = CoreSchema.pick({
+        id: true,
+        serial: true,
+        status: true,
+        reuse_count: true,
+        launches: true
+      }).safeParse(core);
+      
+      expect(
+        result.success,
+        `Core at index ${index} missing required properties: ${result.success ? '' : formatZodError(result.error)}`
       ).toBeTruthy();
     }
   }

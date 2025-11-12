@@ -1,6 +1,10 @@
 import { expect } from "@playwright/test";
 import { When, Then, Fixture } from "playwright-bdd/decorators";
 import { APISharedSteps } from "./APISharedSteps";
+import { CapsuleSchema } from "../../services/schemas/CapsulesSchemas";
+import { CrewMemberSchema } from "../../services/schemas/CrewSchemas";
+import { LaunchSchema, CoreSchema } from "../../services/schemas/LaunchesSchemas";
+import { formatZodError } from "../../utils/ZodErrorFormatter";
 
 @Fixture("apiFilteringSteps")
 export class APIFilteringSteps {
@@ -249,4 +253,26 @@ export class APIFilteringSteps {
       previousValue = currentValue;
     }
   }
+
+  @Then("all filtered results should match the {string} schema")
+public async thenAllFilteredResultsShouldMatchSchema(schemaName: string): Promise<void> {
+  const results = await this.getResultsArray();
+  
+  const schemaMap: { [key: string]: any } = {
+    'launch': LaunchSchema,
+    'core': CoreSchema,
+    'capsule': CapsuleSchema,
+    'crew': CrewMemberSchema
+  };
+  
+  const schema = schemaMap[schemaName.toLowerCase()];
+  
+  for (const [index, item] of results.entries()) {
+    const result = schema.safeParse(item);
+    expect(
+      result.success,
+      `Filtered item at index ${index} does not match ${schemaName} schema: ${result.success ? '' : formatZodError(result.error)}`
+    ).toBeTruthy();
+  }
+}
 }

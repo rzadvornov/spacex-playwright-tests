@@ -2,6 +2,12 @@ import { expect } from "@playwright/test";
 import { Then, Fixture, When } from "playwright-bdd/decorators";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
+import { CapsuleQueryResponseSchema } from "../../services/schemas/CapsulesSchemas";
+import { CoreQueryResponseSchema } from "../../services/schemas/CoresSchemas";
+import { CrewQueryResponseSchema } from "../../services/schemas/CrewSchemas";
+import { LaunchPaginatedResponseSchema } from "../../services/schemas/LaunchesSchemas";
+import { RocketPaginatedResponseSchema } from "../../services/schemas/RocketSchemas";
+import { formatZodError } from "../../utils/ZodErrorFormatter";
 
 @Fixture("apiPaginationSteps")
 export class APIPaginationSteps {
@@ -172,4 +178,26 @@ export class APIPaginationSteps {
         ).toBeTruthy();
     }
   }
+
+  @Then("the paginated response should match the {string} query schema")
+public async thenPaginatedResponseShouldMatchQuerySchema(schemaName: string): Promise<void> {
+  const body = await this.sharedSteps.activeAPI.getResponseBody();
+  
+  const schemaMap: { [key: string]: any } = {
+    'launch': LaunchPaginatedResponseSchema,
+    'core': CoreQueryResponseSchema,
+    'capsule': CapsuleQueryResponseSchema,
+    'crew': CrewQueryResponseSchema,
+    'rocket': RocketPaginatedResponseSchema
+  };
+  
+  const schema = schemaMap[schemaName.toLowerCase()];
+  expect(schema, `Unknown pagination schema: ${schemaName}`).toBeDefined();
+  
+  const result = schema.safeParse(body);
+  expect(
+    result.success,
+    `Paginated response does not match ${schemaName} query schema: ${result.success ? '' : formatZodError(result.error)}`
+  ).toBeTruthy();
+}
 }

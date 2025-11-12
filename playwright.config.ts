@@ -1,5 +1,30 @@
-import { defineConfig, devices } from "@playwright/test";
+import { APIResponse, defineConfig, devices, expect } from "@playwright/test";
 import { cucumberReporter, defineBddConfig } from "playwright-bdd";
+import { z } from 'zod';
+
+// Extend Playwright expect with schema validation
+expect.extend({
+  async toMatchSchema(received: APIResponse, schema: z.ZodType) {
+    const response = await received.json();
+    const result = await schema.safeParseAsync(response);
+    if (result.success) {
+      return {
+        message: () => "schema matched",
+        pass: true,
+      };
+    } else {
+      return {
+        message: () =>
+          "Result does not match schema: " +
+          result.error.issues.map((issue) => issue.message).join("\n") +
+          "\n" +
+          "Details: " +
+          JSON.stringify(result.error, null, 2),
+        pass: false,
+      };
+    }
+  },
+});
 
 defineBddConfig({
   // Specify the paths to your Gherkin Feature files (.feature)
@@ -38,7 +63,7 @@ export default defineConfig({
     [
       "allure-playwright",
       {
-        outputFolder: "allure-results",
+        outputFolder: "/app/allure-results",
         detail: true,
         suiteTitle: false,
       },

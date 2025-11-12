@@ -9,7 +9,7 @@ Feature: SpaceX Capsules API
 
   @Smoke @GET @List
   Scenario: Retrieve the list of all Capsules
-    When I make a GET request to "/"
+    When I make a GET request to "/capsules"
     Then the response status code should be 200
     And the response should be a valid JSON array
     And each response item should have the following properties: "id, serial, type, status"
@@ -30,7 +30,7 @@ Feature: SpaceX Capsules API
 
   @Regression @POST @Query @Filter
   Scenario Outline: Filter Capsules by common criteria (type, status, land_attempts)
-    When I make a POST request to "query" with query:
+    When I make a POST request to "/capsules/query" with query:
       """
       {
         "query": {
@@ -50,7 +50,7 @@ Feature: SpaceX Capsules API
 
   @Regression @POST @Query @Range
   Scenario: Filter Capsules by successful land attempts (greater than 0)
-    When I make a POST request to "query" with query:
+    When I make a POST request to "/capsules/query" with query:
       """
       {
         "query": {

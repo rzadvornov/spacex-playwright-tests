@@ -3,6 +3,7 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { LaunchesAPI } from "../../services/api/LaunchesAPI";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
+import { LaunchSchema, LaunchPaginatedResponseSchema, LaunchArraySchema, CoreSchema, LinksSchema, FailureSchema, FairingsSchema } from "../../services/schemas/LaunchesSchemas";
 
 @Fixture("launchesSteps")
 export class LaunchesSteps {
@@ -45,6 +46,11 @@ export class LaunchesSteps {
 
   @Then("the field {string} should be a valid ISO 8601 timestamp")
   public async thenFieldShouldBeAValidISO8601Timestamp(field: string): Promise<void> {
+    const response = this.sharedSteps.activeAPI.getResponse();
+    expect(response).toBeTruthy();
+    
+    await expect(response).toMatchSchema(LaunchSchema);
+    
     const body = await this.sharedSteps.activeAPI.getResponseBody();
     const timestamp = body[field];
 
@@ -88,7 +94,16 @@ export class LaunchesSteps {
   }
 
   private async validateLaunchesMatch(field: string, valueToMatch: any): Promise<void> {
+    const response = this.sharedSteps.activeAPI.getResponse();
+    expect(response).toBeTruthy();
+    
     const body = await this.sharedSteps.activeAPI.getResponseBody();
+    if (body.docs) {
+      await expect(response).toMatchSchema(LaunchPaginatedResponseSchema);
+    } else {
+      await expect(response).toMatchSchema(LaunchArraySchema);
+    }
+
     const launches = body.docs || body;
 
     expect(
@@ -97,6 +112,9 @@ export class LaunchesSteps {
     ).toBeTruthy();
 
     for (const launch of launches) {
+      const validationResult = LaunchSchema.safeParse(launch);
+      expect(validationResult.success, `Launch validation failed: ${!validationResult.success ? JSON.stringify(validationResult.error.issues) : ''}`).toBeTruthy();
+      
       expect(
         launch,
         `Launch item is missing the field: ${field}`
@@ -113,7 +131,16 @@ export class LaunchesSteps {
     field: string,
     order: "asc" | "desc"
   ): Promise<void> {
+    const response = this.sharedSteps.activeAPI.getResponse();
+    expect(response).toBeTruthy();
+    
     const body = await this.sharedSteps.activeAPI.getResponseBody();
+    if (body.docs) {
+      await expect(response).toMatchSchema(LaunchPaginatedResponseSchema);
+    } else {
+      await expect(response).toMatchSchema(LaunchArraySchema);
+    }
+
     const launches = body.docs || body;
 
     expect(
@@ -159,7 +186,16 @@ export class LaunchesSteps {
     field: string,
     expectedValueString: string
   ): Promise<void> {
+    const response = this.sharedSteps.activeAPI.getResponse();
+    expect(response).toBeTruthy();
+    
     const body = await this.sharedSteps.activeAPI.getResponseBody();
+    if (body.docs) {
+      await expect(response).toMatchSchema(LaunchPaginatedResponseSchema);
+    } else {
+      await expect(response).toMatchSchema(LaunchArraySchema);
+    }
+
     const results = (Array.isArray(body) ? body : body.docs) || [];
 
     expect(
@@ -170,6 +206,9 @@ export class LaunchesSteps {
     const expectedValue = expectedValueString.toLowerCase() === 'true';
 
     for (const item of results) {
+      const validationResult = LaunchSchema.safeParse(item);
+      expect(validationResult.success, `Launch item validation failed: ${!validationResult.success ? JSON.stringify(validationResult.error.issues) : ''}`).toBeTruthy();
+      
       expect(
         item,
         `Result item is missing the boolean field: ${field}`
@@ -186,6 +225,211 @@ export class LaunchesSteps {
         actualValue,
         `Expected item ${field} to be ${expectedValue}, but got ${actualValue}`
       ).toEqual(expectedValue);
+    }
+  }
+
+  @Then("the response should match the launch schema")
+  public async thenResponseShouldMatchLaunchSchema(): Promise<void> {
+    const response = this.sharedSteps.activeAPI.getResponse();
+    expect(response).toBeTruthy();
+    await expect(response).toMatchSchema(LaunchSchema);
+  }
+
+  @Then("the response should match the launches array schema")
+  public async thenResponseShouldMatchLaunchesArraySchema(): Promise<void> {
+    const response = this.sharedSteps.activeAPI.getResponse();
+    expect(response).toBeTruthy();
+    await expect(response).toMatchSchema(LaunchArraySchema);
+  }
+
+  @Then("the response should match the paginated launches schema")
+  public async thenResponseShouldMatchPaginatedLaunchesSchema(): Promise<void> {
+    const response = this.sharedSteps.activeAPI.getResponse();
+    expect(response).toBeTruthy();
+    await expect(response).toMatchSchema(LaunchPaginatedResponseSchema);
+  }
+
+  @Then("each launch should have valid core information")
+  public async thenEachLaunchShouldHaveValidCoreInformation(): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    
+    let launches;
+    if (body.docs) {
+      launches = body.docs;
+    } else {
+      launches = Array.isArray(body) ? body : [body];
+    }
+
+    for (const launch of launches) {
+      expect(launch.cores).toBeDefined();
+      expect(Array.isArray(launch.cores)).toBeTruthy();
+      
+      for (const core of launch.cores) {
+        const coreValidation = CoreSchema.safeParse(core);
+        expect(coreValidation.success, `Core validation failed for launch ${launch.name}: ${!coreValidation.success ? JSON.stringify(coreValidation.error.issues) : ''}`).toBeTruthy();
+        
+        if (core.core) {
+          expect(typeof core.core).toBe("string");
+          expect(core.core.length).toBeGreaterThan(0);
+        }
+        
+        if (core.flight !== null && core.flight !== undefined) {
+          expect(typeof core.flight).toBe("number");
+          expect(core.flight).toBeGreaterThanOrEqual(0);
+        }
+      }
+    }
+  }
+
+  @Then("each launch should have valid links and media")
+  public async thenEachLaunchShouldHaveValidLinksAndMedia(): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    
+    let launches;
+    if (body.docs) {
+      launches = body.docs;
+    } else {
+      launches = Array.isArray(body) ? body : [body];
+    }
+
+    for (const launch of launches) {
+      const linksValidation = LinksSchema.safeParse(launch.links);
+      expect(linksValidation.success, `Links validation failed for launch ${launch.name}: ${!linksValidation.success ? JSON.stringify(linksValidation.error.issues) : ''}`).toBeTruthy();
+
+      if (launch.links.patch?.small || launch.links.patch?.large) {
+        expect(launch.links.patch.small).toMatch(/^https?:\/\//);
+        expect(launch.links.patch.large).toMatch(/^https?:\/\//);
+      }
+
+      if (launch.links.reddit) {
+        if (launch.links.reddit.campaign) {
+          expect(launch.links.reddit.campaign).toMatch(/^https?:\/\//);
+        }
+        if (launch.links.reddit.launch) {
+          expect(launch.links.reddit.launch).toMatch(/^https?:\/\//);
+        }
+      }
+
+      if (launch.links.presskit) {
+        expect(launch.links.presskit).toMatch(/^https?:\/\//);
+      }
+      if (launch.links.article) {
+        expect(launch.links.article).toMatch(/^https?:\/\//);
+      }
+      if (launch.links.wikipedia) {
+        expect(launch.links.wikipedia).toMatch(/^https?:\/\//);
+      }
+    }
+  }
+
+  @Then("each launch should have valid failure information when applicable")
+  public async thenEachLaunchShouldHaveValidFailureInformation(): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    
+    let launches;
+    if (body.docs) {
+      launches = body.docs;
+    } else {
+      launches = Array.isArray(body) ? body : [body];
+    }
+
+    for (const launch of launches) {
+      if (!launch.success && launch.failures && launch.failures.length > 0) {
+        for (const failure of launch.failures) {
+          const failureValidation = FailureSchema.safeParse(failure);
+          expect(failureValidation.success, `Failure validation failed for launch ${launch.name}: ${!failureValidation.success ? JSON.stringify(failureValidation.error.issues) : ''}`).toBeTruthy();
+          
+          expect(failure.time).toBeGreaterThanOrEqual(0);
+          expect(failure.altitude).toBeGreaterThanOrEqual(0);
+          expect(failure.reason.length).toBeGreaterThan(0);
+        }
+      }
+    }
+  }
+
+  @Then("each launch should have valid fairings information")
+  public async thenEachLaunchShouldHaveValidFairingsInformation(): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    
+    let launches;
+    if (body.docs) {
+      launches = body.docs;
+    } else {
+      launches = Array.isArray(body) ? body : [body];
+    }
+
+    for (const launch of launches) {
+      if (launch.fairings) {
+        const fairingsValidation = FairingsSchema.safeParse(launch.fairings);
+        expect(fairingsValidation.success, `Fairings validation failed for launch ${launch.name}: ${!fairingsValidation.success ? JSON.stringify(fairingsValidation.error.issues) : ''}`).toBe(true);
+
+        if (launch.fairings.recovery_attempt !== null) {
+          expect(typeof launch.fairings.recovery_attempt).toBe("boolean");
+        }
+        if (launch.fairings.recovered !== null) {
+          expect(typeof launch.fairings.recovered).toBe("boolean");
+        }
+        if (launch.fairings.ships) {
+          expect(Array.isArray(launch.fairings.ships)).toBeTruthy();
+          for (const ship of launch.fairings.ships) {
+            expect(typeof ship).toBe("string");
+            expect(ship.length).toBeGreaterThan(0);
+          }
+        }
+      }
+    }
+  }
+
+  @Then("each launch should have valid payload information")
+  public async thenEachLaunchShouldHaveValidPayloadInformation(): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    
+    let launches;
+    if (body.docs) {
+      launches = body.docs;
+    } else {
+      launches = Array.isArray(body) ? body : [body];
+    }
+
+    for (const launch of launches) {
+      expect(launch.payloads).toBeDefined();
+      expect(Array.isArray(launch.payloads)).toBeTruthy();
+      
+      if (launch.payloads.length > 0) {
+        for (const payload of launch.payloads) {
+          expect(typeof payload).toBe("string");
+          expect(payload.length).toBeGreaterThan(0);
+          expect(payload).toMatch(/^[a-f0-9]{24}$/);
+        }
+      }
+    }
+  }
+
+  @Then("each launch should have valid rocket and launchpad information")
+  public async thenEachLaunchShouldHaveValidRocketAndLaunchpadInformation(): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    
+    let launches;
+    if (body.docs) {
+      launches = body.docs;
+    } else {
+      launches = Array.isArray(body) ? body : [body];
+    }
+
+    for (const launch of launches) {
+      expect(launch.rocket).toBeDefined();
+      expect(typeof launch.rocket).toBe("string");
+      expect(launch.rocket.length).toBeGreaterThan(0);
+      expect(launch.rocket).toMatch(/^[a-f0-9]{24}$/);
+
+      expect(launch.launchpad).toBeDefined();
+      expect(typeof launch.launchpad).toBe("string");
+      expect(launch.launchpad.length).toBeGreaterThan(0);
+      expect(launch.launchpad).toMatch(/^[a-f0-9]{24}$/);
+
+      expect(launch.flight_number).toBeDefined();
+      expect(typeof launch.flight_number).toBe("number");
+      expect(launch.flight_number).toBeGreaterThan(0);
     }
   }
 }

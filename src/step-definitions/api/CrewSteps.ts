@@ -3,13 +3,14 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { CrewAPI } from "../../services/api/CrewAPI";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
+import { CrewQueryResponseSchema, SingleCrewResponseSchema, CrewMemberSchema } from "../../services/schemas/CrewSchemas";
+import { formatZodError } from "../../utils/ZodErrorFormatter";
 
 const mongoIdRegex = /^[0-9a-fA-F]{24}$/;
 
 @Fixture("crewSteps")
 export class CrewSteps {
   private crewAPI!: CrewAPI;
-  
 
   constructor(private sharedSteps: APISharedSteps) {}
 
@@ -47,6 +48,28 @@ export class CrewSteps {
     this.crewAPI = this.sharedSteps.activeAPI as CrewAPI;
 
     await this.crewAPI.queryCrew(queryBody);
+  }
+
+  @Then("the response should match the crew query schema")
+  public async thenResponseShouldMatchCrewQuerySchema(): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    
+    const result = CrewQueryResponseSchema.safeParse(body);
+    expect(
+      result.success,
+      `Response does not match crew query schema: ${result.success ? '' : formatZodError(result.error)}`
+    ).toBeTruthy();
+  }
+
+  @Then("the response should match the single crew member schema")
+  public async thenResponseShouldMatchSingleCrewSchema(): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    
+    const result = SingleCrewResponseSchema.safeParse(body);
+    expect(
+      result.success,
+      `Response does not match single crew member schema: ${result.success ? '' : formatZodError(result.error)}`
+    ).toBeTruthy();
   }
 
   @Then("the field {string} should be a non-empty array")
@@ -90,10 +113,16 @@ export class CrewSteps {
 
   @Then("each crew member should have: id, name, agency, status")
   public async thenEachCrewMemberShouldHaveStandardProperties(): Promise<void> {
-    const properties = ["id", "name", "agency", "status"];
-    await this.sharedSteps.thenEachResponseItemShouldHaveProperties(
-      properties.join(", ")
-    );
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    const crewMembers = body.docs || [body];
+
+    for (const member of crewMembers) {
+      const result = CrewMemberSchema.pick({ id: true, name: true, agency: true, status: true }).safeParse(member);
+      expect(
+        result.success,
+        `Crew member missing required fields: ${result.success ? '' : formatZodError(result.error)}`
+      ).toBeTruthy();
+    }
   }
 
   @Then("the crew member ID should match the requested ID")
@@ -159,7 +188,6 @@ export class CrewSteps {
       `Expected 'launches' to be an array, but got ${typeof launches}`
     ).toBeTruthy();
     
-    const mongoIdRegex = /^[0-9a-fA-F]{24}$/;
     for (const launchId of launches) {
       expect(
         typeof launchId,
@@ -169,6 +197,20 @@ export class CrewSteps {
         launchId,
         `Launch ID '${launchId}' does not match expected MongoDB ID format.`
       ).toMatch(mongoIdRegex);
+    }
+  }
+
+  @Then("all crew members should have valid schema")
+  public async thenAllCrewMembersShouldHaveValidSchema(): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+    const crewMembers = body.docs || [body];
+
+    for (const [index, member] of crewMembers.entries()) {
+      const result = CrewMemberSchema.safeParse(member);
+      expect(
+        result.success,
+        `Crew member at index ${index} has invalid schema: ${result.success ? '' : formatZodError(result.error)}`
+      ).toBeTruthy();
     }
   }
 }

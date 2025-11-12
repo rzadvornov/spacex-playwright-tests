@@ -25,7 +25,11 @@ jobs:
           -e UI_BASE_URL=https://www.spacex.com \
           -e API_BASE_URL=https://api.spacexdata.com/v4 \
           -v $(pwd)/allure-results:/app/allure-results \
+          -w /app \
           spacex-playwright-tests
+
+    - name: List Allure results (for debugging)
+      run: ls -la allure-results/ || echo "No allure results found"
 
     - name: Upload Allure results
       uses: actions/upload-artifact@v4
@@ -49,6 +53,9 @@ jobs:
       with:
         name: allure-results
 
+    - name: List downloaded results
+      run: find . -name "*.json" -o -name "*.xml" | head -10 || echo "No test results found"
+
     - name: Setup Java for Allure
       uses: actions/setup-java@v4
       with:
@@ -57,7 +64,7 @@ jobs:
 
     - name: Install Allure Commandline
       run: |
-        npm install -g allure-commandline
+        sudo npm install -g allure-commandline
 
     - name: Generate Allure report
       run: |

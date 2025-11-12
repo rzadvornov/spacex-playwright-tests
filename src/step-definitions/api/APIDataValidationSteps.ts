@@ -2,6 +2,15 @@ import { expect } from "@playwright/test";
 import { Then, Fixture } from "playwright-bdd/decorators";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
+import { CapsuleSchema } from "../../services/schemas/CapsulesSchemas";
+import { CrewMemberSchema } from "../../services/schemas/CrewSchemas";
+import {
+  LaunchSchema,
+  CoreSchema,
+} from "../../services/schemas/LaunchesSchemas";
+import { PayloadSchema } from "../../services/schemas/PayloadsSchemas";
+import { RocketSchema } from "../../services/schemas/RocketSchemas";
+import { formatZodError } from "../../utils/ZodErrorFormatter";
 
 @Fixture("apiDataValidationSteps")
 export class APIDataValidationSteps {
@@ -188,5 +197,58 @@ export class APIDataValidationSteps {
   public async thenLaunchShouldHaveNonNullDateUtc(): Promise<void> {
     await this.thenEachItemShouldHaveNonNullField("date_utc");
   }
-  
+
+  @Then("the response should match the {string} schema")
+  public async thenResponseShouldMatchSchema(
+    schemaName: string
+  ): Promise<void> {
+    const body = await this.sharedSteps.activeAPI.getResponseBody();
+
+    const schemaMap: { [key: string]: any } = {
+      launch: LaunchSchema,
+      core: CoreSchema,
+      capsule: CapsuleSchema,
+      crew: CrewMemberSchema,
+      rocket: RocketSchema,
+      payload: PayloadSchema,
+    };
+
+    const schema = schemaMap[schemaName.toLowerCase()];
+    expect(schema, `Unknown schema: ${schemaName}`).toBeDefined();
+
+    const result = schema.safeParse(body);
+    expect(
+      result.success,
+      `Response does not match ${schemaName} schema: ${
+        result.success ? "" : formatZodError(result.error)
+      }`
+    ).toBeTruthy();
+  }
+
+  @Then("all items should match the {string} schema")
+  public async thenAllItemsShouldMatchSchema(
+    schemaName: string
+  ): Promise<void> {
+    const results = await this.getResultsArray();
+
+    const schemaMap: { [key: string]: any } = {
+      launch: LaunchSchema,
+      core: CoreSchema,
+      capsule: CapsuleSchema,
+      crew: CrewMemberSchema,
+    };
+
+    const schema = schemaMap[schemaName.toLowerCase()];
+    expect(schema, `Unknown schema: ${schemaName}`).toBeDefined();
+
+    for (const [index, item] of results.entries()) {
+      const result = schema.safeParse(item);
+      expect(
+        result.success,
+        `Item at index ${index} does not match ${schemaName} schema: ${
+          result.success ? "" : formatZodError(result.error)
+        }`
+      ).toBeTruthy();
+    }
+  }
 }

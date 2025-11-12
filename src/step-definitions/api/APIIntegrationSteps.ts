@@ -1,6 +1,10 @@
 import { expect } from "@playwright/test";
 import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { APISharedSteps } from "./APISharedSteps";
+import { CoreSchema } from "../../services/schemas/LaunchesSchemas";
+import { LaunchpadSchema } from "../../services/schemas/LaunchpadsSchemas";
+import { RocketSchema } from "../../services/schemas/RocketSchemas";
+import { formatZodError } from "../../utils/ZodErrorFormatter";
 
 @Fixture("apiIntegrationSteps")
 export class APIIntegrationSteps {
@@ -140,8 +144,14 @@ export class APIIntegrationSteps {
   @Then("the rocket data should be valid")
   public async thenTheRocketDataShouldBeValid(): Promise<void> {
     expect(this.rocketData, "Rocket data is null or undefined.").toBeDefined();
-    expect(this.rocketData).toHaveProperty("id");
-    expect(this.rocketData).toHaveProperty("name");
+
+    const result = RocketSchema.safeParse(this.rocketData);
+    expect(
+      result.success,
+      `Rocket data is invalid: ${
+        result.success ? "" : formatZodError(result.error)
+      }`
+    ).toBeTruthy();
   }
 
   @Then("the rocket ID in the launch and the retrieved rocket ID should match")
@@ -166,10 +176,14 @@ export class APIIntegrationSteps {
       "No core data was retrieved."
     ).toBeGreaterThan(0);
 
-    for (const core of this.coresData) {
-      expect(core, "Core data item is null or undefined.").toBeDefined();
-      expect(core).toHaveProperty("id");
-      expect(core).toHaveProperty("serial");
+    for (const [index, core] of this.coresData.entries()) {
+      const result = CoreSchema.safeParse(core);
+      expect(
+        result.success,
+        `Core at index ${index} is invalid: ${
+          result.success ? "" : formatZodError(result.error)
+        }`
+      ).toBeTruthy();
     }
   }
 
@@ -195,8 +209,14 @@ export class APIIntegrationSteps {
       this.launchpadData,
       "Launchpad data is null or undefined."
     ).toBeDefined();
-    expect(this.launchpadData).toHaveProperty("id");
-    expect(this.launchpadData).toHaveProperty("full_name");
+
+    const result = LaunchpadSchema.safeParse(this.launchpadData);
+    expect(
+      result.success,
+      `Launchpad data is invalid: ${
+        result.success ? "" : formatZodError(result.error)
+      }`
+    ).toBeTruthy();
   }
 
   @Then("the launchpad should list the launch ID")
