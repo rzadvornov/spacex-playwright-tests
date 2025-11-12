@@ -1,10 +1,10 @@
 # SpaceX Playwright Test Automation Suite
 
-> Comprehensive test automation framework for SpaceX API and UI using Playwright, TypeScript, and Cucumber BDD.
+> Comprehensive test automation framework for SpaceX API and UI using Playwright, TypeScript, and Playwright-BDD.
 
 [![Playwright](https://img.shields.io/badge/Playwright-45ba4b?style=flat&logo=playwright&logoColor=white)](https://playwright.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Cucumber](https://img.shields.io/badge/Cucumber-23D96C?style=flat&logo=cucumber&logoColor=white)](https://cucumber.io/)
+[![Playwright-BDD](https://img.shields.io/badge/Playwright--BDD-23D96C?style=flat&logo=cucumber&logoColor=white)](https://github.com/vitalets/playwright-bdd)
 
 ## 📋 Table of Contents
 
@@ -20,13 +20,14 @@
 
 ## ✨ Features
 
-- **BDD Framework**: Cucumber integration with Gherkin syntax for readable test scenarios
+- **BDD Framework**: Playwright-BDD integration with Gherkin syntax for readable test scenarios
 - **API Testing**: Comprehensive SpaceX API endpoint validation
 - **UI Testing**: End-to-end browser automation for SpaceX web applications
-- **Multiple Reporters**: HTML, Allure, and Cucumber JSON reports
+- **Multiple Reporters**: HTML, Allure, and JSON reports
 - **Parallel Execution**: Configurable parallel test execution for faster feedback
 - **TypeScript**: Fully typed codebase for better IDE support and fewer runtime errors
 - **CI/CD Ready**: Easily integrable with continuous integration pipelines
+- **Native Playwright Integration**: Leverages Playwright's full feature set with BDD syntax
 
 ## 🏗 Architecture & Design Patterns
 
@@ -158,7 +159,7 @@ spacex-playwright-tests/
 │   │   └── base/              # Base/Abstract classes
 │   │       ├── APIBase.ts
 │   │       └── PageBase.ts
-│   ├── step-definitions/      # Cucumber step implementations
+│   ├── step-definitions/      # Playwright-BDD step implementations
 │   │   ├── api/               # API step definitions
 │   │   │   ├── APISharedSteps.ts
 │   │   │   └── ...
@@ -169,8 +170,8 @@ spacex-playwright-tests/
 │       │   ├── FilterStrategyFactory.ts
 │       │   └── ...
 │       └── helpers/           # Common helper functions
+├── .features-gen/             # Auto-generated Playwright tests from features
 ├── playwright.config.ts       # Playwright configuration
-├── cucumber.config.ts         # Cucumber configuration
 ├── tsconfig.json             # TypeScript configuration
 ├── package.json              # Dependencies and scripts
 └── README.md                 # This file
@@ -201,6 +202,12 @@ Before you begin, ensure you have the following installed:
    ```bash
    npx playwright install
    ```
+
+4. **Generate Playwright tests from feature files**:
+   ```bash
+   npm run bdd-generate
+   ```
+   This command generates Playwright test files from your Gherkin feature files into the `.features-gen/` directory.
 
 ## 🧪 Running Tests
 
@@ -240,6 +247,11 @@ npx playwright test --project=webkit
 npx playwright test --debug
 ```
 
+### Run with UI Mode (Playwright's Interactive Mode)
+```bash
+npx playwright test --ui
+```
+
 ### Generate and View HTML Report
 ```bash
 npx playwright show-report
@@ -263,6 +275,21 @@ The main configuration file is [`playwright.config.ts`](playwright.config.ts). Y
 - **Reporting options**: HTML, Allure, JSON, etc.
 - **Screenshot and video capture**: On failure, always, or never
 
+### Playwright-BDD Configuration
+Playwright-BDD is configured within `playwright.config.ts` using the `defineBddConfig` helper:
+
+```typescript
+import { defineBddConfig } from 'playwright-bdd';
+
+export default defineConfig({
+  testDir: defineBddConfig({
+    features: 'src/features/**/*.feature',
+    steps: 'src/step-definitions/**/*.ts',
+  }),
+  // ... other Playwright config
+});
+```
+
 ### Environment Variables
 Create a `.env` file in the root directory:
 
@@ -274,7 +301,7 @@ WORKERS=4
 ```
 
 ### Test Tags
-Use Cucumber tags to organize and filter tests:
+Use Gherkin tags to organize and filter tests:
 
 ```gherkin
 @api @smoke
@@ -290,6 +317,7 @@ Run tests by tag:
 ```bash
 npx playwright test --grep "@smoke"
 npx playwright test --grep "@critical"
+npx playwright test --grep-invert "@skip"  # Skip tests with @skip tag
 ```
 
 ## 📊 Reporting
@@ -302,6 +330,12 @@ npx playwright show-report
 ```
 Generated at: `playwright-report/index.html`
 
+Features:
+- Interactive test results viewer
+- Screenshots and traces on failure
+- Detailed timing information
+- Filter by status, project, and file
+
 ### Allure Report
 ```bash
 # Generate Allure results
@@ -311,13 +345,66 @@ npm run test
 npx allure serve allure-results
 ```
 
-### Cucumber JSON Report
-Located at: `cucumber-report/cucumber-report.json`
+Features:
+- Comprehensive test execution overview
+- Historical trends
+- Test categorization
+- Detailed failure analysis
 
-Can be used with various Cucumber report generators.
+### JSON Report
+Configured in `playwright.config.ts`:
+```typescript
+reporter: [['json', { outputFile: 'test-results.json' }]]
+```
+
+### Playwright-BDD Cucumber Report
+Playwright-BDD automatically generates Cucumber-compatible JSON reports that can be used with various Cucumber report generators.
 
 ### CI/CD Integration
-Reports are automatically generated in CI/CD pipelines and can be published as artifacts.
+Reports are automatically generated in CI/CD pipelines and can be published as artifacts:
+
+```yaml
+# Example GitHub Actions workflow
+- name: Upload test results
+  uses: actions/upload-artifact@v3
+  if: always()
+  with:
+    name: playwright-report
+    path: playwright-report/
+```
+
+## 🔄 Workflow
+
+### Adding a New Test
+
+1. **Create a feature file** in `src/features/`:
+   ```gherkin
+   Feature: New Feature
+     @smoke
+     Scenario: Test scenario name
+       Given precondition
+       When action
+       Then expected result
+   ```
+
+2. **Implement step definitions** in `src/step-definitions/`:
+   ```typescript
+   import { Given, When, Then } from '@cucumber/cucumber';
+   
+   Given('precondition', async function() {
+     // Implementation
+   });
+   ```
+
+3. **Generate Playwright tests**:
+   ```bash
+   npm run bdd-generate
+   ```
+
+4. **Run tests**:
+   ```bash
+   npm test
+   ```
 
 ## 🤝 Contributing
 
@@ -335,6 +422,14 @@ Contributions are welcome! Please follow these guidelines:
 - Maintain the existing design patterns
 - Add comments for complex logic
 - Update documentation as needed
+- Run `npm run bdd-generate` after modifying feature files
+- Ensure all tests pass before submitting PR
+
+### Pull Request Process
+1. Update the README.md with details of changes if applicable
+2. Ensure all tests pass: `npm test`
+3. Update documentation for any new features
+4. The PR will be merged once reviewed and approved
 
 ## 📝 License
 
@@ -343,8 +438,15 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🙏 Acknowledgments
 
 - [Playwright](https://playwright.dev/) - Modern web testing framework
-- [Cucumber](https://cucumber.io/) - BDD framework
+- [Playwright-BDD](https://github.com/vitalets/playwright-bdd) - BDD framework for Playwright
 - [SpaceX API](https://github.com/r-spacex/SpaceX-API) - Open-source REST API
+
+## 📚 Additional Resources
+
+- [Playwright Documentation](https://playwright.dev/docs/intro)
+- [Playwright-BDD Documentation](https://vitalets.github.io/playwright-bdd/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+- [Gherkin Syntax](https://cucumber.io/docs/gherkin/reference/)
 
 ---
 
