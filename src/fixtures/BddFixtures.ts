@@ -69,7 +69,6 @@ import { VehicleBaseSteps } from "../step-definitions/ui/humanspaceflight/vehicl
 import { VehiclePerformanceSteps } from "../step-definitions/ui/humanspaceflight/vehicle/VehiclePerformanceSteps";
 import { HumanSpaceflightCoreSteps } from "../step-definitions/ui/humanspaceflight/HumanSpaceflightCoreSteps";
 import { HumanSpaceflightHeaderSteps } from "../step-definitions/ui/humanspaceflight/HumanSpaceflightHeaderSteps";
-import { HumanSpaceflightInteractionSteps } from "../step-definitions/ui/humanspaceflight/HumanSpaceflightInteractionSteps";
 import { HumanSpaceflightMobileSteps } from "../step-definitions/ui/humanspaceflight/HumanSpaceflightMobileSteps";
 import { HumanSpaceflightPerformanceSteps } from "../step-definitions/ui/humanspaceflight/HumanSpaceflightPerformanceSteps";
 import { HomePageCoreSteps } from "../step-definitions/ui/home/HomePageCoreSteps";
@@ -147,8 +146,8 @@ export const test = base.extend<
     { scope: "test" },
   ],
   assertionHelper: [
-    async ({ page }, use) => {
-      const helper = new AssertionHelper(page);
+    async ({}, use) => {
+      const helper = new AssertionHelper();
       await use(helper);
     },
     { scope: "test" },
@@ -615,14 +614,6 @@ export const test = base.extend<
         humanSpaceflightPage
       );
       await use(humanSpaceflightHeaderSteps);
-    },
-    { scope: "test" },
-  ],
-  humanSpaceflightInteractionSteps: [
-    async ({ page, humanSpaceflightPage }, use) => {
-      const humanSpaceflightInteractionSteps =
-        new HumanSpaceflightInteractionSteps(page, humanSpaceflightPage);
-      await use(humanSpaceflightInteractionSteps);
     },
     { scope: "test" },
   ],

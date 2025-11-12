@@ -197,9 +197,10 @@ export class DestinationsSteps {
       await this.humanSpaceflightPage.destinations.hasDestinationSvgCircleOverlay(
         destinationName
       );
-    expect(hasSvgOverlay, `${destinationName} should have SVG overlay`).toBe(
-      true
-    );
+    expect(
+      hasSvgOverlay,
+      `${destinationName} should have SVG overlay`
+    ).toBeTruthy();
   }
 
   @Then("visual elements should maintain quality across screen sizes")

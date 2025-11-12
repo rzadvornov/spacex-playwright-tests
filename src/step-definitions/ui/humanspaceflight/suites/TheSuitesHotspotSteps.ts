@@ -109,11 +109,7 @@ export class TheSuitesHotspotSteps {
   ): Promise<void> {
     const count = await this.humanSpaceflightPage.theSuites.getHotspotCount();
 
-    for (
-      let i = 0;
-      i < Math.min(count, 3); // Sample 3 hotspots
-      i++
-    ) {
+    for (let i = 0; i < Math.min(count, 3); i++) {
       await this.humanSpaceflightPage.theSuites.hoverHotspot(i);
       await this.page.waitForTimeout(200);
       const calloutText =

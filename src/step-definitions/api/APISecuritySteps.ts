@@ -2,6 +2,7 @@ import { expect } from "@playwright/test";
 import { Then, Fixture, When } from "playwright-bdd/decorators";
 import { APISharedSteps } from "./APISharedSteps";
 import { APIBase } from "../../services/base/APIBase";
+import StatusCode from "status-code-enum";
 
 @Fixture("apiSecuritySteps")
 export class APISecuritySteps {
@@ -32,7 +33,7 @@ export class APISecuritySteps {
     expect(
       status,
       `Received a server error (${status}), which should not happen if the request payload was handled gracefully.`
-    ).toBeLessThan(500);
+    ).toBeLessThan(StatusCode.ServerErrorInternal);
   }
 
   @Then("the request should be handled safely by the API")
@@ -43,16 +44,16 @@ export class APISecuritySteps {
     expect(
       status,
       `Expected request to be handled safely (non-5xx error), but received server error ${status} (${statusMessage}).`
-    ).toBeLessThan(500);
+    ).toBeLessThan(StatusCode.ServerErrorInternal);
   }
 
   @Then("no database operations should be executed outside the query scope")
   public async thenNoDatabaseOperationsOutsideQueryScope(): Promise<void> {
     const status = await this.sharedSteps.activeAPI.getStatusCode();
     const body = await this.sharedSteps.activeAPI.getResponseBody();
-    expect(status).not.toBe(201);
+    expect(status).not.toBe(StatusCode.SuccessCreated);
 
-    if (status === 200) {
+    if (status === StatusCode.SuccessOK) {
       const results = Array.isArray(body) ? body : body.docs;
 
       expect(
@@ -69,12 +70,12 @@ export class APISecuritySteps {
     expect(
       status,
       `Expected graceful handling (4xx status), but received server error ${status}.`
-    ).toBeLessThan(500);
+    ).toBeLessThan(StatusCode.ServerErrorInternal);
 
     expect(
       status,
       `Expected a client error (400 or 422) for type mismatch, but received success status ${status}.`
-    ).not.toBeGreaterThan(299);
+    ).not.toBeGreaterThan(StatusCode.RedirectMultipleChoices);
   }
 
   @When("I make a POST request to create a new launch at {string}")
@@ -102,7 +103,7 @@ export class APISecuritySteps {
     const statusMessage = this.sharedSteps.activeAPI.getResponse()?.statusText;
 
     expect(
-      [404, 405],
+      [StatusCode.ClientErrorNotFound, StatusCode.ClientErrorMethodNotAllowed],
       `Expected rejection status 404 or 405, but received ${status} (${statusMessage}).`
     ).toContain(status);
   }

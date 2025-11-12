@@ -1,5 +1,6 @@
 import { Page } from "@playwright/test";
 import { PerformanceMetrics, ImageInfo, ResourceInfo, HeadingInfo, LinkInfo, DuplicateContentResult, MobileOptimizationResult, AccessibilityResult } from "../../utils/types/Types";
+import StatusCode from "status-code-enum";
 
 export class PerformanceSEOPOF {
   readonly page: Page;
@@ -110,7 +111,7 @@ export class PerformanceSEOPOF {
             size: resource.decodedBodySize || 0,
             transferSize: resource.transferSize || 0,
             protocol: resource.nextHopProtocol,
-            status: 200,
+            status: StatusCode.SuccessOK,
           })
         );
     });
@@ -133,7 +134,7 @@ export class PerformanceSEOPOF {
             size: resource.decodedBodySize || 0,
             transferSize: resource.transferSize || 0,
             protocol: resource.nextHopProtocol,
-            status: 200,
+            status: StatusCode.SuccessOK,
           })
         );
     });

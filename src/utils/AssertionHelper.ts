@@ -3,7 +3,7 @@ import { expect, Page } from "@playwright/test";
 type AsyncCheckMethod = () => Promise<boolean>;
 
 export class AssertionHelper {
-  constructor(private page: Page) {}
+  constructor() {}
 
   async validateBooleanCheck(
     checkMethod: AsyncCheckMethod,

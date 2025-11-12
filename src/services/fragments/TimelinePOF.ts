@@ -363,7 +363,6 @@ export class TimelinePOF extends BasePage {
 
     await this.advanceCarousel();
     const afterForwardDot = await this.getActivePaginationDotIndex();
-    const afterForwardCard = await this.getActiveMilestone();
 
     await this.navigateBack();
     const afterBackwardDot = await this.getActivePaginationDotIndex();

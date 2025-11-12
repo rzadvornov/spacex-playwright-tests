@@ -4,6 +4,7 @@ import { StarshieldPage } from "../../../services/ui/StarshieldPage";
 import { SharedContext } from "../../../utils/types/Types";
 import { AssertionHelper } from "../../../utils/AssertionHelper";
 import { ViewportUtility } from "../../../utils/ViewportUtility";
+import StatusCode from "status-code-enum";
 
 @Fixture("starshieldNavigationSteps")
 export class StarshieldNavigationSteps {
@@ -172,7 +173,7 @@ export class StarshieldNavigationSteps {
   async userClicksOnBrokenLink() {
     await this.page.route("**/broken-link", (route) => {
       route.fulfill({
-        status: 404,
+        status: StatusCode.ClientErrorNotFound,
         body: "Not Found",
       });
     });
@@ -241,7 +242,7 @@ export class StarshieldNavigationSteps {
   async externalLinkTargetIsUnavailable() {
     await this.page.route("**://external-site.com/**", (route) => {
       route.fulfill({
-        status: 500,
+        status: StatusCode.ServerErrorInternal,
         body: "Service Unavailable",
       });
     });

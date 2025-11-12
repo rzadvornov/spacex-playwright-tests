@@ -3,6 +3,7 @@ import { Given, When, Then, Fixture } from "playwright-bdd/decorators";
 import { StarshieldPage } from "../../../services/ui/StarshieldPage";
 import { SharedContext } from "../../../utils/types/Types";
 import { AssertionHelper } from "../../../utils/AssertionHelper";
+import StatusCode from "status-code-enum";
 
 @Fixture("starshieldErrorHandlingSteps")
 export class StarshieldErrorHandlingSteps {
@@ -104,7 +105,7 @@ export class StarshieldErrorHandlingSteps {
   async anApiCallFailsOrTimesOut() {
     await this.page.route("**/api/v1/dynamic-content*", (route) => {
       route.fulfill({
-        status: 504,
+        status: StatusCode.ServerErrorGatewayTimeout,
         body: "API service unavailable",
       });
     });
@@ -192,7 +193,7 @@ export class StarshieldErrorHandlingSteps {
   async dynamicContentFailsToLoad() {
     await this.page.route("**/api/v1/dynamic-content*", (route) => {
       route.fulfill({
-        status: 504,
+        status: StatusCode.ServerErrorGatewayTimeout,
         body: "API service unavailable",
       });
     });
@@ -269,7 +270,7 @@ export class StarshieldErrorHandlingSteps {
   async videoFailsToLoadOrIsUnavailable() {
     await this.page.route("**/*.mp4", (route) => {
       route.fulfill({
-        status: 404,
+        status: StatusCode.ClientErrorNotFound,
         body: "Video not found",
       });
     });

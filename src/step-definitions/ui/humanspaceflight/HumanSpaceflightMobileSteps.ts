@@ -9,6 +9,7 @@ import { parseMobileActions } from "../../../utils/types/TypeGuards";
 @Fixture("humanSpaceflightMobileSteps")
 export class HumanSpaceflightMobileSteps {
   private readonly MOBILE_VIEWPORT = { width: 375, height: 812 };
+  private readonly SCROLL_DELAY = 500;
   private readonly NAVIGATION_LINKS = [
     "Vehicles",
     "Launches",
@@ -145,6 +146,39 @@ export class HumanSpaceflightMobileSteps {
     await this.testMobileMenuOpenClose();
     await this.testMobileMenuNavigation();
     await this.testMobileMenuFinalState();
+  }
+
+  @When("I see the scroll-down arrow animation")
+  async checkScrollDownArrowVisible() {
+    const isVisible =
+      await this.humanSpaceflightPage.hero.isScrollDownArrowVisible();
+    expect(isVisible, "Scroll-down arrow should be visible").toBeTruthy();
+  }
+
+  @When("I click on the arrow")
+  async clickScrollDownArrow() {
+    await this.humanSpaceflightPage.hero.clickScrollDownArrow();
+    await this.page.waitForTimeout(this.SCROLL_DELAY);
+  }
+
+  @Then("the page should smoothly scroll to the Media Carousel section")
+  async checkPageScrollsToMediaCarousel() {
+    const isVisible =
+      await this.humanSpaceflightPage.mediaCarousel.isSectionInViewport();
+    expect(
+      isVisible,
+      "Media Carousel section should be in the viewport after scroll"
+    ).toBeTruthy();
+  }
+
+  @Then("the upcoming launches widget should be displayed")
+  async checkUpcomingLaunchesWidget() {
+    const isWidgetVisible =
+      await this.humanSpaceflightPage.ourMissions.isUpcomingLaunchesWidgetVisible();
+    expect(
+      isWidgetVisible,
+      "Upcoming launches widget should be displayed"
+    ).toBeTruthy();
   }
 
   private async testMobileMenuOpenClose(): Promise<void> {

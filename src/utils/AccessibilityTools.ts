@@ -33,9 +33,7 @@ export class AccessibilityTools {
           observers.forEach((observer) => {
             try {
               observer.disconnect();
-            } catch (error) {
-              /* silent */
-            }
+            } catch (error) {}
           });
         };
 

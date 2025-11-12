@@ -337,7 +337,7 @@ export class StarshieldTechnicalSteps {
       const isResponsive = await infographic.evaluate((el) => {
         const computedWidth = el.getBoundingClientRect().width;
         const parentWidth = el.parentElement!.getBoundingClientRect().width;
-        return computedWidth <= parentWidth + 1; // Allow for slight rounding errors
+        return computedWidth <= parentWidth + 1;
       });
       expect(
         isResponsive,

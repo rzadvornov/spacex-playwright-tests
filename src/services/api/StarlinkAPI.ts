@@ -1,5 +1,6 @@
 import { APIRequestContext } from "@playwright/test";
 import { APIBase } from "../base/APIBase";
+import HTTPMethod from "http-method-enum";
 
 /**
  * @class
@@ -113,7 +114,7 @@ export class StarlinkAPI extends APIBase {
    */
   public async makeOptionsRequest(endpoint: string): Promise<void> {
     this.response = await this.request.fetch(endpoint, {
-      method: 'OPTIONS',
+      method: HTTPMethod.OPTIONS,
       headers: this.getDefaultHeaders(),
     });
   }

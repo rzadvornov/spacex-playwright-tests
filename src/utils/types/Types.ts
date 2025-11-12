@@ -67,7 +67,6 @@ import { VehicleBaseSteps } from "../../step-definitions/ui/humanspaceflight/veh
 import { VehiclePerformanceSteps } from "../../step-definitions/ui/humanspaceflight/vehicle/VehiclePerformanceSteps";
 import { HumanSpaceflightCoreSteps } from "../../step-definitions/ui/humanspaceflight/HumanSpaceflightCoreSteps";
 import { HumanSpaceflightHeaderSteps } from "../../step-definitions/ui/humanspaceflight/HumanSpaceflightHeaderSteps";
-import { HumanSpaceflightInteractionSteps } from "../../step-definitions/ui/humanspaceflight/HumanSpaceflightInteractionSteps";
 import { HumanSpaceflightMobileSteps } from "../../step-definitions/ui/humanspaceflight/HumanSpaceflightMobileSteps";
 import { HumanSpaceflightPerformanceSteps } from "../../step-definitions/ui/humanspaceflight/HumanSpaceflightPerformanceSteps";
 import { StarshieldContentSteps } from "../../step-definitions/ui/starshield/StarshieldContentSteps";
@@ -835,7 +834,6 @@ export interface BddFixtures {
   vehiclePerformanceSteps: VehiclePerformanceSteps;
   humanSpaceflightCoreSteps: HumanSpaceflightCoreSteps;
   humanSpaceflightHeaderSteps: HumanSpaceflightHeaderSteps;
-  humanSpaceflightInteractionSteps: HumanSpaceflightInteractionSteps;
   humanSpaceflightMobileSteps: HumanSpaceflightMobileSteps;
   humanSpaceflightPerformanceSteps: HumanSpaceflightPerformanceSteps;
   careersPage: CareersPage;

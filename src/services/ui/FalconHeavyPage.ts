@@ -5,7 +5,6 @@ import { HeroPOF } from "../fragments/HeroPOF";
 export class FalconHeavyPage extends SpaceXPage {
   readonly hero: HeroPOF;
 
-  static readonly PATH = "/falcon-heavy";
   static readonly SPECIFICATIONS_SECTION_SELECTOR =
     '[data-section="specifications"], #technical-specs';
   static readonly ENGINE_SPEC_SELECTOR =
