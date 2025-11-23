@@ -1,0 +1,82 @@
+graph TB
+    subgraph "Test Framework Core"
+        PlaywrightBDD[Playwright BDD Engine]
+        GherkinParser[Gherkin Feature Parser]
+        TestRunner[Test Runner]
+    end
+    
+    subgraph "Design Patterns"
+        StrategyPattern[Strategy Pattern]
+        FactoryPattern[Factory Pattern]
+        POMPattern[Page Object Model]
+        TemplateMethod[Template Method Pattern]
+    end
+    
+    subgraph "Test Layers"
+        APITests[API Test Layer]
+        UITests[UI Test Layer]
+    end
+    
+    subgraph "API Testing Components"
+        SpaceXAPI[SpaceX API Client]
+        APIValidation[API Response Validator]
+        EndpointTests[Endpoint Test Suite]
+    end
+    
+    subgraph "UI Testing Components"
+        PageObjects[Page Objects]
+        BrowserDriver[Browser Driver]
+        UIValidation[UI Assertion Handler]
+    end
+    
+    subgraph "Target Systems"
+        SpaceXAPIEndpoints[SpaceX REST API]
+        SpaceXWebUI[SpaceX Web UI]
+    end
+    
+    subgraph "Reporting & Results"
+        HTMLReporter[HTML Reporter]
+        AllureReporter[Allure Reporter]
+        CucumberJSON[Cucumber JSON]
+        Screenshots[Screenshot Handler]
+    end
+    
+    subgraph "CI/CD Pipeline"
+        GitHubActions[GitHub Actions]
+        ParallelExecution[Parallel Test Executor]
+    end
+    
+    GherkinParser --> PlaywrightBDD
+    PlaywrightBDD --> TestRunner
+    
+    TestRunner --> APITests
+    TestRunner --> UITests
+    
+    StrategyPattern --> APITests
+    FactoryPattern --> APITests
+    POMPattern --> UITests
+    TemplateMethod --> TestRunner
+    
+    APITests --> SpaceXAPI
+    SpaceXAPI --> APIValidation
+    APIValidation --> EndpointTests
+    EndpointTests --> SpaceXAPIEndpoints
+    
+    UITests --> PageObjects
+    PageObjects --> BrowserDriver
+    BrowserDriver --> UIValidation
+    UIValidation --> SpaceXWebUI
+    
+    TestRunner --> HTMLReporter
+    TestRunner --> AllureReporter
+    TestRunner --> CucumberJSON
+    UITests --> Screenshots
+    
+    TestRunner --> GitHubActions
+    GitHubActions --> ParallelExecution
+    ParallelExecution --> TestRunner
+    
+    style PlaywrightBDD fill:#45ba4b
+    style SpaceXAPIEndpoints fill:#005288
+    style GitHubActions fill:#2088ff
+    style AllureReporter fill:#ff6347
