@@ -31,7 +31,6 @@ jobs:
         docker run --rm \
           -e UI_BASE_URL=https://www.spacex.com \
           -e API_BASE_URL=https://api.spacexdata.com/v4 \
-          # The volume mount will now point to a directory with correct permissions
           -v $(pwd)/allure-results:/app/allure-results \
           -w /app \
           spacex-playwright-tests
