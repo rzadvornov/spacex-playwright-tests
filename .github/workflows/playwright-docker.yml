@@ -18,11 +18,20 @@ jobs:
     - name: Build Docker image
       run: docker build -t spacex-playwright-tests .
 
+    - name: Set permissions for Allure results directory
+      run: |
+        # Create the directory on the host (if it doesn't exist)
+        mkdir -p allure-results
+        # Set permissions to allow writing by any user (UID/GID)
+        # This is a common fix for volume-mounted directories with non-root containers
+        chmod -R 777 allure-results 
+        
     - name: Run tests
       run: |
         docker run --rm \
           -e UI_BASE_URL=https://www.spacex.com \
           -e API_BASE_URL=https://api.spacexdata.com/v4 \
+          # The volume mount will now point to a directory with correct permissions
           -v $(pwd)/allure-results:/app/allure-results \
           -w /app \
           spacex-playwright-tests
